@@ -2,7 +2,7 @@
   <div class="registration-card">
     <h1 class="registration-title">Registration</h1>
 
-    <form class="registration-form" (ngSubmit)="onSubmit()" #registrationForm="ngForm">
+    <form class="registration-form" [formGroup]="formData" (ngSubmit)="register()">
       <div class="form-row">
         <div class="form-group half">
           <input
@@ -10,9 +10,7 @@
             class="form-input"
             type="text"
             placeholder="Name"
-            name="name"
-            [(ngModel)]="formData.name"
-            required
+            formControlName="name"
           />
         </div>
         <div class="form-group half">
@@ -21,9 +19,7 @@
             class="form-input"
             type="text"
             placeholder="Lastname"
-            name="lastname"
-            [(ngModel)]="formData.lastname"
-            required
+            formControlName="lastname"
           />
         </div>
       </div>
@@ -34,9 +30,7 @@
           class="form-input"
           type="email"
           placeholder="E-mail"
-          name="email"
-          [(ngModel)]="formData.email"
-          required
+          formControlName="email"
         />
       </div>
 
@@ -46,9 +40,7 @@
           class="form-input"
           type="password"
           placeholder="Password"
-          name="password"
-          [(ngModel)]="formData.password"
-          required
+          formControlName="password"
         />
       </div>
 
@@ -58,9 +50,7 @@
           class="form-input"
           type="password"
           placeholder="Confirm password"
-          name="confirmPassword"
-          [(ngModel)]="formData.confirmPassword"
-          required
+          formControlName="confirmPassword"
         />
       </div>
 
@@ -70,12 +60,12 @@
           class="form-input"
           type="text"
           placeholder="Organization"
-          name="organization"
-          [(ngModel)]="formData.organization"
+          formControlName="organization"
         />
       </div>
 
       <div class="form-group submit-group">
+        <p class="errormsg" [style.display]="errormsg != null ? 'block' : 'none'">{{ errormsg }}</p>
         <button id="submitBtn" class="submit-btn" type="submit">Submit</button>
       </div>
     </form>

@@ -6,6 +6,7 @@ import com.CyberSecurity.dto.authentication.RegisterDTO;
 import com.CyberSecurity.dto.user.CreatedUserDTO;
 import com.CyberSecurity.model.User;
 import com.CyberSecurity.service.AccountService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,7 @@ public class AuthenticationController {
     @PostMapping(value = "/register",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<GetProfileDTO> createAccount(@RequestBody RegisterDTO registrationData){
+    public ResponseEntity<GetProfileDTO> createAccount(@Valid @RequestBody RegisterDTO registrationData){
         User registered = accountService.register(registrationData);
         if (registered == null) return new ResponseEntity<>(HttpStatus.CONFLICT);
         AccountDTO registeredDTO = new AccountDTO(registrationData.getEmail());
