@@ -10,7 +10,7 @@ export class AuthService {
   private readonly http = inject(HttpClient);
 
   register(data: RegistrationData) {
-    console.log(`${environment.authHost}/register`);
+    console.log(data);
     return this.http.post<any>(`${environment.authHost}/register`, data, { observe: 'response' });
   }
 }

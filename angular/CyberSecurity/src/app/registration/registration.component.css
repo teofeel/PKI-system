@@ -109,6 +109,30 @@
   background-color: var(--input-bg-light);
 }
 
+.combo-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: var(--title-color);
+  color: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  z-index: 100;
+}
+
+.combo-dropdown li {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.combo-dropdown li:hover {
+  background: var(--input-bg-dark);
+}
+
 .form-input::placeholder {
   color: var(--input-placeholder);
   opacity: 1;
@@ -123,12 +147,10 @@
   background-color: var(--input-bg-hover) !important;
 }
 
-/* ===== Submit Group ===== */
 .submit-group {
   align-items: center;
 }
 
-/* ===== Submit Button ===== */
 .submit-btn {
   padding: 1rem 2rem;
   background-color: var(--submit-bg);
@@ -156,7 +178,6 @@
   transform: translateY(0);
 }
 
-/* ===== Responsive ===== */
 @media (max-width: 480px) {
   .form-row {
     flex-direction: column;

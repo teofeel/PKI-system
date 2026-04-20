@@ -5,3 +5,7 @@ export interface RegistrationData {
   password: string;
   organization: string;
 }
+
+export interface Organization {
+  name: string;
+}

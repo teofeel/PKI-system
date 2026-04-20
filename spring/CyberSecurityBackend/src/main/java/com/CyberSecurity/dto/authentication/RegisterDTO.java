@@ -18,7 +18,7 @@ public class RegisterDTO {
     private String name;
     @NotBlank
     private String lastname;
-    @Email(regexp = "/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/")
+    @Email(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")
     private String email;
     @Size(min = 8)
     private String password;

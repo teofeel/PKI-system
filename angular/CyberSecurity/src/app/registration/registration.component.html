@@ -54,14 +54,23 @@
         />
       </div>
 
-      <div class="form-group">
+      <div class="form-group" style="position: relative">
         <input
           id="organization"
           class="form-input"
           type="text"
           placeholder="Organization"
           formControlName="organization"
+          autocomplete="off"
+          readonly
+          (focus)="showOrgDropdown = true; filteredOrgs = organizations"
+          (blur)="hideDropdown()"
         />
+        <ul class="combo-dropdown" *ngIf="showOrgDropdown && filteredOrgs.length > 0">
+          <li *ngFor="let org of filteredOrgs" (mousedown)="selectOrg(org)">
+            {{ org.name }}
+          </li>
+        </ul>
       </div>
 
       <div class="form-group submit-group">
