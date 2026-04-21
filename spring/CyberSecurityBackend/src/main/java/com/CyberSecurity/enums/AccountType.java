@@ -1,7 +1,15 @@
 package com.CyberSecurity.enums;
 
-public enum AccountType {
+import org.jspecify.annotations.Nullable;
+import org.springframework.security.core.GrantedAuthority;
+
+public enum AccountType implements GrantedAuthority {
     ADMIN,
     CA_USER,
-    USER
+    USER;
+
+    @Override
+    public @Nullable String getAuthority() {
+        return "";
+    }
 }
