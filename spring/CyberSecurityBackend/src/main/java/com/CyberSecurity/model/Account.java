@@ -11,7 +11,9 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -42,6 +44,9 @@ public class Account implements UserDetails {
     @Column(unique = true)
     private String verification;
 
+    @Column
+    private Timestamp lastPasswordResetTime;
+
     @OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
     private User user;
 
@@ -51,6 +56,7 @@ public class Account implements UserDetails {
         this.accountType = accountType;
         this.accountStatus = AccountStatus.UNVERIFIED;
         this.verification = UUID.randomUUID().toString();
+        this.lastPasswordResetTime = new Timestamp(new Date().getTime());
     }
 
     @Override

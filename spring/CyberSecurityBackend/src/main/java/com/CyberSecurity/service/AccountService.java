@@ -1,6 +1,7 @@
 package com.CyberSecurity.service;
 
 import com.CyberSecurity.dto.authentication.RegisterDTO;
+import com.CyberSecurity.enums.AccountStatus;
 import com.CyberSecurity.enums.AccountType;
 import com.CyberSecurity.model.Account;
 import com.CyberSecurity.model.SetPasswordToken;
@@ -12,13 +13,13 @@ import com.CyberSecurity.repository.UserRepository;
 import com.CyberSecurity.utils.EmailUtils;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import java.util.Date;
 
 @Service
 @AllArgsConstructor
@@ -39,7 +40,11 @@ public class AccountService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return null;
+        Account acc = accountRepository.findAccountByEmail(username);
+        if (acc == null)
+            throw new UsernameNotFoundException(String.format("No user found with email '%s'.", username));
+        else
+            return acc;
     }
 
     public User register(RegisterDTO registrationData) {
@@ -62,5 +67,18 @@ public class AccountService implements UserDetailsService {
             return newUser;
         }
         return null;
+    }
+
+    public boolean verify(String token){
+        Account acc = accountRepository.findAccountByVerification(token);
+        if (acc != null) {
+            long now = new Date().getTime();
+            if (now - acc.getLastPasswordResetTime().getTime() < 600000)
+                acc.setAccountStatus(AccountStatus.VERIFIED);
+            acc.setVerification(null);
+            accountRepository.save(acc);
+            return true;
+        }
+        return false;
     }
 }

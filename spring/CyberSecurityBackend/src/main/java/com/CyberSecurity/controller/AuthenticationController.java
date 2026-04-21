@@ -32,4 +32,12 @@ public class AuthenticationController {
         GetProfileDTO profile = new GetProfileDTO(createdUserDTO, registeredDTO);
         return new ResponseEntity<>(profile, HttpStatus.CREATED);
     }
+
+    @GetMapping(value = "/verify/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> verifyAccount(@PathVariable String token){
+        boolean checkToken = accountService.verify(token);
+        if (!checkToken)
+            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+        return ResponseEntity.ok(null);
+    }
 }
