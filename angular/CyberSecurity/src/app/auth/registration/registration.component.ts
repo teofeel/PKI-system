@@ -1,11 +1,11 @@
 import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Organization, RegistrationData } from '../model/RegistrationData';
-import { AuthService } from '../service/auth.service';
+import { Organization, RegistrationData } from '../../model/RegistrationData';
+import { AuthService } from '../../service/auth.service';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../environments/environment';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-registration',

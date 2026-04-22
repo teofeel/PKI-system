@@ -60,7 +60,7 @@ public class AccountService implements UserDetailsService {
             if (registrationData.getAccountType() == AccountType.CA_USER) {
                 SetPasswordToken token = new SetPasswordToken(newAccount);
                 sptRepository.save(token);
-                //emailUtils.sendSetPasswordEmail(token);
+                emailUtils.sendSetPasswordEmail(token);
             } else {
                 emailUtils.sendVerificationEmail(newAccount);
             }
@@ -69,7 +69,7 @@ public class AccountService implements UserDetailsService {
         return null;
     }
 
-    public boolean verify(String token){
+    public boolean verifyAccountToken(String token){
         Account acc = accountRepository.findAccountByVerification(token);
         if (acc != null) {
             long now = new Date().getTime();
@@ -80,5 +80,23 @@ public class AccountService implements UserDetailsService {
             return true;
         }
         return false;
+    }
+
+    public boolean verifySetPasswordToken(String token){
+        SetPasswordToken spt = sptRepository.findByToken(token);
+        return spt != null;
+    }
+
+    public boolean setPassword(String token, String password){
+        SetPasswordToken spt = sptRepository.findByToken(token);
+        if (spt == null)
+            return false;
+        Account acc = spt.getAccount();
+        acc.setPassword(password);
+        acc.setAccountStatus(AccountStatus.VERIFIED);
+        acc.setVerification(null);
+        accountRepository.save(acc);
+        sptRepository.delete(spt);
+        return true;
     }
 }

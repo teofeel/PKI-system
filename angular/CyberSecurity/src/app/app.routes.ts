@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
-import { RegistrationComponent } from './registration/registration.component';
-import { VerifyComponent } from './verify/verify.component';
+import { RegistrationComponent } from './auth/registration/registration.component';
+import { VerifyComponent } from './auth/verify/verify.component';
+import { SetPasswordComponent } from './auth/set-password/set-password.component';
 
 export const routes: Routes = [
   {
@@ -10,5 +11,9 @@ export const routes: Routes = [
   {
     path: 'verify/:token',
     component: VerifyComponent,
+  },
+  {
+    path: 'set-password/:token',
+    component: SetPasswordComponent,
   },
 ];

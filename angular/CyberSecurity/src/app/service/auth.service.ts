@@ -18,4 +18,16 @@ export class AuthService {
       observe: 'response',
     });
   }
+
+  checkSetPassword(token: string) {
+    return this.http.get<any>(`${environment.authHost}/set-password/${token}`);
+  }
+
+  setPassword(token: string, password: string) {
+    return this.http.post<any>(
+      `${environment.authHost}/set-password/${token}`,
+      { password: password },
+      { observe: 'response' },
+    );
+  }
 }
