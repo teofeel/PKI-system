@@ -4,8 +4,7 @@ import { Router } from '@angular/router';
 import { Organization, RegistrationData } from '../../model/RegistrationData';
 import { AuthService } from '../../service/auth.service';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../environments/environment';
+import { OrganizationService } from '../../service/organization.service';
 
 @Component({
   selector: 'app-registration',
@@ -24,7 +23,7 @@ export class RegistrationComponent implements OnInit {
 
   errormsg: string | null = null;
 
-  constructor(private httpClient: HttpClient) {}
+  constructor(private organizationService: OrganizationService) {}
 
   ngOnInit(): void {
     this.prepareOrg();
@@ -90,12 +89,10 @@ export class RegistrationComponent implements OnInit {
   }
 
   prepareOrg() {
-    this.httpClient
-      .get<Organization[]>(`${environment.apiHost}/organizations`)
-      .subscribe((organizations) => {
-        this.organizations = organizations;
-        this.filteredOrgs = [...this.organizations];
-      });
+    this.organizationService.getOrganizations().subscribe((organizations) => {
+      this.organizations = organizations;
+      this.filteredOrgs = [...this.organizations];
+    });
   }
 
   filterOrgs(event: Event) {

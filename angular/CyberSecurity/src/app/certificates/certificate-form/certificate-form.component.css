@@ -114,13 +114,21 @@
   box-sizing: border-box;
 }
 
-.form-col:first-child .form-group:nth-child(odd) .form-input,
-.form-col:last-child .form-group:nth-child(even) .form-input {
+#name,
+#givenName,
+#organization,
+#country,
+#certType,
+#parentCA {
   background-color: var(--input-bg-light);
 }
 
-.form-col:first-child .form-group:nth-child(even) .form-input,
-.form-col:last-child .form-group:nth-child(odd) .form-input {
+#surname,
+#email,
+#organizationUnit,
+#owner,
+#validTo,
+#validFrom {
   background-color: var(--input-bg-dark);
 }
 

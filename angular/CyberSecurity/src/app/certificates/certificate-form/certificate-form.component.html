@@ -98,7 +98,7 @@
             />
             <ul class="combo-dropdown" *ngIf="showOwnerDropdown && filteredOwners.length > 0">
               <li *ngFor="let owner of filteredOwners" (mousedown)="selectOwner(owner)">
-                {{ owner.name }}
+                {{ owner.name + ' ' + owner.lastname }}
               </li>
             </ul>
           </div>
@@ -157,7 +157,7 @@
             />
             <ul class="combo-dropdown" *ngIf="showParentDropdown">
               <li *ngFor="let parentCA of parentCAs" (mousedown)="selectParentCA(parentCA)">
-                {{ parentCA.CommonName }}
+                {{ parentCA.commonName }}
               </li>
             </ul>
           </div>
