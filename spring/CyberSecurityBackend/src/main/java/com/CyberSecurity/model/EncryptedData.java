@@ -14,7 +14,7 @@ import lombok.Setter;
 @Embeddable
 public class EncryptedData {
     @Column(nullable = false, unique = true, length = 4096)
-    private String encryptedKey;
+    private String encryptedText;
 
     // initialization vector, aes requires it for encryption operations
     // cannot decrypt without it

@@ -61,7 +61,7 @@ public class Certificate {
 
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "encryptedKey", column = @Column(name = "encrypted_private_key", length = 4096)),
+            @AttributeOverride(name = "encryptedText", column = @Column(name = "encrypted_private_key", length = 4096)),
             @AttributeOverride(name = "iv", column = @Column(name = "private_key_iv")),
             @AttributeOverride(name = "tag", column = @Column(name = "private_key_tag"))
     })
