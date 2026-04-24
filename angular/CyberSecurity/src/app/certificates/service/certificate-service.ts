@@ -10,6 +10,6 @@ export class CertificateService {
   constructor(private http: HttpClient) {}
 
   issue(certRequest: CertificateRequest) {
-    return this.http.post<any>(`${environment.apiHost}/certificates`, certRequest);
+    return this.http.post(`${environment.apiHost}/certificates`, certRequest);
   }
 }

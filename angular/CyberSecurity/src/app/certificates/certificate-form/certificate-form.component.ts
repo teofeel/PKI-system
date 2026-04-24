@@ -45,14 +45,14 @@ export class CertificateFormComponent implements OnInit {
     surname: new FormControl<string>('', Validators.required),
     email: new FormControl<string>('', [Validators.required, Validators.email]),
     givenName: new FormControl<string>('', Validators.required),
-    organization: new FormControl<string>('', [Validators.required, Validators.minLength(8)]),
+    organization: new FormControl<string>('', Validators.required),
     organizationUnit: new FormControl<string>('', Validators.required),
     country: new FormControl<string>('', Validators.required),
     ownerDisplay: new FormControl<string>('', Validators.required),
     certType: new FormControl<CertificateType>(CertificateType.END_ENTITY, Validators.required),
     validFrom: new FormControl<string>('', Validators.required),
     validTo: new FormControl<string>('', Validators.required),
-    parentCADisplay: new FormControl<string>('', Validators.required),
+    parentCADisplay: new FormControl<string>(''),
   });
 
   detectErrors(): boolean {
@@ -88,8 +88,6 @@ export class CertificateFormComponent implements OnInit {
       this.errormsg = 'End date must be in the future!';
     } else if (!formValue.certType) {
       this.errormsg = 'Certificate type is required!';
-    } else if (!this.selectedParentCA) {
-      this.errormsg = 'Parent CA is required!';
     }
 
     return this.errormsg === null;
@@ -169,7 +167,7 @@ export class CertificateFormComponent implements OnInit {
 
   issue() {
     const valid = this.detectErrors();
-    if (!valid || this.formData.invalid || !this.selectedOwner || !this.selectedParentCA) {
+    if (!valid || this.formData.invalid || !this.selectedOwner) {
       return;
     }
 
@@ -186,13 +184,17 @@ export class CertificateFormComponent implements OnInit {
       userId: this.selectedOwner.id,
       validFrom: new Date(formValue.validFrom!),
       validTo: new Date(formValue.validTo!),
-      parentCAId: this.selectedParentCA.id,
       certificateType: formValue.certType!,
     };
+
+    if (this.selectedParentCA != null) certificateRequest.parentCAId = this.selectedParentCA?.id;
 
     console.log(certificateRequest);
 
     this.certificateService.issue(certificateRequest).subscribe({
+      next: (res) => {
+        console.log(res);
+      },
       error: () => {
         this.errormsg = 'Failed to issue certificate!';
       },
