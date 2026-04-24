@@ -1,0 +1,39 @@
+package com.CyberSecurity.security;
+
+import com.CyberSecurity.dto.encription.EncriptionResult;
+import com.CyberSecurity.model.KmsKey;
+import com.CyberSecurity.repository.KmsRepository;
+import com.CyberSecurity.service.EncryptionService;
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.stereotype.Component;
+
+@Component
+public class KmsInitializer implements ApplicationRunner {
+    @Autowired
+    private KmsRepository kmsRepository;
+    @Autowired
+    private EncryptionService encryptionService;
+
+    @Override
+    @Transactional
+    public void run(ApplicationArguments args) throws Exception {
+        if(kmsRepository.count() == 0){
+            System.out.println("Generating KMS key....");
+
+            byte[] key = encryptionService.generateRandomBytes(32);
+            EncriptionResult res = encryptionService.encryptWithRootKey(key);
+
+            KmsKey kmsKey = new KmsKey();
+            kmsKey.setEncryptedKey(res.getText());
+            kmsKey.setIv(res.getIv());
+            kmsKey.setTag(res.getTag());
+
+            kmsRepository.save(kmsKey);
+        }else {
+            System.out.println("KMS key already exists");
+        }
+    }
+}
