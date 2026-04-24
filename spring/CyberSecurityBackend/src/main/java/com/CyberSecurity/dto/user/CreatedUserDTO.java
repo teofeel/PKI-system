@@ -11,13 +11,13 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreatedUserDTO {
-    private Long Id;
+    private Long id;
     private String name;
     private String lastname;
     private String organization;
 
     public CreatedUserDTO(User registered) {
-        Id = registered.getId();
+        id = registered.getId();
         name = registered.getName();
         lastname = registered.getLastname();
         organization = registered.getOrganization().getName();
