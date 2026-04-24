@@ -23,11 +23,11 @@ public class KmsKey {
 
     // initialization vector, aes requires it for encryption operations
     // cannot decrypt without it
-    @Column(nullable = false)
+    @Column(nullable = false, length=12)
     private String iv;
 
     // tag to check if someone modified encrypted key manually in db
-    @Column(nullable = false)
+    @Column(nullable = false, length=16)
     private String tag;
 
     private LocalDateTime creationDate;

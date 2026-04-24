@@ -21,7 +21,7 @@ public class EncryptionConfig {
         if (key == null) {
             throw new IllegalAccessException("ROOT KEY must exist before starting application");
         }
-        
+
         return HexFormat.of().parseHex(key);
     }
 }

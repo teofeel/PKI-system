@@ -18,4 +18,6 @@ public class Organization {
 
     @Column
     private String name;
+
+    // TODO add data key for organization
 }
