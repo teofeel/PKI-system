@@ -45,7 +45,7 @@ public class Certificate {
     @Column(nullable = false)
     private boolean isRevoked = false;
 
-    @Column(nullable = true)
+    @Column
     private String revocationReason;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -56,12 +56,12 @@ public class Certificate {
     @JoinColumn(name = "organization_id", nullable = false)
     private Organization organization;
 
-    @Column(nullable = true)
+    @Column
     private String extensions;
 
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "encryptedText", column = @Column(name = "encrypted_private_key", length = 4096)),
+            @AttributeOverride(name = "encryptedKey", column = @Column(name = "encrypted_private_key", length = 4096)),
             @AttributeOverride(name = "iv", column = @Column(name = "private_key_iv")),
             @AttributeOverride(name = "tag", column = @Column(name = "private_key_tag"))
     })

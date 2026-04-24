@@ -20,9 +20,7 @@ public class DataKeyService {
 
         byte[] dataKey = encryptionService.generateRandomBytes(32);
 
-        KmsKey kmsRoot = kmsRepository.findAll()
-                    .stream()
-                    .findFirst()
+        KmsKey kmsRoot = kmsRepository.findFirstBy()
                     .orElseThrow(() -> new IllegalStateException("KMS Root Key not found"));
 
         byte[] decryptedKmsKey = encryptionService.decrypt(
