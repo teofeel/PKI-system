@@ -18,17 +18,8 @@ public class KmsKey {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(nullable = false, unique = true, length = 2048)
-    private String encryptedKey;
-
-    // initialization vector, aes requires it for encryption operations
-    // cannot decrypt without it
-    @Column(nullable = false, length=12)
-    private String iv;
-
-    // tag to check if someone modified encrypted key manually in db
-    @Column(nullable = false, length=16)
-    private String tag;
+    @Column(nullable = false)
+    private EncryptedData encryptedData;
 
     private LocalDateTime creationDate;
 

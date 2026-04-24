@@ -2,6 +2,7 @@ package com.CyberSecurity.security;
 
 import com.CyberSecurity.config.EncryptionConfig;
 import com.CyberSecurity.dto.encription.EncriptionResult;
+import com.CyberSecurity.model.EncryptedData;
 import com.CyberSecurity.model.KmsKey;
 import com.CyberSecurity.repository.KmsRepository;
 import com.CyberSecurity.service.EncryptionService;
@@ -30,10 +31,7 @@ public class KmsInitializer implements ApplicationRunner {
             EncriptionResult res = encryptionService.encrypt(key, encryptionConfig.getRootKey());
 
             KmsKey kmsKey = new KmsKey();
-
-            kmsKey.setEncryptedKey(res.getText());
-            kmsKey.setIv(res.getIv());
-            kmsKey.setTag(res.getTag());
+            kmsKey.setEncryptedData(new EncryptedData(res.getText(), res.getIv(), res.getTag()));
 
             kmsRepository.save(kmsKey);
         }else {

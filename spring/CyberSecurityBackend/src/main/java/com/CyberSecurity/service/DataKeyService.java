@@ -26,9 +26,9 @@ public class DataKeyService {
                     .orElseThrow(() -> new IllegalStateException("KMS Root Key not found"));
 
         byte[] decryptedKmsKey = encryptionService.decrypt(
-                kmsRoot.getEncryptedKey(),
-                kmsRoot.getIv(),
-                kmsRoot.getTag(),
+                kmsRoot.getEncryptedData().getEncryptedKey(),
+                kmsRoot.getEncryptedData().getIv(),
+                kmsRoot.getEncryptedData().getTag(),
                 encryptionConfig.getRootKey()
         );
 
