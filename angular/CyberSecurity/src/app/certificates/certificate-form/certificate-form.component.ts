@@ -1,5 +1,4 @@
-import { Component } from '@angular/core';
-import { environment } from '../../environments/environment';
+import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Organization } from '../../model/RegistrationData';
@@ -8,6 +7,8 @@ import { CertificateType } from '../model/certificate-type';
 import { UserService } from '../../service/user.service';
 import { UserResponse } from '../../model/UserReponse';
 import { OrganizationService } from '../../service/organization.service';
+import { CertificateRequest } from '../model/certificate-request';
+import { CertificateService } from '../service/certificate-service';
 
 @Component({
   selector: 'app-certificate-form',
@@ -15,14 +16,18 @@ import { OrganizationService } from '../../service/organization.service';
   templateUrl: './certificate-form.component.html',
   styleUrl: './certificate-form.component.css',
 })
-export class CertificateFormComponent {
+export class CertificateFormComponent implements OnInit {
   errormsg: string | null = '';
+
   organizations: Organization[] = [];
   filteredOrgs: Organization[] = [];
   owners: UserResponse[] = [];
   filteredOwners: UserResponse[] = [];
   parentCAs: CertificateResponse[] = [];
   certTypes: CertificateType[] = [];
+
+  selectedOwner: UserResponse | null = null;
+  selectedParentCA: CertificateResponse | null = null;
 
   showOrgDropdown = false;
   showOwnerDropdown = false;
@@ -32,53 +37,62 @@ export class CertificateFormComponent {
   constructor(
     private userService: UserService,
     private organizationService: OrganizationService,
+    private certificateService: CertificateService,
   ) {}
 
   formData = new FormGroup({
-    name: new FormControl('', Validators.required),
-    surname: new FormControl('', Validators.required),
-    email: new FormControl('', [Validators.required, Validators.email]),
-    givenName: new FormControl('', Validators.required),
-    organization: new FormControl('', [Validators.required, Validators.minLength(8)]),
-    organizationUnit: new FormControl('', Validators.required),
-    country: new FormControl('', Validators.required),
-    owner: new FormControl('', Validators.required),
+    name: new FormControl<string>('', Validators.required),
+    surname: new FormControl<string>('', Validators.required),
+    email: new FormControl<string>('', [Validators.required, Validators.email]),
+    givenName: new FormControl<string>('', Validators.required),
+    organization: new FormControl<string>('', [Validators.required, Validators.minLength(8)]),
+    organizationUnit: new FormControl<string>('', Validators.required),
+    country: new FormControl<string>('', Validators.required),
+    ownerDisplay: new FormControl<string>('', Validators.required),
     certType: new FormControl<CertificateType>(CertificateType.END_ENTITY, Validators.required),
-    validFrom: new FormControl('', Validators.required),
-    validTo: new FormControl('', Validators.required),
-    parentCA: new FormControl('', Validators.required),
+    validFrom: new FormControl<string>('', Validators.required),
+    validTo: new FormControl<string>('', Validators.required),
+    parentCADisplay: new FormControl<string>('', Validators.required),
   });
 
-  detectErrors() {
+  detectErrors(): boolean {
     this.errormsg = null;
     const formValue = this.formData.value;
-    if (!formValue.email) {
-      this.errormsg = 'Email is required!';
-    } else if (this.formData.get('email')?.hasError('email')) {
-      this.errormsg = 'Please enter a valid email address!';
-    } else if (!formValue.name) {
+    if (!formValue.name) {
       this.errormsg = 'Name is required!';
     } else if (!formValue.surname) {
       this.errormsg = 'Surname is required!';
     } else if (!formValue.givenName) {
       this.errormsg = 'Given name is required!';
+    } else if (!formValue.email) {
+      this.errormsg = 'Email is required!';
+    } else if (this.formData.get('email')?.hasError('email')) {
+      this.errormsg = 'Please enter a valid email address!';
     } else if (!formValue.organization) {
       this.errormsg = 'Organization is required!';
     } else if (!formValue.organizationUnit) {
       this.errormsg = 'Organization unit is required!';
     } else if (!formValue.country) {
       this.errormsg = 'Country is required!';
-    } else if (!formValue.owner) {
+    } else if (!this.selectedOwner) {
       this.errormsg = 'Owner is required!';
     } else if (!formValue.validFrom) {
-      this.errormsg = 'Start Date is required!';
+      this.errormsg = 'Start date is required!';
     } else if (!formValue.validTo) {
-      this.errormsg = 'End Date is required!';
+      this.errormsg = 'End date is required!';
+    } else if (new Date(formValue.validFrom) >= new Date(formValue.validTo)) {
+      this.errormsg = 'End date must be after start date!';
+    } else if (new Date(formValue.validFrom) < new Date(Date.now())) {
+      this.errormsg = 'Start date must be in the future!';
+    } else if (new Date(formValue.validTo) < new Date(Date.now())) {
+      this.errormsg = 'End date must be in the future!';
     } else if (!formValue.certType) {
-      this.errormsg = 'Cert Type is required!';
-    } else if (!formValue.parentCA) {
+      this.errormsg = 'Certificate type is required!';
+    } else if (!this.selectedParentCA) {
       this.errormsg = 'Parent CA is required!';
     }
+
+    return this.errormsg === null;
   }
 
   ngOnInit() {
@@ -112,18 +126,21 @@ export class CertificateFormComponent {
   prepareUsers() {
     this.userService.getUsers().subscribe((owners) => {
       this.owners = owners;
-      this.filteredOwners = [...this.filteredOwners];
+      this.filteredOwners = [...this.owners];
     });
   }
 
   filterOwners(event: Event) {
     const val = (event.target as HTMLInputElement).value.toLowerCase();
-    this.filteredOwners = this.owners.filter((o) => o.name.toLowerCase().includes(val));
+    this.filteredOwners = this.owners.filter((o) =>
+      (o.name + ' ' + o.lastname).toLowerCase().includes(val),
+    );
     this.showOwnerDropdown = true;
   }
 
   selectOwner(owner: UserResponse) {
-    this.formData.get('owner')?.setValue(owner.name + ' ' + owner.lastname);
+    this.selectedOwner = owner;
+    this.formData.get('ownerDisplay')?.setValue(owner.name + ' ' + owner.lastname);
     this.showOwnerDropdown = false;
   }
 
@@ -132,7 +149,8 @@ export class CertificateFormComponent {
   }
 
   selectParentCA(parentCA: CertificateResponse) {
-    this.formData.get('organization')?.setValue(parentCA.commonName);
+    this.selectedParentCA = parentCA;
+    this.formData.get('parentCADisplay')?.setValue(parentCA.commonName);
     this.showParentDropdown = false;
   }
 
@@ -150,6 +168,34 @@ export class CertificateFormComponent {
   }
 
   issue() {
-    console.log(this.formData.value);
+    const valid = this.detectErrors();
+    if (!valid || this.formData.invalid || !this.selectedOwner || !this.selectedParentCA) {
+      return;
+    }
+
+    const formValue = this.formData.value;
+
+    const certificateRequest: CertificateRequest = {
+      email: formValue.email!,
+      commonName: formValue.name!,
+      surname: formValue.surname!,
+      givenName: formValue.givenName!,
+      organization: formValue.organization!,
+      organizationUnit: formValue.organizationUnit!,
+      country: formValue.country!,
+      userId: this.selectedOwner.id,
+      validFrom: new Date(formValue.validFrom!),
+      validTo: new Date(formValue.validTo!),
+      parentCAId: this.selectedParentCA.id,
+      certificateType: formValue.certType!,
+    };
+
+    console.log(certificateRequest);
+
+    this.certificateService.issue(certificateRequest).subscribe({
+      error: () => {
+        this.errormsg = 'Failed to issue certificate!';
+      },
+    });
   }
 }

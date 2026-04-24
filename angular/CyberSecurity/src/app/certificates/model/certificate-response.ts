@@ -1,4 +1,4 @@
 export interface CertificateResponse {
-  id: number;
+  id: string;
   commonName: string;
 }
