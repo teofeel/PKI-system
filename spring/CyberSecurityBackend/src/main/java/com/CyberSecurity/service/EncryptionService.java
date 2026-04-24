@@ -45,6 +45,9 @@ public class EncryptionService {
         int ciphertextLength = encryptedBytes.length - GCM_TAG_LENGTH;
         byte[] ciphertext = new byte[ciphertextLength];
         byte[] tag = new byte[GCM_TAG_LENGTH];
+
+        System.arraycopy(encryptedBytes, 0, ciphertext, 0, ciphertextLength);
+        System.arraycopy(encryptedBytes, ciphertextLength, tag, 0, GCM_TAG_LENGTH);
         
         return new EncriptionResult(
                 HexFormat.of().formatHex(ciphertext),

@@ -11,10 +11,17 @@ import java.util.HexFormat;
 
 @Configuration
 public class EncryptionConfig {
-    @Value("${ROOT_KEY}")
-    private String rootKey;
+    @Autowired
+    private Environment env;
 
-    public byte[] getRootKey() {
-        return HexFormat.of().parseHex(rootKey);
+
+    public byte[] getRootKey() throws IllegalAccessException {
+        String key = env.getProperty("ROOT_KEY");
+
+        if (key == null) {
+            throw new IllegalAccessException("ROOT KEY must exist before starting application");
+        }
+        
+        return HexFormat.of().parseHex(key);
     }
 }

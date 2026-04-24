@@ -27,6 +27,7 @@ public class KmsInitializer implements ApplicationRunner {
             EncriptionResult res = encryptionService.encryptWithRootKey(key);
 
             KmsKey kmsKey = new KmsKey();
+
             kmsKey.setEncryptedKey(res.getText());
             kmsKey.setIv(res.getIv());
             kmsKey.setTag(res.getTag());
