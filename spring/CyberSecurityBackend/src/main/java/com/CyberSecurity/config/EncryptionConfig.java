@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.util.Assert;
 
+import java.util.Base64;
 import java.util.HexFormat;
 
 @Configuration
@@ -22,6 +23,12 @@ public class EncryptionConfig {
             throw new IllegalAccessException("ROOT KEY must exist before starting application");
         }
 
-        return HexFormat.of().parseHex(key);
+        byte[] decodedKey = Base64.getDecoder().decode(key);
+
+        if (decodedKey.length != 32) {
+            throw new IllegalStateException("ROOT_KEY mora imati tačno 32 bajta (256 bita) nakon dekodiranja.");
+        }
+
+        return decodedKey;
     }
 }
