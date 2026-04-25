@@ -27,9 +27,11 @@ public class DataKeyService {
                 kmsRoot.getEncryptedData().getEncryptedText(),
                 kmsRoot.getEncryptedData().getIv(),
                 kmsRoot.getEncryptedData().getTag(),
-                encryptionConfig.getRootKey()
+                encryptionConfig.getRootKey(),
+                null,
+                null
         );
 
-        return encryptionService.encrypt(dataKey, decryptedKmsKey);
+        return encryptionService.encrypt(dataKey, decryptedKmsKey, null, null);
     }
 }

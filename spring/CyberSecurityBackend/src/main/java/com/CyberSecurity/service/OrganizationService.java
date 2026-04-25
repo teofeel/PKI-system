@@ -45,14 +45,18 @@ public class OrganizationService {
                 kmsRoot.getEncryptedData().getEncryptedText(),
                 kmsRoot.getEncryptedData().getIv(),
                 kmsRoot.getEncryptedData().getTag(),
-                encryptionConfig.getRootKey()
+                encryptionConfig.getRootKey(),
+                null,
+                null
         );
 
         return encryptionService.decrypt(
                 org.getDataKey().getEncryptedText(),
                 org.getDataKey().getIv(),
                 org.getDataKey().getTag(),
-                liveKmsKey
+                liveKmsKey,
+                null,
+                null
         );
 
     }

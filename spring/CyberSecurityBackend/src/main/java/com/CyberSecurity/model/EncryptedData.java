@@ -13,12 +13,12 @@ import lombok.Setter;
 @NoArgsConstructor
 @Embeddable
 public class EncryptedData {
-    @Column(nullable = false, unique = true, length = 4096)
+    @Column(nullable = false, length = 4096)
     private String encryptedText;
 
     // initialization vector, aes requires it for encryption operations
     // cannot decrypt without it
-    @Column(nullable = false, length=24)
+    @Column(nullable = false, length=32)
     private String iv;
 
     // tag to check if someone modified encrypted key manually in db

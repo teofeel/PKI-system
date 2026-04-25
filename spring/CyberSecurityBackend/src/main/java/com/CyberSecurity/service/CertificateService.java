@@ -85,7 +85,7 @@ public class CertificateService {
         byte[] privateKeyBytes = privateKey.getEncoded();
         byte[] dataKeyBytes = organizationService.getUnwrappedOrganizationDataKey(cert.getOrganization());
 
-        EncryptionResult res = encryptionService.encrypt(privateKeyBytes, dataKeyBytes);
+        EncryptionResult res = encryptionService.encrypt(privateKeyBytes, dataKeyBytes, null, null);
 
         cert.setEncryptedPrivateKey(
                 new EncryptedData(res.getText(), res.getIv(), res.getTag())
