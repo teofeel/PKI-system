@@ -1,8 +1,7 @@
 package com.CyberSecurity.service;
 
 import com.CyberSecurity.config.EncryptionConfig;
-import com.CyberSecurity.dto.encription.EncriptionResult;
-import com.CyberSecurity.model.KmsKey;
+import com.CyberSecurity.dto.encryption.EncryptionResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +30,7 @@ public class EncryptionService {
         return key;
     }
 
-    private EncriptionResult splitAndFormat(byte[] encryptedBytes, byte[] iv){
+    private EncryptionResult splitAndFormat(byte[] encryptedBytes, byte[] iv){
         int ciphertextLength = encryptedBytes.length - GCM_TAG_LENGTH;
         byte[] ciphertext = new byte[ciphertextLength];
         byte[] tag = new byte[GCM_TAG_LENGTH];
@@ -39,7 +38,7 @@ public class EncryptionService {
         System.arraycopy(encryptedBytes, 0, ciphertext, 0, ciphertextLength);
         System.arraycopy(encryptedBytes, ciphertextLength, tag, 0, GCM_TAG_LENGTH);
 
-        return new EncriptionResult(
+        return new EncryptionResult(
                 HexFormat.of().formatHex(ciphertext),
                 HexFormat.of().formatHex(iv),
                 HexFormat.of().formatHex(tag)
@@ -64,7 +63,7 @@ public class EncryptionService {
         return cipher.doFinal(combined);
     }
 
-    public EncriptionResult encrypt(byte[] data, byte[] key) throws Exception{
+    public EncryptionResult encrypt(byte[] data, byte[] key) throws Exception{
         SecretKey secretKey = new SecretKeySpec(key, AES_ALGORITHM);
         byte[] iv = generateRandomBytes(GCM_IV_LENGTH);
 

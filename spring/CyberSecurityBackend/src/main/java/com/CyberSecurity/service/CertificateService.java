@@ -5,7 +5,7 @@ import com.CyberSecurity.certificate.CertificateGenerator;
 import com.CyberSecurity.certificate.data.Issuer;
 import com.CyberSecurity.certificate.data.Subject;
 import com.CyberSecurity.certificate.dto.CertificateRequestDTO;
-import com.CyberSecurity.dto.encription.EncriptionResult;
+import com.CyberSecurity.dto.encryption.EncryptionResult;
 import com.CyberSecurity.model.Certificate;
 import com.CyberSecurity.model.EncryptedData;
 import lombok.RequiredArgsConstructor;
@@ -85,7 +85,7 @@ public class CertificateService {
         byte[] privateKeyBytes = privateKey.getEncoded();
         byte[] dataKeyBytes = organizationService.getUnwrappedOrganizationDataKey(cert.getOrganization());
 
-        EncriptionResult res = encryptionService.encrypt(privateKeyBytes, dataKeyBytes);
+        EncryptionResult res = encryptionService.encrypt(privateKeyBytes, dataKeyBytes);
 
         cert.setEncryptedPrivateKey(
                 new EncryptedData(res.getText(), res.getIv(), res.getTag())

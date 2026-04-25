@@ -1,4 +1,4 @@
-package com.CyberSecurity.dto.encription;
+package com.CyberSecurity.dto.encryption;
 
 import lombok.*;
 
@@ -7,7 +7,7 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class EncriptionResult {
+public class EncryptionResult {
     private String text;
     private String iv;
     private String tag;
