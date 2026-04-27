@@ -1,7 +1,7 @@
 package com.CyberSecurity.service;
 
 import com.CyberSecurity.config.EncryptionConfig;
-import com.CyberSecurity.dto.encryption.EncryptionResult;
+import com.CyberSecurity.model.EncryptedData;
 import com.CyberSecurity.model.KmsKey;
 import com.CyberSecurity.repository.KmsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,12 +16,9 @@ public class DataKeyService {
     @Autowired
     private KmsRepository kmsRepository;
 
-    public EncryptionResult generateTenantDataKey() throws Exception{
-
-        byte[] dataKey = encryptionService.generateRandomBytes(32);
-
+    public EncryptedData generateTenantDataKey(byte[] rawDek) throws Exception{
         KmsKey kmsRoot = kmsRepository.findFirstBy()
-                    .orElseThrow(() -> new IllegalStateException("KMS Root Key not found"));
+                .orElseThrow(() -> new IllegalStateException("KMS Root Key not found"));
 
         byte[] decryptedKmsKey = encryptionService.decrypt(
                 kmsRoot.getEncryptedData().getEncryptedText(),
@@ -32,6 +29,6 @@ public class DataKeyService {
                 null
         );
 
-        return encryptionService.encrypt(dataKey, decryptedKmsKey, null, null);
+        return encryptionService.encrypt(rawDek, decryptedKmsKey, null, null);
     }
 }

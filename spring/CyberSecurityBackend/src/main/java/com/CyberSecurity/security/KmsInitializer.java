@@ -1,7 +1,6 @@
 package com.CyberSecurity.security;
 
 import com.CyberSecurity.config.EncryptionConfig;
-import com.CyberSecurity.dto.encryption.EncryptionResult;
 import com.CyberSecurity.model.EncryptedData;
 import com.CyberSecurity.model.KmsKey;
 import com.CyberSecurity.repository.KmsRepository;
@@ -25,17 +24,17 @@ public class KmsInitializer implements ApplicationRunner {
     @Transactional
     public void run(ApplicationArguments args) throws Exception {
         if(kmsRepository.count() == 0){
-            System.out.println("Generating KMS key....");
+            System.out.println("Generating KEK....");
 
             byte[] key = encryptionService.generateRandomBytes(32);
-            EncryptionResult res = encryptionService.encrypt(key, encryptionConfig.getRootKey(), null, null);
+            EncryptedData res = encryptionService.encrypt(key, encryptionConfig.getRootKey(), null, null);
 
             KmsKey kmsKey = new KmsKey();
-            kmsKey.setEncryptedData(new EncryptedData(res.getText(), res.getIv(), res.getTag()));
+            kmsKey.setEncryptedData(res);
 
             kmsRepository.save(kmsKey);
         }else {
-            System.out.println("KMS key already exists");
+            System.out.println("KEK key already exists");
         }
     }
 }
