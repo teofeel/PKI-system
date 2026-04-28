@@ -18,4 +18,6 @@ public class Organization {
 
     @Column
     private String name;
+
+    private String encryptedKey;
 }
