@@ -19,6 +19,8 @@ export class CreateOrganizationComponent {
     const org: Organization = {
       name: this.formData.value.name!,
     };
-    this.orgService.saveOrganization(org);
+    this.orgService.saveOrganization(org).subscribe({
+      next: () => {},
+    });
   }
 }

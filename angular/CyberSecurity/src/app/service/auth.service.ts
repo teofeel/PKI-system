@@ -1,8 +1,9 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../environments/environment';
 import { RegistrationData } from '../model/RegistrationData';
 import { LoginData } from '../model/LoginData';
+import { JwtHelperService } from '@auth0/angular-jwt';
 
 @Injectable({
   providedIn: 'root',
@@ -10,8 +11,11 @@ import { LoginData } from '../model/LoginData';
 export class AuthService {
   private readonly http = inject(HttpClient);
 
-  login(data: LoginData){
-    return this.http.post<any>(`${environment.authHost}/login`, data, {observe: 'response'})
+  private readonly jwtHelper = new JwtHelperService();
+  public readonly role = signal<string | null>(this.getRole());
+
+  login(data: LoginData) {
+    return this.http.post<any>(`${environment.authHost}/login`, data, { observe: 'response' });
   }
 
   register(data: RegistrationData) {
@@ -34,5 +38,32 @@ export class AuthService {
       { password: password },
       { observe: 'response' },
     );
+  }
+
+  isLoggedIn() {
+    const expiration = localStorage.getItem('expires_in');
+    if (expiration) {
+      const currentTime = Date.now();
+      const isValid = currentTime < Number(expiration);
+      return isValid;
+    } else {
+      return false;
+    }
+  }
+
+  private getRole(): string | null {
+    if (this.isLoggedIn()) {
+      const accessToken = localStorage.getItem('auth_token');
+      if (accessToken) {
+        try {
+          const decodedToken = this.jwtHelper.decodeToken(accessToken);
+          return decodedToken.roles || null;
+        } catch (error) {
+          console.error('Error decoding token:', error);
+          return null;
+        }
+      }
+    }
+    return null;
   }
 }
