@@ -1,5 +1,6 @@
 package com.CyberSecurity.model;
 
+import com.CyberSecurity.dto.encryption.EncryptionResult;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,5 +20,6 @@ public class Organization {
     @Column
     private String name;
 
-    private String encryptedKey;
+    @Embedded
+    private EncryptedData dataKey;
 }

@@ -24,8 +24,8 @@ public class OrganizationController {
     }
 
     @PostMapping(value = "/organizations")
-    ResponseEntity<List<Organization>> saveOrganization(@RequestBody OrganizationDTO dto){
-        List<Organization> organizations = organizationService.saveOrganization(dto);
-        return new ResponseEntity<>(organizations, HttpStatus.OK);
+    ResponseEntity<Void> saveOrganization(@RequestBody OrganizationDTO dto) throws Exception {
+        organizationService.saveOrganization(dto);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
