@@ -1,6 +1,10 @@
 package com.CyberSecurity.config;
 
+import com.CyberSecurity.security.JWTAuthFilter;
 import com.CyberSecurity.service.AccountService;
+import com.CyberSecurity.service.CustomUserDetails;
+import com.CyberSecurity.utils.JWTService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -13,6 +17,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -25,15 +30,14 @@ import java.util.List;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class WebSecurityConfig {
-    @Bean
-    public UserDetailsService userDetailsService() {
-        return new AccountService();
-    }
+    @Autowired
+    private JWTService jwtService;
+    @Autowired
+    private CustomUserDetails userDetailsService;
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
@@ -50,7 +54,7 @@ public class WebSecurityConfig {
                     .requestMatchers("/error").permitAll()
                     .anyRequest().permitAll();
         });
-
+        http.addFilterBefore(new JWTAuthFilter(userDetailsService, jwtService), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

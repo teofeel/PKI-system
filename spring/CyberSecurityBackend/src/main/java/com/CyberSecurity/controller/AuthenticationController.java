@@ -1,26 +1,59 @@
 package com.CyberSecurity.controller;
 
 import com.CyberSecurity.dto.account.AccountDTO;
-import com.CyberSecurity.dto.authentication.GetProfileDTO;
-import com.CyberSecurity.dto.authentication.RegisterDTO;
-import com.CyberSecurity.dto.authentication.SetPasswordDTO;
+import com.CyberSecurity.dto.authentication.*;
 import com.CyberSecurity.dto.user.CreatedUserDTO;
+import com.CyberSecurity.model.Account;
 import com.CyberSecurity.model.User;
 import com.CyberSecurity.service.AccountService;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(value = "/auth", produces = MediaType.APPLICATION_JSON_VALUE)
 public class AuthenticationController {
+    private final AuthenticationManager authManager;
     private final AccountService accountService;
+
+    @PostMapping(value = "/login",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO data, BindingResult result) {
+        if (result.hasErrors()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        try{
+            Authentication authentication = authManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(data.getEmail(), data.getPassword())
+            );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            Account account = (Account) authentication.getPrincipal();
+            if (account == null) {
+                System.out.println("ACCOUNT IS NULL");
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }
+            LoginResponseDTO res = accountService.login(account);
+            System.out.println("HTTP STATUS OK");
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        } catch (BadCredentialsException | UsernameNotFoundException | InternalAuthenticationServiceException e){
+            System.out.println("UNAUTHORIZED");
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        } catch(AccountStatusException e){
+            System.out.println("FORBIDDEN");
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     @PostMapping(value = "/register",
             consumes = MediaType.APPLICATION_JSON_VALUE,
