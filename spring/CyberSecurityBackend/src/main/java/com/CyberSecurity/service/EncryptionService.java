@@ -1,7 +1,7 @@
 package com.CyberSecurity.service;
 
 import com.CyberSecurity.config.EncryptionConfig;
-import com.CyberSecurity.model.EncryptedData;
+import com.CyberSecurity.dto.encryption.EncryptionResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,9 +29,9 @@ public class EncryptionService {
         return key;
     }
 
-    private EncryptedData splitAndFormat(byte[] encryptedBytes, byte[] iv, String algo){
+    private EncryptionResult splitAndFormat(byte[] encryptedBytes, byte[] iv, String algo){
         if (!algo.contains("/GCM/"))
-            return new EncryptedData(
+            return new EncryptionResult(
                     Base64.getEncoder().encodeToString(encryptedBytes),
                     Base64.getEncoder().encodeToString(iv),
                     null
@@ -44,7 +44,7 @@ public class EncryptionService {
         System.arraycopy(encryptedBytes, 0, ciphertext, 0, ciphertextLength);
         System.arraycopy(encryptedBytes, ciphertextLength, tag, 0, GCM_TAG_LENGTH);
 
-        return new EncryptedData(
+        return new EncryptionResult(
                 Base64.getEncoder().encodeToString(ciphertext),
                 Base64.getEncoder().encodeToString(iv),
                 Base64.getEncoder().encodeToString(tag)
@@ -99,7 +99,7 @@ public class EncryptionService {
         return cipher.doFinal(combined);
     }
 
-    public EncryptedData encrypt(byte[] data, byte[] key, String aad, String algo) throws Exception{
+    public EncryptionResult encrypt(byte[] data, byte[] key, String aad, String algo) throws Exception{
         String fullAlgo = algo!=null && !algo.isEmpty() ? algo : AES_GCM_ALGORITHM;
         byte[] iv = generateRandomBytes(GCM_IV_LENGTH);
 

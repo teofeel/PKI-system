@@ -5,11 +5,9 @@ import com.CyberSecurity.certificate.CertificateGenerator;
 import com.CyberSecurity.certificate.data.Issuer;
 import com.CyberSecurity.certificate.data.Subject;
 import com.CyberSecurity.certificate.dto.CertificateRequestDTO;
-import com.CyberSecurity.config.EncryptionConfig;
+import com.CyberSecurity.dto.encryption.EncryptionResult;
 import com.CyberSecurity.model.Certificate;
 import com.CyberSecurity.model.EncryptedData;
-import com.CyberSecurity.model.KmsKey;
-import com.CyberSecurity.repository.KmsRepository;
 import lombok.RequiredArgsConstructor;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
@@ -21,7 +19,6 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
 
@@ -31,9 +28,6 @@ public class CertificateService {
     private final KeyPairGeneratorService keyPairGeneratorService;
     private final OrganizationService organizationService;
     private final EncryptionService encryptionService;
-    private final KmsRepository kmsRepository;
-    private final EncryptionConfig encryptionConfig;
-    private final DataKeyService dataKeyService;
 
     public X509Certificate issueRootCertificate() {
         KeyPair rootKeyPair = keyPairGeneratorService.generateKeyPair();
@@ -87,44 +81,14 @@ public class CertificateService {
         );
     }
 
-    public byte[] getUnwrappedDek(Certificate cert) throws Exception {
-        KmsKey kmsRoot = kmsRepository.findFirstBy().orElseThrow(() -> {
-            throw new IllegalStateException("KMS Root Key not found");
-        });
-
-        byte[] liveKmsKey = encryptionService.decrypt(
-                kmsRoot.getEncryptedData().getEncryptedText(),
-                kmsRoot.getEncryptedData().getIv(),
-                kmsRoot.getEncryptedData().getTag(),
-                encryptionConfig.getRootKey(),
-                null,
-                null
-        );
-
-        return encryptionService.decrypt(
-                cert.getDataKey().getEncryptedText(),
-                cert.getDataKey().getIv(),
-                cert.getDataKey().getTag(),
-                liveKmsKey,
-                null,
-                null
-        );
-    }
-
     public void encryptAndSetPrivateKey(Certificate cert, PrivateKey privateKey) throws Exception {
         byte[] privateKeyBytes = privateKey.getEncoded();
-        byte[] rawDek = encryptionService.generateRandomBytes(32);
+        byte[] dataKeyBytes = organizationService.getUnwrappedOrganizationDataKey(cert.getOrganization());
 
-        try{
-            EncryptedData res = encryptionService.encrypt(privateKeyBytes, rawDek, null, null);
-            EncryptedData dekRes = dataKeyService.generateTenantDataKey(rawDek);
+        EncryptionResult res = encryptionService.encrypt(privateKeyBytes, dataKeyBytes, null, null);
 
-            cert.setDataKey(dekRes);
-            cert.setEncryptedPrivateKey(res);
-        }finally{
-            Arrays.fill(rawDek, (byte) 0);
-            Arrays.fill(privateKeyBytes, (byte) 0);
-        }
+        cert.setEncryptedPrivateKey(
+                new EncryptedData(res.getText(), res.getIv(), res.getTag())
+        );
     }
-
 }

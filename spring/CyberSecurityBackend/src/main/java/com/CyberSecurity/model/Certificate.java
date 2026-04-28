@@ -61,20 +61,10 @@ public class Certificate {
 
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "encryptedText", column = @Column(name = "wrapped_dek", length = 512)),
-            @AttributeOverride(name = "iv", column = @Column(name = "dek_iv")),
-            @AttributeOverride(name = "tag", column = @Column(name = "dek_tag"))
-    })
-    @Basic(fetch = FetchType.LAZY)
-    private EncryptedData dataKey;
-
-    @Embedded
-    @AttributeOverrides({
             @AttributeOverride(name = "encryptedText", column = @Column(name = "encrypted_private_key", length = 4096)),
             @AttributeOverride(name = "iv", column = @Column(name = "private_key_iv")),
             @AttributeOverride(name = "tag", column = @Column(name = "private_key_tag"))
     })
-    @Basic(fetch = FetchType.LAZY)
     private EncryptedData encryptedPrivateKey;
 
     @Basic(fetch = FetchType.LAZY)
