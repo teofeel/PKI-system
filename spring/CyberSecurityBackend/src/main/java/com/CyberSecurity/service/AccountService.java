@@ -1,34 +1,34 @@
 package com.CyberSecurity.service;
 
+import com.CyberSecurity.dto.authentication.LoginResponseDTO;
 import com.CyberSecurity.dto.authentication.RegisterDTO;
 import com.CyberSecurity.enums.AccountStatus;
 import com.CyberSecurity.enums.AccountType;
+import com.CyberSecurity.exceptions.AccountNotVerifiedException;
 import com.CyberSecurity.model.Account;
 import com.CyberSecurity.model.SetPasswordToken;
 import com.CyberSecurity.model.User;
 import com.CyberSecurity.repository.AccountRepository;
 import com.CyberSecurity.repository.OrganizationRepository;
 import com.CyberSecurity.repository.SetPasswordTokenRepository;
-import com.CyberSecurity.repository.UserRepository;
 import com.CyberSecurity.utils.EmailUtils;
+import com.CyberSecurity.utils.JWTService;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import java.util.Date;
 
 @Service
 @AllArgsConstructor
 @NoArgsConstructor
-public class AccountService implements UserDetailsService {
+public class AccountService {
+    @Autowired
+    private JWTService jwtService;
     @Autowired
     private  AccountRepository accountRepository;
-    @Autowired
-    private  UserRepository userRepository;
     @Autowired
     private  OrganizationRepository organizationRepository;
     @Autowired
@@ -38,13 +38,11 @@ public class AccountService implements UserDetailsService {
     @Autowired
     private  EmailUtils emailUtils;
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Account acc = accountRepository.findAccountByEmail(username);
-        if (acc == null)
-            throw new UsernameNotFoundException(String.format("No user found with email '%s'.", username));
-        else
-            return acc;
+    public LoginResponseDTO login(Account account){
+        if (account.getAccountStatus() == AccountStatus.UNVERIFIED)
+            throw new AccountNotVerifiedException("Account has not been verified");
+        String token = jwtService.generateToken(account);
+        return LoginResponseDTO.builder().accessToken(token).build();
     }
 
     public User register(RegisterDTO registrationData) {

@@ -1,10 +1,15 @@
 import { Routes } from '@angular/router';
+import { LoginComponent } from './auth/login/login.component';
 import { RegistrationComponent } from './auth/registration/registration.component';
 import { VerifyComponent } from './auth/verify/verify.component';
 import { SetPasswordComponent } from './auth/set-password/set-password.component';
 import { CertificateFormComponent } from './certificates/certificate-form/certificate-form.component';
 
 export const routes: Routes = [
+  {
+    path: 'login',
+    component: LoginComponent,
+  },
   {
     path: 'register',
     component: RegistrationComponent,

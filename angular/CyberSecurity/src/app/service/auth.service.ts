@@ -2,12 +2,17 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../environments/environment';
 import { RegistrationData } from '../model/RegistrationData';
+import { LoginData } from '../model/LoginData';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private readonly http = inject(HttpClient);
+
+  login(data: LoginData){
+    return this.http.post<any>(`${environment.authHost}/login`, data, {observe: 'response'})
+  }
 
   register(data: RegistrationData) {
     return this.http.post<any>(`${environment.authHost}/register`, data, { observe: 'response' });
