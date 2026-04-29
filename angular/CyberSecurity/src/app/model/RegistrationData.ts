@@ -12,7 +12,7 @@ export interface Organization {
 }
 
 export enum AccountType {
-  USER,
-  CA_USER,
   ADMIN,
+  CA_USER,
+  USER,
 }

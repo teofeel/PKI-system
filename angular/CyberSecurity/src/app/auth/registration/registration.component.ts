@@ -23,10 +23,21 @@ export class RegistrationComponent implements OnInit {
 
   errormsg: string | null = null;
 
-  constructor(private organizationService: OrganizationService) {}
+  role: string | null;
+
+  constructor(private organizationService: OrganizationService) {
+    this.role = this.authService.role();
+  }
 
   ngOnInit(): void {
     this.prepareOrg();
+
+    if (this.role === 'ADMIN') {
+      this.formData.get('password')?.clearValidators();
+      this.formData.get('password')?.updateValueAndValidity();
+      this.formData.get('confirmPassword')?.clearValidators();
+      this.formData.get('confirmPassword')?.updateValueAndValidity();
+    }
   }
 
   formData = new FormGroup({
@@ -45,11 +56,11 @@ export class RegistrationComponent implements OnInit {
       this.errormsg = 'Email is required!';
     } else if (this.formData.get('email')?.hasError('email')) {
       this.errormsg = 'Please enter a valid email address!';
-    } else if (!formValue.password) {
+    } else if (!formValue.password && this.role !== 'ADMIN') {
       this.errormsg = 'Password is required!';
     } else if (this.formData.get('password')?.hasError('minLength')) {
       this.errormsg = 'Password must be at least 6 characters long!';
-    } else if (!formValue.confirmPassword) {
+    } else if (!formValue.confirmPassword && this.role !== 'ADMIN') {
       this.errormsg = 'Please confirm your password!';
     } else if (formValue.password !== formValue.confirmPassword) {
       this.errormsg = 'Passwords do not match!';
@@ -79,18 +90,23 @@ export class RegistrationComponent implements OnInit {
       accountType: AccountType.USER,
     };
 
-    if (this.authService.isLoggedIn() == false) registrationData.accountType = AccountType.USER;
-    else if (this.authService.role.toString() == 'ADMIN')
+    if (this.authService.isLoggedIn() == false) {
+      registrationData.accountType = AccountType.USER;
+      this.authService.register(registrationData).subscribe({
+        error: () => {
+          this.errormsg = 'Account with this email address already exists!';
+          this.cdr.detectChanges();
+        },
+      });
+    } else if (this.authService.role() == 'ADMIN') {
       registrationData.accountType = AccountType.CA_USER;
-
-    console.log(registrationData);
-
-    this.authService.register(registrationData).subscribe({
-      error: () => {
-        this.errormsg = 'Account with this email address already exists!';
-        this.cdr.detectChanges();
-      },
-    });
+      this.authService.registerCAUser(registrationData).subscribe({
+        error: () => {
+          this.errormsg = 'Account with this email address already exists!';
+          this.cdr.detectChanges();
+        },
+      });
+    }
   }
 
   prepareOrg() {

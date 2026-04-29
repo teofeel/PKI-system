@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -62,6 +63,17 @@ public class AuthenticationController {
         User registered = accountService.register(registrationData);
         if (registered == null) return new ResponseEntity<>(HttpStatus.CONFLICT);
         AccountDTO registeredDTO = new AccountDTO(registrationData.getEmail());
+        CreatedUserDTO createdUserDTO = new CreatedUserDTO(registered);
+        GetProfileDTO profile = new GetProfileDTO(createdUserDTO, registeredDTO);
+        return new ResponseEntity<>(profile, HttpStatus.CREATED);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/admin/create-user")
+    public ResponseEntity<?> createUser(@Valid @RequestBody RegisterCAUserDTO dto) {
+        User registered = accountService.registerCAUser(dto);
+        if (registered == null) return new ResponseEntity<>(HttpStatus.CONFLICT);
+        AccountDTO registeredDTO = new AccountDTO(dto.getEmail());
         CreatedUserDTO createdUserDTO = new CreatedUserDTO(registered);
         GetProfileDTO profile = new GetProfileDTO(createdUserDTO, registeredDTO);
         return new ResponseEntity<>(profile, HttpStatus.CREATED);

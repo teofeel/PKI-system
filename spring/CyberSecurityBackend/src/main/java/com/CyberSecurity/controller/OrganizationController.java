@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,7 +24,8 @@ public class OrganizationController {
         return new ResponseEntity<>(organizations, HttpStatus.OK);
     }
 
-    @PostMapping(value = "/organizations")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping(value = "/save-organization")
     ResponseEntity<Void> saveOrganization(@RequestBody OrganizationDTO dto) throws Exception {
         organizationService.saveOrganization(dto);
         return new ResponseEntity<>(HttpStatus.OK);

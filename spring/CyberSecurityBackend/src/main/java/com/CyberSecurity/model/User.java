@@ -1,5 +1,6 @@
 package com.CyberSecurity.model;
 
+import com.CyberSecurity.dto.authentication.RegisterCAUserDTO;
 import com.CyberSecurity.dto.authentication.RegisterDTO;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -31,6 +32,11 @@ public class User {
     private Account account;
 
     public User(RegisterDTO registrationData) {
+        name = registrationData.getName();
+        lastname = registrationData.getLastname();
+    }
+
+    public User(RegisterCAUserDTO registrationData) {
         name = registrationData.getName();
         lastname = registrationData.getLastname();
     }

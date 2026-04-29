@@ -1,6 +1,7 @@
 package com.CyberSecurity.service;
 
 import com.CyberSecurity.dto.authentication.LoginResponseDTO;
+import com.CyberSecurity.dto.authentication.RegisterCAUserDTO;
 import com.CyberSecurity.dto.authentication.RegisterDTO;
 import com.CyberSecurity.enums.AccountStatus;
 import com.CyberSecurity.enums.AccountType;
@@ -52,16 +53,25 @@ public class AccountService {
             newUser.setOrganization(organizationRepository.findByName(registrationData.getOrganization()));
             newUser.setAccount(newAccount);
             newAccount.setUser(newUser);
+            accountRepository.save(newAccount);
+            emailUtils.sendVerificationEmail(newAccount);
+            return newUser;
+        }
+        return null;
+    }
 
+    public User registerCAUser(RegisterCAUserDTO registrationData) {
+        if (accountRepository.findAccountByEmail(registrationData.getEmail()) == null) {
+            Account newAccount = new Account(registrationData.getEmail(), registrationData.getAccountType());
+            User newUser = new User(registrationData);
+            newUser.setOrganization(organizationRepository.findByName(registrationData.getOrganization()));
+            newUser.setAccount(newAccount);
+            newAccount.setUser(newUser);
             accountRepository.save(newAccount);
 
-            if (registrationData.getAccountType() == AccountType.CA_USER) {
-                SetPasswordToken token = new SetPasswordToken(newAccount);
-                sptRepository.save(token);
-                emailUtils.sendSetPasswordEmail(token);
-            } else {
-                emailUtils.sendVerificationEmail(newAccount);
-            }
+            SetPasswordToken token = new SetPasswordToken(newAccount);
+            sptRepository.save(token);
+            emailUtils.sendSetPasswordEmail(token);
             return newUser;
         }
         return null;
@@ -90,7 +100,7 @@ public class AccountService {
         if (spt == null)
             return false;
         Account acc = spt.getAccount();
-        acc.setPassword(password);
+        acc.setPassword(passwordEncoder.encode(password));
         acc.setAccountStatus(AccountStatus.VERIFIED);
         acc.setVerification(null);
         accountRepository.save(acc);
