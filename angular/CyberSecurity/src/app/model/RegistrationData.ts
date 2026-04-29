@@ -4,8 +4,15 @@ export interface RegistrationData {
   email: string;
   password: string;
   organization: string;
+  accountType: AccountType;
 }
 
 export interface Organization {
   name: string;
+}
+
+export enum AccountType {
+  USER,
+  CA_USER,
+  ADMIN,
 }

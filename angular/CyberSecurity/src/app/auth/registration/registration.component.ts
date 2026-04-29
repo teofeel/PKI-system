@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Organization, RegistrationData } from '../../model/RegistrationData';
+import { AccountType, Organization, RegistrationData } from '../../model/RegistrationData';
 import { AuthService } from '../../service/auth.service';
 import { CommonModule } from '@angular/common';
 import { OrganizationService } from '../../service/organization.service';
@@ -76,7 +76,12 @@ export class RegistrationComponent implements OnInit {
       name: formValue.name!,
       lastname: formValue.lastname!,
       organization: formValue.organization!,
+      accountType: AccountType.USER,
     };
+
+    if (this.authService.isLoggedIn() == false) registrationData.accountType = AccountType.USER;
+    else if (this.authService.role.toString() == 'ADMIN')
+      registrationData.accountType = AccountType.CA_USER;
 
     console.log(registrationData);
 

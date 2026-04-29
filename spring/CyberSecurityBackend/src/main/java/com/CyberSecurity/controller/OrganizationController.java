@@ -1,14 +1,13 @@
 package com.CyberSecurity.controller;
 
+import com.CyberSecurity.dto.OrganizationDTO;
 import com.CyberSecurity.model.Organization;
 import com.CyberSecurity.service.OrganizationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -22,5 +21,11 @@ public class OrganizationController {
     ResponseEntity<List<Organization>> getOrganizations(){
         List<Organization> organizations = organizationService.getOrganizations();
         return new ResponseEntity<>(organizations, HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/organizations")
+    ResponseEntity<Void> saveOrganization(@RequestBody OrganizationDTO dto) throws Exception {
+        organizationService.saveOrganization(dto);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
