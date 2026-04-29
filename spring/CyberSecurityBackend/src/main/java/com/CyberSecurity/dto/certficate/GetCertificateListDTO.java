@@ -4,6 +4,7 @@ import com.CyberSecurity.enums.CertificateType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -17,10 +18,10 @@ public class GetCertificateListDTO {
     private String commonName;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDateTime validFrom;
+    private LocalDate validFrom;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDateTime validTo;
+    private LocalDate validUntil;
 
     private CertificateType type;
 

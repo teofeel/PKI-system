@@ -50,6 +50,9 @@ public class Account implements UserDetails {
     @OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
     private User user;
 
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Certificate> certificates;
+
     public Account(String email, String password, AccountType accountType) {
         this.email = email;
         this.password = password;
