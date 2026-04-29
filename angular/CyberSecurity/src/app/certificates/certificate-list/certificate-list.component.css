@@ -1,0 +1,264 @@
+
+
+
+.cl-heading {
+  font-family: 'Georgia', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2d5a6e;
+  margin: 0 0 1.5rem 0;
+  letter-spacing: -0.02em;
+}
+
+.cl-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  max-width: 720px;
+}
+
+.cl-item {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  background: #7e9fad;
+  border: 1px solid rgba(45, 90, 110, 0.25);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  transition: background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.cl-item:hover {
+  background: #8eadb9;
+  box-shadow: 0 4px 14px rgba(45, 90, 110, 0.22);
+}
+
+.cl-expand-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+}
+
+.cl-expand-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(45, 90, 110, 0.45);
+  background: rgba(184, 205, 212, 0.35);
+  color: #2d5a6e;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+}
+
+.cl-expand-btn:hover {
+  background: rgba(184, 205, 212, 0.65);
+  border-color: #2d5a6e;
+  transform: scale(1.08);
+}
+
+.cl-expand-btn:active {
+  transform: scale(0.96);
+}
+
+.cl-expand-btn.rotated {
+  transform: rotate(90deg);
+}
+
+.cl-expand-icon {
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+
+
+.cl-expand-placeholder {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.cl-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #4b7282;
+  color: #cde4eb;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: 'Courier New', monospace;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+}
+
+.cl-avatar[data-type='Root'] {
+  background: #36606e;
+}
+
+.cl-avatar[data-type='Intermediate'] {
+  background: #4b7282;
+}
+
+.cl-avatar[data-type='End-Entity'] {
+  background: #5e8899;
+}
+
+
+.cl-domain {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.01em;
+}
+
+.cl-dates {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.72);
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.02em;
+}
+
+
+.cl-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.cl-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.22rem 0.65rem;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.cl-badge--type {
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  color: #ffffff;
+}
+
+.cl-badge--status[data-status='valid'] {
+  background: #4caf83;
+  color: #ffffff;
+  border: none;
+}
+
+.cl-badge--status[data-status='revoked'] {
+  background: #c0534f;
+  color: #ffffff;
+  border: none;
+}
+
+.cl-badge--status[data-status='expired'] {
+  background: #a08c4a;
+  color: #ffffff;
+  border: none;
+}
+
+.cl-empty {
+  color: #4b7282;
+  font-style: italic;
+  margin-top: 1rem;
+}
+
+@media (max-width: 520px) {
+  .cl-dates {
+    display: none;
+  }
+
+  .cl-badge--type {
+    display: none;
+  }
+}
+
+
+.cl-info-btn {
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  
+  display: flex;
+  flex-direction: column;
+  flex: 1; 
+  gap: 0.2rem;
+}
+
+.cl-info-btn:focus-visible {
+  outline: 2px solid #007bff;
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.cl-info-btn:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.cl-nested-container {
+  flex-basis: 100%;
+  margin-left: 40px; 
+  border-left: 1px solid #ddd; 
+  padding-left: 10px;
+  width: 100%;
+}
+
+.cl-loader, .cl-no-results {
+  font-size: 0.8rem;
+  color: #666;
+  padding: 8px 0;
+}
+
+.cl-badge--status.valid {
+  background:#4caf83;
+  color:white;
+}
+
+.cl-badge--status.revoked {
+  background:#c0534f;
+  color:white;
+}
+
+.cl-badge--status.expired {
+  background:#a08c4a;
+  color:white;
+}
+
+.cl-avatar[data-type="ROOT"] {
+  background: #b9a7e6;  
+  color: white;
+}
+
+.cl-avatar[data-type="INTERMEDIATE"] {
+  background: #98d7b5;   
+  color: white;
+}
+
+.cl-avatar[data-type="END ENTITY"] {
+  background: #7fb7e6;   
+  color: white;
+}
