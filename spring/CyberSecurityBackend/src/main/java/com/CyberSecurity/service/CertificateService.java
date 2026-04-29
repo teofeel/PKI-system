@@ -5,6 +5,9 @@ import com.CyberSecurity.certificate.CertificateGenerator;
 import com.CyberSecurity.certificate.data.Issuer;
 import com.CyberSecurity.certificate.data.Subject;
 import com.CyberSecurity.certificate.dto.CertificateRequestDTO;
+import com.CyberSecurity.dto.encryption.EncryptionResult;
+import com.CyberSecurity.model.Certificate;
+import com.CyberSecurity.model.EncryptedData;
 import lombok.RequiredArgsConstructor;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
@@ -13,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
 import java.security.KeyPair;
+import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.Date;
@@ -22,6 +26,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CertificateService {
     private final KeyPairGeneratorService keyPairGeneratorService;
+    private final OrganizationService organizationService;
+    private final EncryptionService encryptionService;
 
     public X509Certificate issueRootCertificate() {
         KeyPair rootKeyPair = keyPairGeneratorService.generateKeyPair();
@@ -72,6 +78,17 @@ public class CertificateService {
                 subject, issuer,
                 dto.getValidFrom(), dto.getValidTo(),
                 UUID.randomUUID().toString().replace("-", "").substring(0, 16)
+        );
+    }
+
+    public void encryptAndSetPrivateKey(Certificate cert, PrivateKey privateKey) throws Exception {
+        byte[] privateKeyBytes = privateKey.getEncoded();
+        byte[] dataKeyBytes = organizationService.getUnwrappedOrganizationDataKey(cert.getOrganization());
+
+        EncryptionResult res = encryptionService.encrypt(privateKeyBytes, dataKeyBytes, null, null);
+
+        cert.setEncryptedPrivateKey(
+                new EncryptedData(res.getText(), res.getIv(), res.getTag())
         );
     }
 }

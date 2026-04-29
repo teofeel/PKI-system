@@ -18,4 +18,7 @@ public class Organization {
 
     @Column
     private String name;
+
+    @Embedded
+    private EncryptedData dataKey;
 }
