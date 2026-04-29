@@ -30,10 +30,16 @@ import java.util.List;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class WebSecurityConfig {
-    @Autowired
     private JWTService jwtService;
-    @Autowired
     private CustomUserDetails userDetailsService;
+    private final JWTAuthFilter jwtAuthFilter;
+    public WebSecurityConfig(JWTService jwtService,
+                             CustomUserDetails userDetailsService,
+                             JWTAuthFilter jwtAuthFilter) {
+        this.jwtService = jwtService;
+        this.userDetailsService = userDetailsService;
+        this.jwtAuthFilter = jwtAuthFilter;
+    }
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -42,7 +48,6 @@ public class WebSecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors(Customizer.withDefaults());
@@ -52,9 +57,10 @@ public class WebSecurityConfig {
             request
                     .requestMatchers("/auth/**").permitAll()
                     .requestMatchers("/error").permitAll()
-                    .anyRequest().permitAll();
-        });
-        http.addFilterBefore(new JWTAuthFilter(userDetailsService, jwtService), UsernamePasswordAuthenticationFilter.class);
+                    .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/organizations").permitAll()
+                    .anyRequest().authenticated();
+        })
+        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
