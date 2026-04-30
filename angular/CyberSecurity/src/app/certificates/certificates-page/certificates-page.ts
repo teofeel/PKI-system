@@ -15,6 +15,7 @@ import { AuthService } from '../../service/auth.service';
 export class CertificatesPage implements OnInit {
   certificates: CertificateListItem[] = [];
   isLoading = true;
+  role: string | null = null;
 
   constructor(
     private certService: CertificateService,
@@ -24,9 +25,9 @@ export class CertificatesPage implements OnInit {
 
   ngOnInit() {
     this.isLoading = true;
-    const role = this.authService.getRole();
+    this.role = this.authService.getRole();
 
-    if (role === 'ADMIN') {
+    if (this.role === 'ADMIN') {
       this.certService.getAdminCertificates().subscribe({
         next: (certs) => {
           this.certificates = certs ? [...certs] : [];
@@ -38,7 +39,7 @@ export class CertificatesPage implements OnInit {
           this.cdr.detectChanges();
         },
       });
-    } else if (role === 'USER') {
+    } else if (this.role === 'USER') {
       this.fetchCertificatesByAccount();
     } else {
       this.isLoading = false;

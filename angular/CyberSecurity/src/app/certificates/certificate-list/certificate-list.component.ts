@@ -16,11 +16,16 @@ import { SimpleChanges } from '@angular/core';
 export class CertificateList {
   @Input() certificates: CertificateListItem[] = [];
   @Input() isLoading: boolean = false;
+  @Input() role: string | null = null;
+
+
   constructor(
     private readonly router: Router,
     private certService: CertificateService,
     private cdr: ChangeDetectorRef,
-  ) {}
+  ) {
+    
+  }
 
   getInitials(type: CertificateType): string {
     const map: Record<CertificateType, string> = {
@@ -32,6 +37,7 @@ export class CertificateList {
   }
 
   canExpand(type: CertificateType): boolean {
+    if (this.role === 'USER') return false;
     return type === 'ROOT' || type === 'INTERMEDIATE';
   }
 

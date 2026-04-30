@@ -58,6 +58,7 @@
         <app-certificate-list
           *ngIf="cert.children && cert.children.length > 0"
           [certificates]="cert.children"
+          [role] = "role"
         >
         </app-certificate-list>
 
