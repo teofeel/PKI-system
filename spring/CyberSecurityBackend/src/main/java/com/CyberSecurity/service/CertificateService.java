@@ -7,6 +7,7 @@ import com.CyberSecurity.certificate.data.Subject;
 import com.CyberSecurity.certificate.dto.CertificateRequestDTO;
 import com.CyberSecurity.dto.encryption.EncryptionResult;
 import com.CyberSecurity.enums.CertificateType;
+import com.CyberSecurity.exceptions.CertificateIssuingException;
 import com.CyberSecurity.mapper.CertificateMapper;
 import com.CyberSecurity.model.Account;
 import com.CyberSecurity.model.Certificate;
@@ -47,24 +48,29 @@ public class CertificateService {
     private final CertificateMapper certificateMapper;
     private final OrganizationRepository organizationRepository;
 
-    public X509Certificate issueRootCertificate(Long orgId) {
-        Organization org = organizationRepository.findById(orgId)
-                .orElseThrow(() -> new EntityNotFoundException("Admin organization not found"));
+    public X509Certificate issueRootCertificate(CertificateRequestDTO dto) {
+        Organization org = organizationRepository.findByName(dto.getOrganization());
+        if(org == null){
+            throw new EntityNotFoundException("Organization not found");
+        }
 
         KeyPair rootKeyPair = keyPairGeneratorService.generateKeyPair();
 
         X500Name rootName = new X500NameBuilder(BCStyle.INSTANCE)
-                .addRDN(BCStyle.CN, "Root CA")
-                .addRDN(BCStyle.O, "MyOrg")
-                .addRDN(BCStyle.C, "RS")
+                .addRDN(BCStyle.CN, dto.getCommonName())
+                .addRDN(BCStyle.O, dto.getOrganization())
+                .addRDN(BCStyle.C, dto.getCountry())
                 .build();
 
         Subject subject = new Subject(rootName, rootKeyPair.getPublic());
         Issuer issuer = new Issuer(rootName, rootKeyPair.getPrivate());
 
-        Date validFrom = new Date();
-        Date validTo = new Date(validFrom.getTime() + 10L * 365 * 24 * 60 * 60 * 1000);
+        //Date validFrom = new Date();
+        //Date validTo = new Date(validFrom.getTime() + 10L * 365 * 24 * 60 * 60 * 1000);
 
+        Date validFrom = dto.getValidFrom();
+        Date validTo = dto.getValidTo();
+        
         X509Certificate cert = CertificateGenerator.generateCertificate(
                 subject, issuer, validFrom, validTo,
                 new BigInteger(64, new SecureRandom()).toString()
@@ -73,8 +79,7 @@ public class CertificateService {
         try{
             this.createAndSaveCertificate(cert, org, rootKeyPair.getPrivate());
         }catch(Exception e){
-            e.printStackTrace();
-            return null;
+            throw new CertificateIssuingException("Failed to issue certificate");
         }
 
         return cert;
@@ -118,7 +123,7 @@ public class CertificateService {
         try{
             this.createAndSaveCertificate(cert, org, subjectKeyPair.getPrivate());
         }catch(Exception e){
-            return null;
+            throw new CertificateIssuingException("Failed to issue certificate");
         }
 
         return cert;

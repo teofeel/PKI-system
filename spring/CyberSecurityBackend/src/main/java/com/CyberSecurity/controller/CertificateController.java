@@ -37,16 +37,17 @@ public class CertificateController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
     @PostMapping(value = "/certificates", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> issueCertificate(@Valid @RequestBody CertificateRequestDTO dto, @AuthenticationPrincipal Account principal){
+    public ResponseEntity<String> issueCertificate(@Valid @RequestBody CertificateRequestDTO dto){
         X509Certificate cert = null;
         try {
         if (dto.getParentCAId() == null){
-            cert = certificateService.issueRootCertificate(principal.getId());
+            cert = certificateService.issueRootCertificate(dto);
         }
 
         else{
             // TODO: preuzeti odgovarajuci CA iz baze za issuera i proslijediti privatni kljuc
         }
+        cert = certificateService.issueRootCertificate(dto);
         String encoded = Base64.getEncoder().encodeToString(cert.getEncoded());
         return ResponseEntity.ok(encoded);
 
