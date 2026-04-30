@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Organization } from '../../model/RegistrationData';
@@ -38,6 +38,7 @@ export class CertificateFormComponent implements OnInit {
     private userService: UserService,
     private organizationService: OrganizationService,
     private certificateService: CertificateService,
+    private cdr : ChangeDetectorRef
   ) {}
 
   formData = new FormGroup({
@@ -165,8 +166,15 @@ export class CertificateFormComponent implements OnInit {
 
   selectCertType(certType: CertificateType) {
     this.formData.get('certType')?.setValue(certType);
+    if (certType === CertificateType.ROOT) {
+      this.selectedParentCA = null;
+      this.formData.get('parentCADisplay')?.setValue('');
+    }
     this.showCertTypeDropdown = false;
+    this.cdr.detectChanges();
   }
+
+  
 
   hideCertTypeDropdown() {
     setTimeout(() => (this.showCertTypeDropdown = false));
