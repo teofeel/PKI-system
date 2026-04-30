@@ -55,8 +55,6 @@ public class CertificateGenerator {
                 }
                 certGen.addExtension(Extension.subjectKeyIdentifier, false,
                         new JcaX509ExtensionUtils().createSubjectKeyIdentifier(subject.getPublicKey()));
-                certGen.addExtension(Extension.authorityKeyIdentifier, false,
-                        new JcaX509ExtensionUtils().createAuthorityKeyIdentifier(issuer.getPublicKey()));
             }catch (Exception e){
                 e.printStackTrace();
                 return null;
