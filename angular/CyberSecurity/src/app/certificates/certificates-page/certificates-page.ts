@@ -41,17 +41,7 @@ export class CertificatesPage implements OnInit {
     } else if (role === 'USER') {
       this.fetchCertificatesByAccount();
     } else {
-      this.certService.getAdminCertificates().subscribe({
-        next: (certs) => {
-          this.certificates = certs;
-          this.isLoading = false;
-          this.cdr.detectChanges();
-        },
-        error: () => {
-          this.isLoading = false;
-          this.cdr.detectChanges();
-        },
-      });
+      this.isLoading = false;
     }
   }
 
