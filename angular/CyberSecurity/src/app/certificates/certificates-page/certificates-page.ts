@@ -35,26 +35,43 @@ export class CertificatesPage implements OnInit {
         },
         error: () => {
           this.isLoading = false;
+          this.cdr.detectChanges();
         },
       });
     } else if (role === 'USER') {
       this.fetchCertificatesByAccount();
     } else {
-      this.isLoading = false;
-      this.certService.getAdminCertificates().subscribe((certs) => (this.certificates = certs));
+      this.certService.getAdminCertificates().subscribe({
+        next: (certs) => {
+          this.certificates = certs;
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        },
+      });
     }
   }
 
   private fetchCertificatesByAccount() {
     const accountId = this.authService.id();
+    if (!accountId) {
+      this.isLoading = false;
+      return;
+    }
 
-    if (!accountId) return;
-
-    this.certService
-      .fetchCertificatesByAccount(accountId)
-      .subscribe((certificates: CertificateListItem[]) => {
+    this.certService.fetchCertificatesByAccount(accountId).subscribe({
+      next: (certificates) => {
         this.certificates = [...certificates];
+        this.isLoading = false;
         this.cdr.detectChanges();
-      });
+      },
+      error: () => {
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+    });
   }
 }

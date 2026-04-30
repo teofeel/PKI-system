@@ -22,12 +22,6 @@ export class CertificateList {
     private cdr: ChangeDetectorRef,
   ) {}
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['certificates']) {
-      console.log('Lista je dobila nove podatke:', changes['certificates'].currentValue);
-    }
-  }
-
   getInitials(type: CertificateType): string {
     const map: Record<CertificateType, string> = {
       ROOT: 'RCA',
