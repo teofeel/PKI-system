@@ -49,7 +49,10 @@ public class CertificateController {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         AccountType type = account.getAccountType();
-        Long orgId = account.getUser().getOrganization().getId();
+        Long orgId = null;
+        if (!AccountType.ADMIN.equals(type)){
+            orgId = account.getUser().getOrganization().getId();
+        }
         List<ParentCAResponseDTO> parentCAs = certificateService.getAllParentCA(type, orgId);
         return new ResponseEntity<>(parentCAs, HttpStatus.OK);
     }

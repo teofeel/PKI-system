@@ -1,5 +1,6 @@
 package com.CyberSecurity.dto.user;
 
+import com.CyberSecurity.model.Organization;
 import com.CyberSecurity.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,6 +21,10 @@ public class CreatedUserDTO {
         id = registered.getId();
         name = registered.getName();
         lastname = registered.getLastname();
-        organization = registered.getOrganization().getName();
+        Organization org = registered.getOrganization();
+        if (org != null)
+            organization = registered.getOrganization().getName();
+        else
+            organization = "";
     }
 }
