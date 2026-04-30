@@ -1,6 +1,4 @@
-import { Component } from '@angular/core';
-import { CertificateType } from '../model/certificate-type';
-import { CertificateStatus } from '../model/certificate-status';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CertificateListItem } from '../model/certificate-item-list';
 import { CertificateList } from '../certificate-list/certificate-list.component';
 import { CommonModule } from '@angular/common';
@@ -16,17 +14,31 @@ import { AuthService } from '../../service/auth.service';
 })
 export class CertificatesPage {
   certificates: CertificateListItem[] = [];
+  isLoading = true;
 
   constructor(
     private certService: CertificateService,
     private authService: AuthService,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit() {
-    const role = this.authService.role();
+    this.isLoading = true;
+    const role = this.authService.getRole();
 
     if (role === 'ADMIN') {
-      this.certService.getAdminCertificates().subscribe((certs) => (this.certificates = certs));
+      this.certService.getAdminCertificates().subscribe({
+        next: (certs) => {
+          this.certificates = certs ? [...certs] : [];
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.isLoading = false;
+        },
+      });
+    } else {
+      this.isLoading = false;
     }
   }
 }

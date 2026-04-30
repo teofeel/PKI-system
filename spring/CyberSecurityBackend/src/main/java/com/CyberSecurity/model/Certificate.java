@@ -67,8 +67,6 @@ public class Certificate {
     })
     private EncryptedData encryptedPrivateKey;
 
-    @Basic(fetch = FetchType.LAZY)
-    @Lob
     @Column(nullable = false)
     private byte[] subjectNameEncoded;
 
