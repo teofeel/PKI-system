@@ -45,8 +45,6 @@ public class CertificateController {
         }
     }
 
-
-
     @GetMapping(value = "/accounts/{id}/certificates")
     public ResponseEntity<List<GetCertificateListDTO>> fetchByAccount(@PathVariable long id){
         try{
@@ -61,4 +59,17 @@ public class CertificateController {
         }
     }
 
+    @GetMapping(value = "/certificates/admin")
+    public ResponseEntity<List<GetCertificateListDTO>> fetchByAdmin(){
+        List<Certificate> certificates = certificateService.fetchByAdmin();
+        List<GetCertificateListDTO> certificateDTOs = certificateMapper.toGetCertificateListDTO(certificates);
+        return  ResponseEntity.ok(certificateDTOs);
+    }
+
+    @GetMapping(value = "/certificates/{id}/children")
+    public ResponseEntity<List<GetCertificateListDTO>> fetchChildren(@PathVariable long id){
+        List<Certificate> certificates = certificateService.fetchByIssuer(id);
+        List<GetCertificateListDTO> certificateDTOs = certificateMapper.toGetCertificateListDTO(certificates);
+        return  ResponseEntity.ok(certificateDTOs);
+    }
 }
