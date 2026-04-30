@@ -6,24 +6,35 @@ import { CertificateList } from '../certificate-list/certificate-list.component'
 import { CommonModule } from '@angular/common';
 import { JwtService } from '../../service/jwt.service';
 import { CertificateService } from '../service/certificate-service';
+import { AuthService } from '../../service/auth.service';
+
 @Component({
   selector: 'app-certificates-page',
   standalone: true,
-  imports: [CertificateList, CommonModule], 
+  imports: [CertificateList, CommonModule],
   templateUrl: './certificates-page.html',
   styleUrl: './certificates-page.css',
 })
-export class CertificatesPage implements OnInit {
-    certificates: CertificateListItem[] = [];
+export class CertificatesPage {
+  certificates: CertificateListItem[] = [];
 
+  constructor(
+    private certService: CertificateService,
+    private authService: AuthService,
+  ) {}
 
-    constructor(private certService: CertificateService, private jwtService: JwtService, private cdr: ChangeDetectorRef) {}
+  ngOnInit() {
+    const role = this.authService.role();
 
-    ngOnInit(): void {
+    if (role === 'ADMIN') {
+      this.certService.getAdminCertificates().subscribe((certs) => (this.certificates = certs));
+    }else{
       this.fetchCertificatesByAccount();
     }
+  }
 
-    private fetchCertificatesByAccount(){
+
+  private fetchCertificatesByAccount(){
       const accountId = this.jwtService.getJwtToken()?.id;
 
       if (!accountId) return;

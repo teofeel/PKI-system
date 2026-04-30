@@ -109,4 +109,12 @@ public class CertificateService {
 
         return certificateRepository.findCertificateByOwner(accOptional.get());
     }
+
+    public List<Certificate> fetchByAdmin() {
+        return certificateRepository.findAll();
+    }
+
+    public List<Certificate> fetchByIssuer(Long issuerID){
+        return certificateRepository.findCertificateByIssuerId(issuerID);
+    }
 }

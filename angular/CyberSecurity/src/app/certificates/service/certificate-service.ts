@@ -18,4 +18,14 @@ export class CertificateService {
   fetchCertificatesByAccount(accountId: number | string) : Observable<CertificateListItem[]> {
     return this.http.get<CertificateListItem[]>(`${environment.apiHost}/accounts/${accountId}/certificates`);
   }
+  
+  getAdminCertificates(): Observable<CertificateListItem[]> {
+    return this.http.get<CertificateListItem[]>(`${environment.apiHost}/certificates/admin`);
+  }
+
+  getChildren(certId: number): Observable<CertificateListItem[]> {
+    return this.http.get<CertificateListItem[]>(
+      `${environment.apiHost}/certificates/${certId}/children`,
+    );
+  }
 }
