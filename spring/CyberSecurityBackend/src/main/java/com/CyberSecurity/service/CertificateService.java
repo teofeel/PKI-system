@@ -77,7 +77,7 @@ public class CertificateService {
         );
 
         try{
-            this.createAndSaveCertificate(cert, org, rootKeyPair.getPrivate(), dto.getEmail());
+            this.createAndSaveCertificate(cert, org, rootKeyPair.getPrivate(), dto.getUserId());
         }catch(Exception e){
             throw new CertificateIssuingException("Failed to issue certificate");
         }
@@ -121,7 +121,7 @@ public class CertificateService {
         );
 
         try{
-            this.createAndSaveCertificate(cert, org, subjectKeyPair.getPrivate(), dto.getEmail());
+            this.createAndSaveCertificate(cert, org, subjectKeyPair.getPrivate(), dto.getUserId());
         }catch(Exception e){
             throw new CertificateIssuingException("Failed to issue certificate");
         }
@@ -158,11 +158,12 @@ public class CertificateService {
     }
 
 
-    public Certificate createAndSaveCertificate(X509Certificate cert, Organization org, PrivateKey privateKey, String email) throws Exception {
-        Account owner = accountRepository.findAccountByEmail(email);
+    public Certificate createAndSaveCertificate(X509Certificate cert, Organization org, PrivateKey privateKey, Long userId) throws Exception {
+        Optional<Account> owner = accountRepository.findById(userId);
 
         Certificate certificate = certificateMapper.toCertificate(cert, org);
-        certificate.setOwner(owner);
+
+        if(owner.isPresent()) certificate.setOwner(owner.get());
 
         encryptAndSetPrivateKey(certificate, privateKey);
         certificateRepository.save(certificate);
