@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { CertificateRequest } from '../model/certificate-request';
 import { CertificateListItem } from '../model/certificate-item-list';
+import { CertificateResponse } from '../model/certificate-response';
+
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -11,7 +13,7 @@ import { Observable } from 'rxjs';
 export class CertificateService {
   constructor(private readonly http: HttpClient) {}
 
-  issue(certRequest: CertificateRequest) {
+  issue(certRequest: CertificateRequest){
     return this.http.post(`${environment.apiHost}/certificates`, certRequest);
   }
 
@@ -27,5 +29,8 @@ export class CertificateService {
     return this.http.get<CertificateListItem[]>(
       `${environment.apiHost}/certificates/${certId}/children`,
     );
+  }
+  getAllParentCA() : Observable<CertificateResponse[]> {
+    return this.http.get<CertificateResponse[]>(`${environment.apiHost}/get-parent-ca`);
   }
 }

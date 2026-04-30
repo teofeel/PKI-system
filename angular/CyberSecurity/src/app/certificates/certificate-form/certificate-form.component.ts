@@ -97,6 +97,13 @@ export class CertificateFormComponent implements OnInit {
     this.certTypes = Object.values(CertificateType);
     this.prepareOrg();
     this.prepareUsers();
+    this.prepareParentCA();
+  }
+
+  prepareParentCA(){
+    this.certificateService.getAllParentCA().subscribe((parentCAs) => {
+      this.parentCAs = parentCAs;
+    })
   }
 
   prepareOrg() {

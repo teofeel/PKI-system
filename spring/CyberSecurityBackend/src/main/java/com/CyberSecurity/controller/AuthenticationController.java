@@ -38,17 +38,13 @@ public class AuthenticationController {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             Account account = (Account) authentication.getPrincipal();
             if (account == null) {
-                System.out.println("ACCOUNT IS NULL");
                 return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
             }
             LoginResponseDTO res = accountService.login(account);
-            System.out.println("HTTP STATUS OK");
             return new ResponseEntity<>(res, HttpStatus.OK);
         } catch (BadCredentialsException | UsernameNotFoundException | InternalAuthenticationServiceException e){
-            System.out.println("UNAUTHORIZED");
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         } catch(AccountStatusException e){
-            System.out.println("FORBIDDEN");
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         } catch (Exception e) {
             e.printStackTrace();
