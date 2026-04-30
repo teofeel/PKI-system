@@ -26,6 +26,7 @@ import com.CyberSecurity.repository.AccountRepository;
 import com.CyberSecurity.repository.CertificateRepository;
 import com.CyberSecurity.repository.OrganizationRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
@@ -61,6 +62,7 @@ public class CertificateService {
     private final CertificateMapper certificateMapper;
     private final OrganizationRepository organizationRepository;
 
+    @Transactional
     public X509Certificate issueCertificate(CertificateRequestDTO dto){
         X509Certificate cert = null;
         if (dto.getParentCAId() == null){
@@ -73,8 +75,8 @@ public class CertificateService {
         return cert;
     }
 
-
-    private X509Certificate issueRootCertificate(CertificateRequestDTO dto) {
+    @Transactional
+    public X509Certificate issueRootCertificate(CertificateRequestDTO dto) {
         Organization org = organizationRepository.findByName(dto.getOrganization());
         if(org == null){
             throw new EntityNotFoundException("Organization not found");
@@ -112,7 +114,8 @@ public class CertificateService {
         return cert;
     }
 
-    private X509Certificate issueChildCertificate(
+    @Transactional
+    public X509Certificate issueChildCertificate(
             CertificateRequestDTO dto,
             Certificate parentCert
     ) {
@@ -128,6 +131,7 @@ public class CertificateService {
         }catch (Exception e){
             return null;
         }
+
         X500Name issuerName = X500Name.getInstance(parentCert.getSubjectNameEncoded());
         Issuer issuer = new Issuer(issuerName, parentPrivateKey);
 
@@ -146,21 +150,22 @@ public class CertificateService {
         X509Certificate cert = CertificateGenerator.generateCertificate(
                 subject, issuer,
                 dto.getValidFrom(), dto.getValidTo(),
-                UUID.randomUUID().toString().replace("-", "").substring(0, 16),
+                new BigInteger(64, new SecureRandom()).toString(),
                 dto.getCertificateType()
         );
+
 
         try{
             this.createAndSaveCertificate(cert, org, subjectKeyPair.getPrivate(), dto.getUserId());
         }catch(Exception e){
-            e.printStackTrace();
             throw new CertificateIssuingException("Failed to issue certificate");
         }
 
         return cert;
     }
 
-    private PrivateKey getDecryptedPrivateKey(Certificate cert) throws Exception {
+    @Transactional
+    public PrivateKey getDecryptedPrivateKey(Certificate cert) throws Exception {
         byte[] dataKeyBytes = organizationService.getUnwrappedOrganizationDataKey(cert.getOrganization());
 
         EncryptedData encryptedData = cert.getEncryptedPrivateKey();
@@ -179,6 +184,7 @@ public class CertificateService {
 
     }
 
+    @Transactional
     public void encryptAndSetPrivateKey(Certificate cert, PrivateKey privateKey) throws Exception {
         byte[] privateKeyBytes = privateKey.getEncoded();
         byte[] dataKeyBytes = organizationService.getUnwrappedOrganizationDataKey(cert.getOrganization());
@@ -208,10 +214,9 @@ public class CertificateService {
         return certificateRepository.findCertificateByIssuerId(issuerID);
     }
 
-
+    @Transactional
     public Certificate createAndSaveCertificate(X509Certificate cert, Organization org, PrivateKey privateKey, Long userId) throws Exception {
         Optional<Account> owner = accountRepository.findById(userId);
-
         Certificate certificate = certificateMapper.toCertificate(cert, org);
 
         if(owner.isPresent()) certificate.setOwner(owner.get());
