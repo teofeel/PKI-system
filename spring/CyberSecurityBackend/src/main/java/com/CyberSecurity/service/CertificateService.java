@@ -45,7 +45,6 @@ public class CertificateService {
     private final EncryptionService encryptionService;
     private final AccountRepository accountRepository;
     private final CertificateRepository certificateRepository;
-    private final CertificateGenerator certificateGenerator;
     private final CertificateMapper certificateMapper;
     private final OrganizationRepository organizationRepository;
 
@@ -78,7 +77,7 @@ public class CertificateService {
         );
 
         try{
-            this.createAndSaveCertificate(cert, org, rootKeyPair.getPrivate());
+            this.createAndSaveCertificate(cert, org, rootKeyPair.getPrivate(), dto.getEmail());
         }catch(Exception e){
             throw new CertificateIssuingException("Failed to issue certificate");
         }
@@ -122,7 +121,7 @@ public class CertificateService {
         );
 
         try{
-            this.createAndSaveCertificate(cert, org, subjectKeyPair.getPrivate());
+            this.createAndSaveCertificate(cert, org, subjectKeyPair.getPrivate(), dto.getEmail());
         }catch(Exception e){
             throw new CertificateIssuingException("Failed to issue certificate");
         }
@@ -159,8 +158,11 @@ public class CertificateService {
     }
 
 
-    public Certificate createAndSaveCertificate(X509Certificate cert, Organization org, PrivateKey privateKey) throws Exception {
+    public Certificate createAndSaveCertificate(X509Certificate cert, Organization org, PrivateKey privateKey, String email) throws Exception {
+        Account owner = accountRepository.findAccountByEmail(email);
+
         Certificate certificate = certificateMapper.toCertificate(cert, org);
+        certificate.setOwner(owner);
 
         encryptAndSetPrivateKey(certificate, privateKey);
         certificateRepository.save(certificate);

@@ -54,6 +54,7 @@ export class CertificatesPage implements OnInit {
       .fetchCertificatesByAccount(accountId)
       .subscribe((certificates: CertificateListItem[]) => {
         this.certificates = [...certificates];
+        this.isLoading = false;
         this.cdr.detectChanges();
       });
   }
