@@ -65,7 +65,7 @@ public class CertificateService {
     @Transactional
     public X509Certificate issueCertificate(CertificateRequestDTO dto){
         X509Certificate cert = null;
-        if (dto.getParentCAId() == null){
+        if (dto.getParentCAId() == null && dto.getCertificateType() == CertificateType.ROOT){
             cert = issueRootCertificate(dto);
         }else{
             Optional<Certificate> parentCAOpt = certificateRepository.findById(Long.parseLong(dto.getParentCAId()));
