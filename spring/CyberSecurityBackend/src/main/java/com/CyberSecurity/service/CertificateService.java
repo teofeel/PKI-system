@@ -5,13 +5,17 @@ import com.CyberSecurity.certificate.CertificateGenerator;
 import com.CyberSecurity.certificate.data.Issuer;
 import com.CyberSecurity.certificate.data.Subject;
 import com.CyberSecurity.certificate.dto.CertificateRequestDTO;
+import com.CyberSecurity.certificate.dto.ParentCAResponseDTO;
 import com.CyberSecurity.dto.encryption.EncryptionResult;
+import com.CyberSecurity.enums.AccountType;
 import com.CyberSecurity.model.Certificate;
 import com.CyberSecurity.model.EncryptedData;
+import com.CyberSecurity.repository.CertificateRepository;
 import lombok.RequiredArgsConstructor;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
@@ -19,7 +23,9 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -28,6 +34,7 @@ public class CertificateService {
     private final KeyPairGeneratorService keyPairGeneratorService;
     private final OrganizationService organizationService;
     private final EncryptionService encryptionService;
+    private final CertificateRepository certificateRepository;
 
     public X509Certificate issueRootCertificate() {
         KeyPair rootKeyPair = keyPairGeneratorService.generateKeyPair();
@@ -91,4 +98,22 @@ public class CertificateService {
                 new EncryptedData(res.getText(), res.getIv(), res.getTag())
         );
     }
+
+    public List<ParentCAResponseDTO> getAllParentCA(AccountType type, Long orgId){
+        List<Certificate> parentCA;
+        if (AccountType.ADMIN.equals(type))
+            parentCA = certificateRepository.findParentCAForAdmin();
+        else
+            parentCA = certificateRepository.findParentCAForCAUser(orgId);
+        List<ParentCAResponseDTO> dto = new ArrayList<>();
+        for (Certificate c : parentCA){
+            dto.add(ParentCAResponseDTO
+                    .builder()
+                    .id(c.getId())
+                    .commonName(c.getCommonName())
+                    .build());
+        }
+        return dto;
+    }
+
 }
