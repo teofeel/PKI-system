@@ -13,6 +13,7 @@ export class AuthService {
 
   private readonly jwtHelper = new JwtHelperService();
   public readonly role = signal<string | null>(this.getRole());
+  public readonly id = signal<number | null>(this.getId());
 
   login(data: LoginData) {
     return this.http.post<any>(`${environment.authHost}/login`, data, { observe: 'response' });
@@ -58,6 +59,22 @@ export class AuthService {
         try {
           const decodedToken = this.jwtHelper.decodeToken(accessToken);
           return decodedToken.roles || null;
+        } catch (error) {
+          console.error('Error decoding token:', error);
+          return null;
+        }
+      }
+    }
+    return null;
+  }
+
+  private getId(): number | null {
+    if (this.isLoggedIn()) {
+      const accessToken = localStorage.getItem('jwt');
+      if (accessToken) {
+        try {
+          const decodedToken = this.jwtHelper.decodeToken(accessToken);
+          return decodedToken.id || null;
         } catch (error) {
           console.error('Error decoding token:', error);
           return null;

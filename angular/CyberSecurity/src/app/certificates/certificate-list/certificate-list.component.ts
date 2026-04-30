@@ -17,7 +17,7 @@ export class CertificateList {
 
   constructor(
     private readonly router: Router,
-    private certService: CertificateService,
+    private readonly certService: CertificateService,
   ) {}
 
   getInitials(type: CertificateType): string {
