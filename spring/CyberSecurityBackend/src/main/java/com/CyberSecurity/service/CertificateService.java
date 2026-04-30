@@ -79,6 +79,7 @@ public class CertificateService {
         try{
             this.createAndSaveCertificate(cert, org, rootKeyPair.getPrivate(), dto.getUserId());
         }catch(Exception e){
+            e.printStackTrace();
             throw new CertificateIssuingException("Failed to issue certificate");
         }
 
@@ -170,4 +171,5 @@ public class CertificateService {
 
         return certificate;
     }
+
 }

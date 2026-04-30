@@ -41,7 +41,7 @@ public class CertificateMapper {
                 .build();
     }
 
-    public Certificate toCertificate(X509Certificate cert, Organization org) {
+    public Certificate toCertificate(X509Certificate cert, Organization org) throws Exception {
         String commonName = certificateGenerator.x500NameExtractor(cert.getSubjectX500Principal().getName(), "CN");
         String issuerName = cert.getIssuerX500Principal().getName();
 
@@ -55,7 +55,7 @@ public class CertificateMapper {
                 .validFrom(cert.getNotBefore().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
                 .validUntil(cert.getNotAfter().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
                 .isRevoked(false)
-                .certificateContent(cert.getSubjectX500Principal().getEncoded())
+                .certificateContent(cert.getEncoded())
                 .type(certificateGenerator.determineCertificateType(cert))
                 .build();
     }
