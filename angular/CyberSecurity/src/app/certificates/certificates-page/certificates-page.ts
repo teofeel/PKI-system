@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CertificateListItem } from '../model/certificate-item-list';
 import { CertificateList } from '../certificate-list/certificate-list.component';
 import { CommonModule } from '@angular/common';
@@ -12,7 +12,7 @@ import { AuthService } from '../../service/auth.service';
   templateUrl: './certificates-page.html',
   styleUrl: './certificates-page.css',
 })
-export class CertificatesPage {
+export class CertificatesPage implements OnInit {
   certificates: CertificateListItem[] = [];
   isLoading = true;
 
@@ -37,8 +37,24 @@ export class CertificatesPage {
           this.isLoading = false;
         },
       });
+    } else if (role === 'USER') {
+      this.fetchCertificatesByAccount();
     } else {
       this.isLoading = false;
+      this.certService.getAdminCertificates().subscribe((certs) => (this.certificates = certs));
     }
+  }
+
+  private fetchCertificatesByAccount() {
+    const accountId = this.authService.id();
+
+    if (!accountId) return;
+
+    this.certService
+      .fetchCertificatesByAccount(accountId)
+      .subscribe((certificates: CertificateListItem[]) => {
+        this.certificates = [...certificates];
+        this.cdr.detectChanges();
+      });
   }
 }
