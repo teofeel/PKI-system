@@ -1,7 +1,6 @@
 <div class="cl-wrapper">
   <ul class="cl-list">
     <li class="cl-item" *ngFor="let cert of certificates">
-
       <div class="cl-expand-slot">
         <ng-container *ngIf="canExpand(cert.type); else noButton">
           <button
@@ -36,24 +35,19 @@
         {{ getInitials(cert.type) }}
       </div>
 
-      <button 
+      <button
         type="button"
-        class="cl-info-btn" 
+        class="cl-info-btn"
         [attr.aria-label]="'View details for ' + cert.commonName"
         (click)="goToDetails(cert.id)"
-        >
+      >
         <span class="cl-domain">{{ cert.commonName }}</span>
-        <span class="cl-dates">
-            {{ cert.validFrom }}&nbsp;→&nbsp;{{ cert.validUntil }}
-        </span>
+        <span class="cl-dates"> {{ cert.validFrom }}&nbsp;→&nbsp;{{ cert.validUntil }} </span>
       </button>
 
       <div class="cl-badges">
         <span class="cl-badge cl-badge--type">{{ cert.type }}</span>
-        <span
-          class="cl-badge cl-badge--status"
-          [attr.data-status]="cert.status.toLowerCase()"
-        >
+        <span class="cl-badge cl-badge--status" [attr.data-status]="cert.status.toLowerCase()">
           {{ cert.status }}
         </span>
       </div>
@@ -61,20 +55,19 @@
       <div class="cl-nested-container" *ngIf="cert.isExpanded">
         <div *ngIf="cert.isLoading" class="cl-loader">Loading...</div>
 
-        <app-certificate-list 
-          *ngIf="cert.children && cert.children.length > 0" 
-          [certificates]="cert.children">
+        <app-certificate-list
+          *ngIf="cert.children && cert.children.length > 0"
+          [certificates]="cert.children"
+        >
         </app-certificate-list>
-        
+
         <div *ngIf="!cert.isLoading && cert.children?.length === 0" class="cl-no-results">
           No issued certificates found.
         </div>
       </div>
-
     </li>
   </ul>
+  <div *ngIf="isLoading" class="cl-loader">Loading certificates...</div>
 
-  <p class="cl-empty" *ngIf="certificates.length === 0">
-    No certificates found.
-  </p>
+  <p class="cl-empty" *ngIf="!isLoading && certificates.length === 0">No certificates found.</p>
 </div>

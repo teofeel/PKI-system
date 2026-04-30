@@ -1,5 +1,5 @@
-import { CertificateStatus } from "./certificate-status";
-import { CertificateType } from "./certificate-type";
+import { CertificateStatus } from './certificate-status';
+import { CertificateType } from './certificate-type';
 
 export interface CertificateListItem {
   id: number;

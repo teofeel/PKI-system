@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { ChangeDetectorRef, Component, Input } from '@angular/core';
 import { CertificateListItem } from '../model/certificate-item-list';
 import { CertificateType } from '../model/certificate-type';
 import { Router, RouterModule } from '@angular/router';
 import { CertificateService } from '../service/certificate-service';
+import { SimpleChanges } from '@angular/core';
 
 @Component({
   selector: 'app-certificate-list',
@@ -14,17 +15,24 @@ import { CertificateService } from '../service/certificate-service';
 })
 export class CertificateList {
   @Input() certificates: CertificateListItem[] = [];
-
+  @Input() isLoading: boolean = false;
   constructor(
     private readonly router: Router,
-    private readonly certService: CertificateService,
+    private certService: CertificateService,
+    private cdr: ChangeDetectorRef,
   ) {}
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['certificates']) {
+      console.log('Lista je dobila nove podatke:', changes['certificates'].currentValue);
+    }
+  }
 
   getInitials(type: CertificateType): string {
     const map: Record<CertificateType, string> = {
-      'ROOT':         'RCA',
-      'INTERMEDIATE': 'ICA',
-      'END_ENTITY':   'EE',
+      ROOT: 'RCA',
+      INTERMEDIATE: 'ICA',
+      END_ENTITY: 'EE',
     };
     return map[type];
   }
@@ -44,10 +52,20 @@ export class CertificateList {
 
     if (cert.isExpanded && !cert.children) {
       cert.isLoading = true;
-      this.certService.getChildren(cert.id).subscribe((children) => {
-        cert.children = children;
-        cert.isLoading = false;
+
+      this.certService.getChildren(cert.id).subscribe({
+        next: (children) => {
+          cert.children = children;
+          cert.isLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          cert.isLoading = false;
+          this.cdr.detectChanges();
+        },
       });
+    } else {
+      this.cdr.detectChanges();
     }
   }
 }

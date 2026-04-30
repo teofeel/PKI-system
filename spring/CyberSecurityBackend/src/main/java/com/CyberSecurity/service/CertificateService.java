@@ -9,6 +9,7 @@ import com.CyberSecurity.dto.encryption.EncryptionResult;
 import com.CyberSecurity.enums.CertificateType;
 import com.CyberSecurity.exceptions.CertificateIssuingException;
 import com.CyberSecurity.mapper.CertificateMapper;
+
 import com.CyberSecurity.model.Account;
 import com.CyberSecurity.model.Certificate;
 import com.CyberSecurity.model.EncryptedData;
@@ -150,7 +151,7 @@ public class CertificateService {
     }
 
     public List<Certificate> fetchByAdmin() {
-        return certificateRepository.findAll();
+        return certificateRepository.findCertificateByType(CertificateType.ROOT);
     }
 
     public List<Certificate> fetchByIssuer(Long issuerID){

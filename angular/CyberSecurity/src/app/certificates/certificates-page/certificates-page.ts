@@ -12,36 +12,49 @@ import { AuthService } from '../../service/auth.service';
   templateUrl: './certificates-page.html',
   styleUrl: './certificates-page.css',
 })
-export class CertificatesPage implements OnInit{
+export class CertificatesPage implements OnInit {
   certificates: CertificateListItem[] = [];
+  isLoading = true;
 
   constructor(
-    private readonly certService: CertificateService,
-    private readonly authService: AuthService,
-    private readonly cdr: ChangeDetectorRef
+    private certService: CertificateService,
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit() {
-    const role = this.authService.role();
+    this.isLoading = true;
+    const role = this.authService.getRole();
 
     if (role === 'ADMIN') {
-      this.certService.getAdminCertificates().subscribe((certs) => (this.certificates = certs));
-    }else if(role === 'USER'){
+      this.certService.getAdminCertificates().subscribe({
+        next: (certs) => {
+          this.certificates = certs ? [...certs] : [];
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.isLoading = false;
+        },
+      });
+    } else if (role === 'USER') {
       this.fetchCertificatesByAccount();
+    } else {
+      this.isLoading = false;
+      this.certService.getAdminCertificates().subscribe((certs) => (this.certificates = certs));
     }
   }
 
-
-  private fetchCertificatesByAccount(){
+  private fetchCertificatesByAccount() {
     const accountId = this.authService.id();
 
     if (!accountId) return;
 
-    this.certService.fetchCertificatesByAccount(accountId).subscribe(
-      (certificates: CertificateListItem[]) => {
-        this.certificates = [...certificates]
+    this.certService
+      .fetchCertificatesByAccount(accountId)
+      .subscribe((certificates: CertificateListItem[]) => {
+        this.certificates = [...certificates];
         this.cdr.detectChanges();
-      }
-    )
+      });
   }
 }
