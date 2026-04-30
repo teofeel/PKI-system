@@ -22,6 +22,12 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
     @GetMapping(value = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<CreatedUserDTO>> getUsers(){
-        return new ResponseEntity<>(userService.getAllUsers(), HttpStatus.OK);
+        try{
+            List<CreatedUserDTO> dto = userService.getAllUsers();
+            return new ResponseEntity<>(dto, HttpStatus.OK);
+        }catch (Exception e){
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

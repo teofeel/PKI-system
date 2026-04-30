@@ -41,16 +41,14 @@ public class JWTAuthFilter extends OncePerRequestFilter {
         }
         try{
             String token = authHeader.substring(7);
-            Claims claims = jwtService.extractAllClaims(token);
         }catch (Exception e) {
             System.out.println("JWT ERROR: " + e.getMessage());
         }
-        String email = null;
         String token = jwtService.getToken(request);
 
         try{
             if(token != null && !token.isEmpty()){
-                email = jwtService.extractEmail(token);
+                String email = jwtService.extractEmail(token);
                 if (email != null && !email.isEmpty()){
                     UserDetails userDetails = userDetailsService.loadUserByUsername(email);
                     if (jwtService.validateToken(token, userDetails)){
