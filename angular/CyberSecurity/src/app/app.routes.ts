@@ -33,7 +33,7 @@ export const routes: Routes = [
     component: CreateOrganizationComponent
   },
   {
-    path: 'certificate-page',
+    path: 'certification-page',
     component: CertificatesPage
   }
 ];
