@@ -36,7 +36,7 @@ public class CertificateService {
     public X509Certificate issueCertificate(CertificateRequestDTO dto){
         X509Certificate cert = null;
         if (dto.getParentCAId() == null){
-            cert = issueRootCertificate();
+            cert = issueRootCertificate(dto);
         }else{
             Optional<Certificate> parentCAOpt = certificateRepository.findById(Long.parseLong(dto.getParentCAId()));
             if (parentCAOpt.isEmpty()) throw new CertificateNotFoundException("Certificate with this id doesn't exist");
@@ -45,7 +45,7 @@ public class CertificateService {
         return cert;
     }
 
-    private X509Certificate issueRootCertificate() {
+    private X509Certificate issueRootCertificate(CertificateRequestDTO dto) {
         KeyPair rootKeyPair = keyPairGeneratorService.generateKeyPair();
 
         X500Name rootName = new X500NameBuilder(BCStyle.INSTANCE)
@@ -62,7 +62,7 @@ public class CertificateService {
 
         return CertificateGenerator.generateCertificate(
                 subject, issuer, validFrom, validTo,
-                new BigInteger(64, new SecureRandom()).toString()
+                new BigInteger(64, new SecureRandom()).toString(), dto.getCertificateType()
         );
     }
 
@@ -95,7 +95,8 @@ public class CertificateService {
         return CertificateGenerator.generateCertificate(
                 subject, issuer,
                 dto.getValidFrom(), dto.getValidTo(),
-                UUID.randomUUID().toString().replace("-", "").substring(0, 16)
+                UUID.randomUUID().toString().replace("-", "").substring(0, 16),
+                dto.getCertificateType()
         );
     }
 
