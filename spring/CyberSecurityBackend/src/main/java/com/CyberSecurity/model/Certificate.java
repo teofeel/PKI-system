@@ -68,7 +68,7 @@ public class Certificate {
     private EncryptedData encryptedPrivateKey;
 
     @Column(nullable = false)
-    private byte[] subjectNameEncoded;
+    private byte[] certificateContent;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name= "account_id")

@@ -2,10 +2,14 @@ package com.CyberSecurity.certificate;
 
 import com.CyberSecurity.certificate.data.Issuer;
 import com.CyberSecurity.certificate.data.Subject;
+import com.CyberSecurity.enums.CertificateType;
+import org.bouncycastle.asn1.x500.style.BCStyle;
+
 import com.CyberSecurity.certificate.data.CertificateType;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.KeyUsage;
+
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
@@ -78,5 +82,28 @@ public class CertificateGenerator {
             e.printStackTrace();
         }
         return null;
+    }
+
+
+    public CertificateType determineCertificateType(X509Certificate cert) {
+        if (cert.getSubjectX500Principal().equals(cert.getIssuerX500Principal())) {
+            return CertificateType.ROOT;
+        }
+        return cert.getBasicConstraints() != -1 ? CertificateType.INTERMEDIATE : CertificateType.END_ENTITY;
+    }
+
+    public String x500NameExtractor(String dn, String attribute) {
+        try {
+            org.bouncycastle.asn1.x500.X500Name x500name = new org.bouncycastle.asn1.x500.X500Name(dn);
+            org.bouncycastle.asn1.x500.RDN[] rdns = x500name.getRDNs(
+                    attribute.equalsIgnoreCase("CN") ? BCStyle.CN : BCStyle.O
+            );
+
+            if (rdns.length > 0) return rdns[0].getFirst().getValue().toString();
+        } catch (Exception e) {
+            return "Unknown";
+        }
+
+        return "Unknown";
     }
 }
