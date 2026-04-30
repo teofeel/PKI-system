@@ -6,6 +6,8 @@ import com.CyberSecurity.certificate.data.Issuer;
 import com.CyberSecurity.certificate.data.Subject;
 import com.CyberSecurity.certificate.dto.CertificateRequestDTO;
 import com.CyberSecurity.dto.encryption.EncryptionResult;
+import com.CyberSecurity.enums.CertificateType;
+import com.CyberSecurity.mapper.CertificateMapper;
 import com.CyberSecurity.model.Account;
 import com.CyberSecurity.model.Certificate;
 import com.CyberSecurity.model.EncryptedData;
@@ -24,6 +26,7 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -37,6 +40,8 @@ public class CertificateService {
     private final EncryptionService encryptionService;
     private final AccountRepository accountRepository;
     private final CertificateRepository certificateRepository;
+    private final CertificateGenerator certificateGenerator;
+    private final CertificateMapper certificateMapper;
 
     public X509Certificate issueRootCertificate() {
         KeyPair rootKeyPair = keyPairGeneratorService.generateKeyPair();
@@ -53,10 +58,18 @@ public class CertificateService {
         Date validFrom = new Date();
         Date validTo = new Date(validFrom.getTime() + 10L * 365 * 24 * 60 * 60 * 1000);
 
-        return CertificateGenerator.generateCertificate(
+        X509Certificate cert = CertificateGenerator.generateCertificate(
                 subject, issuer, validFrom, validTo,
                 new BigInteger(64, new SecureRandom()).toString()
         );
+
+        try{
+            this.createAndSaveCertificate(cert, rootKeyPair.getPrivate());
+        }catch(Exception e){
+            return null;
+        }
+
+        return cert;
     }
 
     public X509Certificate issueChildCertificate(
@@ -83,11 +96,19 @@ public class CertificateService {
 
         Subject subject = new Subject(subjectName, subjectKeyPair.getPublic());
 
-        return CertificateGenerator.generateCertificate(
+        X509Certificate cert = CertificateGenerator.generateCertificate(
                 subject, issuer,
                 dto.getValidFrom(), dto.getValidTo(),
                 UUID.randomUUID().toString().replace("-", "").substring(0, 16)
         );
+
+        try{
+            this.createAndSaveCertificate(cert, subjectKeyPair.getPrivate());
+        }catch(Exception e){
+            return null;
+        }
+
+        return cert;
     }
 
     public void encryptAndSetPrivateKey(Certificate cert, PrivateKey privateKey) throws Exception {
@@ -116,5 +137,15 @@ public class CertificateService {
 
     public List<Certificate> fetchByIssuer(Long issuerID){
         return certificateRepository.findCertificateByIssuerId(issuerID);
+    }
+
+
+    public Certificate createAndSaveCertificate(X509Certificate cert, PrivateKey privateKey) throws Exception {
+        Certificate certificate = certificateMapper.toCertificate(cert);
+
+        encryptAndSetPrivateKey(certificate, privateKey);
+        certificateRepository.save(certificate);
+
+        return certificate;
     }
 }
