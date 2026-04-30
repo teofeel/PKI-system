@@ -55,7 +55,7 @@ public class CertificateMapper {
                 .validFrom(cert.getNotBefore().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
                 .validUntil(cert.getNotAfter().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
                 .isRevoked(false)
-                .certificateContent(cert.getEncoded())
+                .subjectNameEncoded(cert.getSubjectX500Principal().getEncoded())
                 .type(certificateGenerator.determineCertificateType(cert))
                 .build();
     }

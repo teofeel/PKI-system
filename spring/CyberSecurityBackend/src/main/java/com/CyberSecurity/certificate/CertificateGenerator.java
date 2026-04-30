@@ -5,7 +5,7 @@ import com.CyberSecurity.certificate.data.Subject;
 import com.CyberSecurity.enums.CertificateType;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 
-import com.CyberSecurity.certificate.data.CertificateType;
+import com.CyberSecurity.enums.CertificateType;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.KeyUsage;

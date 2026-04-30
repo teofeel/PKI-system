@@ -60,8 +60,6 @@ public class CertificateService {
     private final CertificateRepository certificateRepository;
     private final CertificateMapper certificateMapper;
     private final OrganizationRepository organizationRepository;
-        
-    private final CertificateRepository certificateRepository;
 
     public X509Certificate issueCertificate(CertificateRequestDTO dto){
         X509Certificate cert = null;
@@ -151,6 +149,15 @@ public class CertificateService {
                 UUID.randomUUID().toString().replace("-", "").substring(0, 16),
                 dto.getCertificateType()
         );
+
+        try{
+            this.createAndSaveCertificate(cert, org, subjectKeyPair.getPrivate(), dto.getUserId());
+        }catch(Exception e){
+            e.printStackTrace();
+            throw new CertificateIssuingException("Failed to issue certificate");
+        }
+
+        return cert;
     }
 
     private PrivateKey getDecryptedPrivateKey(Certificate cert) throws Exception {
@@ -165,15 +172,6 @@ public class CertificateService {
                 null,
                 null
         );
-
-
-        try{
-            this.createAndSaveCertificate(cert, org, subjectKeyPair.getPrivate(), dto.getUserId());
-        }catch(Exception e){
-            throw new CertificateIssuingException("Failed to issue certificate");
-        }
-
-        return cert;
 
         java.security.spec.PKCS8EncodedKeySpec spec = new java.security.spec.PKCS8EncodedKeySpec(decryptedKeyBytes);
         java.security.KeyFactory kf = java.security.KeyFactory.getInstance("RSA");

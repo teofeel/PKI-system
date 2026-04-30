@@ -1,6 +1,6 @@
 package com.CyberSecurity.certificate.dto;
 
-import com.CyberSecurity.certificate.data.CertificateType;
+import com.CyberSecurity.enums.CertificateType;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
