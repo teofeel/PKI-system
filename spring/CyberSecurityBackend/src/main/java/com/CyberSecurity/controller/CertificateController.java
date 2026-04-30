@@ -32,22 +32,16 @@ public class CertificateController {
     @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
     @PostMapping(value = "/certificates", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> issueCertificate(@Valid @RequestBody CertificateRequestDTO dto){
-        X509Certificate cert = null;
-        try {
-        if (dto.getParentCAId() == null)
-            cert = certificateService.issueRootCertificate();
-        else{
-            // TODO: preuzeti odgovarajuci CA iz baze za issuera i proslijediti privatni kljuc
-        }
-        String encoded = Base64.getEncoder().encodeToString(cert.getEncoded());
-        return ResponseEntity.ok(encoded);
-
+        try{
+            X509Certificate cert = certificateService.issueCertificate(dto);
+            String encoded = Base64.getEncoder().encodeToString(cert.getEncoded());
+            return ResponseEntity.ok(encoded);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Failed: " + e.getMessage());
         }
     }
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
     @GetMapping(value = "/get-parent-ca", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Collection<ParentCAResponseDTO>> getAllParentCA
             (@AuthenticationPrincipal Account account){
