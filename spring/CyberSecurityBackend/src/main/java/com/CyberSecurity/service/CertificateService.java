@@ -64,6 +64,8 @@ public class CertificateService {
 
     @Transactional
     public X509Certificate issueCertificate(CertificateRequestDTO dto){
+        if (dto.getValidFrom().after(dto.getValidTo()))
+            return null;
         X509Certificate cert = null;
         if (dto.getParentCAId() == null && dto.getCertificateType() == CertificateType.ROOT){
             cert = issueRootCertificate(dto);
@@ -120,7 +122,7 @@ public class CertificateService {
             Certificate parentCert
     ) {
         Organization org = organizationRepository.findByName(dto.getOrganization());
-        if(org == null){
+        if(org == null) {
             throw new EntityNotFoundException("Organization not found");
         }
 

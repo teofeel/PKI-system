@@ -57,6 +57,9 @@ public class CertificateController {
     public ResponseEntity<String> issueCertificate(@Valid @RequestBody CertificateRequestDTO dto){
         try{
             X509Certificate cert = certificateService.issueCertificate(dto);
+            if (cert == null){
+                return ResponseEntity.badRequest().body("Certificate not created");
+            }
             String encoded = Base64.getEncoder().encodeToString(cert.getEncoded());
             return ResponseEntity.ok(encoded);
         } catch (Exception e) {
