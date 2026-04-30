@@ -5,6 +5,7 @@ import { VerifyComponent } from './auth/verify/verify.component';
 import { SetPasswordComponent } from './auth/set-password/set-password.component';
 import { CertificateFormComponent } from './certificates/certificate-form/certificate-form.component';
 import { CreateOrganizationComponent } from './organization/create-organization/create-organization.component';
+import { CertificatesPage } from './certificates/certificates-page/certificates-page';
 
 export const routes: Routes = [
   {
@@ -31,4 +32,8 @@ export const routes: Routes = [
     path: 'create-organization',
     component: CreateOrganizationComponent
   },
+  {
+    path: 'certification-page',
+    component: CertificatesPage
+  }
 ];

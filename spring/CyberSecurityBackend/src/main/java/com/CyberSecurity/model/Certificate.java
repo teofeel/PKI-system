@@ -71,4 +71,8 @@ public class Certificate {
     @Lob
     @Column(nullable = false)
     private byte[] subjectNameEncoded;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name= "account_id")
+    private Account owner;
 }
