@@ -23,7 +23,7 @@ export class CertificateList {
     const map: Record<CertificateType, string> = {
       'ROOT':         'RCA',
       'INTERMEDIATE': 'ICA',
-      'END ENTITY':   'EE',
+      'END_ENTITY':   'EE',
     };
     return map[type];
   }
