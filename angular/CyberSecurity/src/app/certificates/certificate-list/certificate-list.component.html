@@ -1,0 +1,73 @@
+<div class="cl-wrapper">
+  <ul class="cl-list">
+    <li class="cl-item" *ngFor="let cert of certificates">
+      <div class="cl-expand-slot">
+        <ng-container *ngIf="canExpand(cert.type); else noButton">
+          <button
+            class="cl-expand-btn"
+            [title]="'Expand ' + cert.commonName"
+            (click)="onExpand(cert); $event.stopPropagation()"
+            aria-label="Expand certificate chain"
+            [attr.aria-expanded]="cert.isExpanded"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="cl-expand-icon"
+              [class.is-rotated]="cert.isExpanded"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+        </ng-container>
+
+        <ng-template #noButton>
+          <span class="cl-expand-placeholder" aria-hidden="true"></span>
+        </ng-template>
+      </div>
+
+      <div class="cl-avatar" [attr.data-type]="cert.type">
+        {{ getInitials(cert.type) }}
+      </div>
+
+      <button
+        type="button"
+        class="cl-info-btn"
+        [attr.aria-label]="'View details for ' + cert.commonName"
+        (click)="goToDetails(cert.id)"
+      >
+        <span class="cl-domain">{{ cert.commonName }}</span>
+        <span class="cl-dates"> {{ cert.validFrom }}&nbsp;→&nbsp;{{ cert.validUntil }} </span>
+      </button>
+
+      <div class="cl-badges">
+        <span class="cl-badge cl-badge--type">{{ cert.type }}</span>
+        <span class="cl-badge cl-badge--status" [attr.data-status]="cert.status.toLowerCase()">
+          {{ cert.status }}
+        </span>
+      </div>
+
+      <div class="cl-nested-container" *ngIf="cert.isExpanded">
+        <div *ngIf="cert.isLoading" class="cl-loader">Loading...</div>
+
+        <app-certificate-list
+          *ngIf="cert.children && cert.children.length > 0"
+          [certificates]="cert.children"
+        >
+        </app-certificate-list>
+
+        <div *ngIf="!cert.isLoading && cert.children?.length === 0" class="cl-no-results">
+          No issued certificates found.
+        </div>
+      </div>
+    </li>
+  </ul>
+  <div *ngIf="isLoading" class="cl-loader">Loading certificates...</div>
+
+  <p class="cl-empty" *ngIf="!isLoading && certificates.length === 0">No certificates found.</p>
+</div>

@@ -7,23 +7,38 @@ import com.CyberSecurity.certificate.data.Subject;
 import com.CyberSecurity.certificate.dto.CertificateRequestDTO;
 import com.CyberSecurity.certificate.dto.ParentCAResponseDTO;
 import com.CyberSecurity.dto.encryption.EncryptionResult;
+
+import com.CyberSecurity.enums.CertificateType;
+import com.CyberSecurity.model.Account;
+import com.CyberSecurity.repository.AccountRepository;
+
 import com.CyberSecurity.enums.AccountType;
 import com.CyberSecurity.exceptions.CertificateNotFoundException;
 import com.CyberSecurity.model.Certificate;
 import com.CyberSecurity.model.EncryptedData;
+
 import com.CyberSecurity.repository.CertificateRepository;
 import lombok.RequiredArgsConstructor;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import javax.security.auth.login.AccountNotFoundException;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import java.util.*;
+
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +46,8 @@ public class CertificateService {
     private final KeyPairGeneratorService keyPairGeneratorService;
     private final OrganizationService organizationService;
     private final EncryptionService encryptionService;
+    private final AccountRepository accountRepository;
+    private final CertificateRepository certificateRepository;
     private final CertificateRepository certificateRepository;
 
     public X509Certificate issueCertificate(CertificateRequestDTO dto){
@@ -44,6 +61,7 @@ public class CertificateService {
         }
         return cert;
     }
+
 
     private X509Certificate issueRootCertificate(CertificateRequestDTO dto) {
         KeyPair rootKeyPair = keyPairGeneratorService.generateKeyPair();
@@ -129,6 +147,24 @@ public class CertificateService {
         );
     }
 
+
+    public List<Certificate> fetchByAccount(Long accountID) throws AccountNotFoundException{
+        Optional<Account> accOptional = accountRepository.findById(accountID);
+        if(accOptional.isEmpty()){
+            throw new AccountNotFoundException("ID not found");
+        }
+
+        return certificateRepository.findCertificateByOwner(accOptional.get());
+    }
+
+    public List<Certificate> fetchByAdmin() {
+        return certificateRepository.findCertificateByType(CertificateType.ROOT);
+    }
+
+    public List<Certificate> fetchByIssuer(Long issuerID){
+        return certificateRepository.findCertificateByIssuerId(issuerID);
+    }
+
     public List<ParentCAResponseDTO> getAllParentCA(AccountType type, Long orgId){
         List<Certificate> parentCA;
         if (AccountType.ADMIN.equals(type))
@@ -145,5 +181,6 @@ public class CertificateService {
         }
         return dto;
     }
+
 
 }
