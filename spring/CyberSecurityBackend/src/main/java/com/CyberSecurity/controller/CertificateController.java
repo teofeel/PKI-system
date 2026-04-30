@@ -48,7 +48,7 @@ public class CertificateController {
     }
 
     @PreAuthorize("isAuthenticated()")
-    @GetMapping(value = "/get-parent-ca", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/get-parent-ca", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Collection<ParentCAResponseDTO>> getAllParentCA
             (@AuthenticationPrincipal Account account){
         if (account == null) {
