@@ -14,7 +14,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import javax.security.auth.login.AccountNotFoundException;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
@@ -28,6 +32,7 @@ public class CertificateController {
     private final CertificateService certificateService;
     private final CertificateMapper certificateMapper;
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
     @PostMapping(value = "/certificates", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> issueCertificate(@Valid @RequestBody CertificateRequestDTO dto){
         X509Certificate cert = null;

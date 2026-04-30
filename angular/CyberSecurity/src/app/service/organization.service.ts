@@ -14,6 +14,6 @@ export class OrganizationService {
   }
 
   saveOrganization(org: Organization) {
-    return this.http.post<any>(`${environment.apiHost}/organizations`, org);
+    return this.http.post<any>(`${environment.apiHost}/save-organization`, org);
   }
 }

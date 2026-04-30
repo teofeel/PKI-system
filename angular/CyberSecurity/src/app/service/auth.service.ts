@@ -22,6 +22,12 @@ export class AuthService {
     return this.http.post<any>(`${environment.authHost}/register`, data, { observe: 'response' });
   }
 
+  registerCAUser(data: RegistrationData) {
+    return this.http.post<any>(`${environment.authHost}/admin/create-user`, data, {
+      observe: 'response',
+    });
+  }
+
   verify(token: string) {
     return this.http.get<any>(`${environment.authHost}/verify/${token}`, {
       observe: 'response',
@@ -51,13 +57,13 @@ export class AuthService {
     }
   }
 
-  private getRole(): string | null {
+  public getRole(): string | null {
     if (this.isLoggedIn()) {
-      const accessToken = localStorage.getItem('auth_token');
+      const accessToken = localStorage.getItem('jwt');
       if (accessToken) {
         try {
           const decodedToken = this.jwtHelper.decodeToken(accessToken);
-          return decodedToken.roles || null;
+          return decodedToken.type || null;
         } catch (error) {
           console.error('Error decoding token:', error);
           return null;

@@ -3,12 +3,14 @@ package com.CyberSecurity.model;
 import com.CyberSecurity.enums.AccountStatus;
 import com.CyberSecurity.enums.AccountType;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.sql.Timestamp;
@@ -63,11 +65,21 @@ public class Account implements UserDetails {
         this.lastPasswordResetTime = new Timestamp(new Date().getTime());
     }
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(this.accountType);
+    public Account(String email, AccountType type) {
+        this.email = email;
+        this.accountType = type;
+        this.accountStatus = AccountStatus.UNVERIFIED;
+        this.verification = UUID.randomUUID().toString();
+        this.lastPasswordResetTime = new Timestamp(new Date().getTime());
     }
 
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(
+                new SimpleGrantedAuthority("ROLE_" + this.accountType.name())
+        );
+    }
     @Override
     public String getUsername() {
         return this.email;
@@ -75,21 +87,21 @@ public class Account implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return UserDetails.super.isAccountNonExpired();
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return UserDetails.super.isAccountNonLocked();
+        return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return UserDetails.super.isCredentialsNonExpired();
+        return true;
     }
 
     @Override
     public boolean isEnabled() {
-        return UserDetails.super.isEnabled();
+        return true;
     }
 }
