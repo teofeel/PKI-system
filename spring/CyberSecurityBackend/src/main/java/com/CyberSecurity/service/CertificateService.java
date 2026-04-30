@@ -11,8 +11,11 @@ import com.CyberSecurity.mapper.CertificateMapper;
 import com.CyberSecurity.model.Account;
 import com.CyberSecurity.model.Certificate;
 import com.CyberSecurity.model.EncryptedData;
+import com.CyberSecurity.model.Organization;
 import com.CyberSecurity.repository.AccountRepository;
 import com.CyberSecurity.repository.CertificateRepository;
+import com.CyberSecurity.repository.OrganizationRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
@@ -42,8 +45,12 @@ public class CertificateService {
     private final CertificateRepository certificateRepository;
     private final CertificateGenerator certificateGenerator;
     private final CertificateMapper certificateMapper;
+    private final OrganizationRepository organizationRepository;
 
-    public X509Certificate issueRootCertificate() {
+    public X509Certificate issueRootCertificate(Long orgId) {
+        Organization org = organizationRepository.findById(orgId)
+                .orElseThrow(() -> new EntityNotFoundException("Admin organization not found"));
+
         KeyPair rootKeyPair = keyPairGeneratorService.generateKeyPair();
 
         X500Name rootName = new X500NameBuilder(BCStyle.INSTANCE)
@@ -64,8 +71,9 @@ public class CertificateService {
         );
 
         try{
-            this.createAndSaveCertificate(cert, rootKeyPair.getPrivate());
+            this.createAndSaveCertificate(cert, org, rootKeyPair.getPrivate());
         }catch(Exception e){
+            e.printStackTrace();
             return null;
         }
 
@@ -77,6 +85,11 @@ public class CertificateService {
             X509Certificate parentCert,
             java.security.PrivateKey parentPrivateKey
     ) {
+        Organization org = organizationRepository.findByName(dto.getOrganization());
+        if(org == null){
+            throw new EntityNotFoundException("Organization not found");
+        }
+
         KeyPair subjectKeyPair = keyPairGeneratorService.generateKeyPair();
 
         X500Name issuerName = X500Name.getInstance(
@@ -103,7 +116,7 @@ public class CertificateService {
         );
 
         try{
-            this.createAndSaveCertificate(cert, subjectKeyPair.getPrivate());
+            this.createAndSaveCertificate(cert, org, subjectKeyPair.getPrivate());
         }catch(Exception e){
             return null;
         }
@@ -140,8 +153,8 @@ public class CertificateService {
     }
 
 
-    public Certificate createAndSaveCertificate(X509Certificate cert, PrivateKey privateKey) throws Exception {
-        Certificate certificate = certificateMapper.toCertificate(cert);
+    public Certificate createAndSaveCertificate(X509Certificate cert, Organization org, PrivateKey privateKey) throws Exception {
+        Certificate certificate = certificateMapper.toCertificate(cert, org);
 
         encryptAndSetPrivateKey(certificate, privateKey);
         certificateRepository.save(certificate);

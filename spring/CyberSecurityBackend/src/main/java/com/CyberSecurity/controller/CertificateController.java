@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 import javax.security.auth.login.AccountNotFoundException;
+import java.security.Principal;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.List;
@@ -36,11 +37,13 @@ public class CertificateController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
     @PostMapping(value = "/certificates", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> issueCertificate(@Valid @RequestBody CertificateRequestDTO dto){
+    public ResponseEntity<String> issueCertificate(@Valid @RequestBody CertificateRequestDTO dto, @AuthenticationPrincipal Account principal){
         X509Certificate cert = null;
         try {
-        if (dto.getParentCAId() == null)
-            cert = certificateService.issueRootCertificate();
+        if (dto.getParentCAId() == null){
+            cert = certificateService.issueRootCertificate(principal.getId());
+        }
+
         else{
             // TODO: preuzeti odgovarajuci CA iz baze za issuera i proslijediti privatni kljuc
         }

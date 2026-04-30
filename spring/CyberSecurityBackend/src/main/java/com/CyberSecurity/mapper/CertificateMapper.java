@@ -4,6 +4,7 @@ package com.CyberSecurity.mapper;
 import com.CyberSecurity.certificate.CertificateGenerator;
 import com.CyberSecurity.dto.certficate.GetCertificateListDTO;
 import com.CyberSecurity.model.Certificate;
+import com.CyberSecurity.model.Organization;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -40,7 +41,7 @@ public class CertificateMapper {
                 .build();
     }
 
-    public Certificate toCertificate(X509Certificate cert) {
+    public Certificate toCertificate(X509Certificate cert, Organization org) {
         String commonName = certificateGenerator.x500NameExtractor(cert.getSubjectX500Principal().getName(), "CN");
         String issuerName = cert.getIssuerX500Principal().getName();
 
@@ -49,6 +50,7 @@ public class CertificateMapper {
                 .commonName(commonName)
                 .issuerName(issuerName)
                 .organizationName(certificateGenerator.x500NameExtractor(cert.getSubjectX500Principal().getName(), "O"))
+                .organization(org)
                 .signatureAlgorithm(cert.getSigAlgName())
                 .validFrom(cert.getNotBefore().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
                 .validUntil(cert.getNotAfter().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
