@@ -1,4 +1,4 @@
-package com.CyberSecurity.certificate.dto;
+package com.CyberSecurity.certificateGenerator.dto;
 
 import com.CyberSecurity.enums.CertificateType;
 import jakarta.validation.constraints.*;

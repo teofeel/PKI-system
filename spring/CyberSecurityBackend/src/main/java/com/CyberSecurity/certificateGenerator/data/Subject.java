@@ -1,4 +1,4 @@
-package com.CyberSecurity.certificate.data;
+package com.CyberSecurity.certificateGenerator.data;
 
 import lombok.*;
 import org.bouncycastle.asn1.x500.X500Name;
