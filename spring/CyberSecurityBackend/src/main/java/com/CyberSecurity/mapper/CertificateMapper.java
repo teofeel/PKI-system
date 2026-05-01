@@ -59,6 +59,7 @@ public class CertificateMapper {
                 .subjectNameEncoded(cert.getSubjectX500Principal().getEncoded())
                 .encoded(cert.getEncoded())
                 .type(certificateGenerator.determineCertificateType(cert))
+                .encoded(cert.getEncoded())
                 .build();
     }
 
