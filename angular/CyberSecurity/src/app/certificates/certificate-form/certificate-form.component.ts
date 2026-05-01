@@ -208,11 +208,20 @@ export class CertificateFormComponent implements OnInit {
 
     this.certificateService.issue(certificateRequest).subscribe({
       next: (res) => {
-        console.log(res);
+        console.log(res)
       },
-      error: () => {
-        this.errormsg = 'Failed to issue certificate!';
-      },
+      error: (err) => {
+        console.log(err)
+        if (err.status == 400){
+          this.errormsg = 'Some of the data entered is wrong'
+        } else if (err.status === 500) {
+          this.errormsg = 'There has been an internal server error'
+        } else {
+          this.errormsg = 'Failed to issue certificate!';
+        }
+      }
     });
+    this.formData.reset()
+    this.cdr.detectChanges()
   }
 }
