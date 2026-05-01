@@ -43,7 +43,7 @@ export class CertificateList {
 
   goToDetails(certId: string | number): void {
     console.log('Navigating:', certId);
-    this.router.navigate(['/certification', certId]);
+    //this.router.navigate(['/certification', certId]);
   }
 
   onExpand(cert: CertificateListItem): void {
