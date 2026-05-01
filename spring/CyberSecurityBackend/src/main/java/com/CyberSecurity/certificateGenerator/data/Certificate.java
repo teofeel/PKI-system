@@ -1,4 +1,4 @@
-package com.CyberSecurity.certificate.data;
+package com.CyberSecurity.certificateGenerator.data;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

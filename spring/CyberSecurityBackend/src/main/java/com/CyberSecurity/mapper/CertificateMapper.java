@@ -1,19 +1,19 @@
 package com.CyberSecurity.mapper;
 
 
-import com.CyberSecurity.certificate.CertificateGenerator;
+import com.CyberSecurity.certificateGenerator.CertificateGenerator;
 import com.CyberSecurity.dto.certficate.GetCertificateListDTO;
 import com.CyberSecurity.model.Certificate;
 import com.CyberSecurity.model.Organization;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.io.ByteArrayInputStream;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
-
-import static org.bouncycastle.asn1.x509.X509ObjectIdentifiers.commonName;
 
 @Component
 @RequiredArgsConstructor
@@ -57,11 +57,23 @@ public class CertificateMapper {
                 .isRevoked(false)
                 .issuer(issuer)
                 .subjectNameEncoded(cert.getSubjectX500Principal().getEncoded())
+                .encoded(cert.getEncoded())
                 .type(certificateGenerator.determineCertificateType(cert))
                 .build();
     }
 
     public List<GetCertificateListDTO> toGetCertificateListDTO(List<Certificate> certificateList){
         return certificateList.stream().map(this::toGetCertificateListDTO).toList();
+    }
+
+    public X509Certificate toX509(byte[] encoded) {
+        try {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            return (X509Certificate) cf.generateCertificate(
+                    new ByteArrayInputStream(encoded)
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Invalid certificate");
+        }
     }
 }

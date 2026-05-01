@@ -5,6 +5,7 @@ import { AccountType, Organization, RegistrationData } from '../../model/Registr
 import { AuthService } from '../../service/auth.service';
 import { CommonModule } from '@angular/common';
 import { OrganizationService } from '../../service/organization.service';
+import { zxcvbn } from '@zxcvbn-ts/core';
 
 @Component({
   selector: 'app-registration',
@@ -22,6 +23,9 @@ export class RegistrationComponent implements OnInit {
   showOrgDropdown = false;
 
   errormsg: string | null = null;
+
+  strengthScore: number = 0;
+  feedback: string = '';
 
   role: string | null;
 
@@ -70,6 +74,20 @@ export class RegistrationComponent implements OnInit {
       this.errormsg = 'Last name is required!';
     } else if (!formValue.organization) {
       this.errormsg = 'Organization is required!';
+    }
+  }
+
+  checkPassword() {
+    const result = zxcvbn(this.formData.value.password!);
+
+    this.strengthScore = result.score;
+
+    if (result.feedback.warning) {
+      this.feedback = result.feedback.warning;
+    } else if (result.feedback.suggestions.length) {
+      this.feedback = result.feedback.suggestions.join(', ');
+    } else {
+      this.feedback = '';
     }
   }
 

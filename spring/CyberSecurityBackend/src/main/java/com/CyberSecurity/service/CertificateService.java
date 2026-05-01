@@ -1,28 +1,22 @@
 package com.CyberSecurity.service;
 
 import com.CyberSecurity.KeyPairGeneratorService;
-import com.CyberSecurity.certificate.CertificateGenerator;
-import com.CyberSecurity.certificate.data.Issuer;
-import com.CyberSecurity.certificate.data.Subject;
-import com.CyberSecurity.certificate.dto.CertificateRequestDTO;
-import com.CyberSecurity.certificate.dto.ParentCAResponseDTO;
+import com.CyberSecurity.certificateGenerator.CertificateGenerator;
+import com.CyberSecurity.certificateGenerator.data.Issuer;
+import com.CyberSecurity.certificateGenerator.data.Subject;
+import com.CyberSecurity.certificateGenerator.dto.CertificateRequestDTO;
+import com.CyberSecurity.certificateGenerator.dto.ParentCAResponseDTO;
 import com.CyberSecurity.dto.encryption.EncryptionResult;
-
 import com.CyberSecurity.enums.CertificateType;
 import com.CyberSecurity.exceptions.CertificateIssuingException;
 import com.CyberSecurity.mapper.CertificateMapper;
-
 import com.CyberSecurity.model.Account;
 import com.CyberSecurity.repository.AccountRepository;
-
 import com.CyberSecurity.enums.AccountType;
 import com.CyberSecurity.exceptions.CertificateNotFoundException;
 import com.CyberSecurity.model.Certificate;
 import com.CyberSecurity.model.EncryptedData;
-
 import com.CyberSecurity.model.Organization;
-import com.CyberSecurity.repository.AccountRepository;
-
 import com.CyberSecurity.repository.CertificateRepository;
 import com.CyberSecurity.repository.OrganizationRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -31,22 +25,18 @@ import lombok.RequiredArgsConstructor;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
 import javax.security.auth.login.AccountNotFoundException;
 import java.math.BigInteger;
-import java.security.KeyPair;
-import java.security.PrivateKey;
-import java.security.SecureRandom;
+import java.security.*;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.time.DateTimeException;
+import java.time.LocalDate;
 import java.time.ZoneId;
-
-
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import java.util.*;
 
@@ -63,18 +53,68 @@ public class CertificateService {
     private final OrganizationRepository organizationRepository;
 
     @Transactional
-    public X509Certificate issueCertificate(CertificateRequestDTO dto){
-        if (dto.getValidFrom().after(dto.getValidTo()))
-            return null;
+    public X509Certificate issueCertificate(CertificateRequestDTO dto) throws CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchProviderException {
+        if (dto.getValidFrom().after(dto.getValidTo()))     //dto date is not valid
+            throw new IllegalArgumentException("ValidTo must be after ValidFrom");
+
+        boolean valid = true;
+        if (!dto.getCertificateType().equals(CertificateType.ROOT))
+            valid = validate(dto);
         X509Certificate cert = null;
-        if (dto.getParentCAId() == null && dto.getCertificateType() == CertificateType.ROOT){
-            cert = issueRootCertificate(dto);
-        }else{
-            Optional<Certificate> parentCAOpt = certificateRepository.findById(Long.parseLong(dto.getParentCAId()));
-            if (parentCAOpt.isEmpty()) throw new CertificateNotFoundException("Certificate with this id doesn't exist");
-            cert = issueChildCertificate(dto, parentCAOpt.get());
+        if (valid) {
+            if (dto.getParentCAId() == null && dto.getCertificateType() == CertificateType.ROOT) {
+                cert = issueRootCertificate(dto);
+            } else {
+                Optional<Certificate> parentCAOpt = certificateRepository.findById(Long.parseLong(dto.getParentCAId()));
+                if (parentCAOpt.isEmpty())
+                    throw new CertificateNotFoundException("Certificate with this id doesn't exist");
+                cert = issueChildCertificate(dto, parentCAOpt.get());
+            }
         }
         return cert;
+    }
+
+    @Transactional
+    public boolean validate(CertificateRequestDTO dto) throws CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchProviderException {
+        Optional<Certificate> parentCAOpt = certificateRepository.findById(Long.parseLong(dto.getParentCAId()));
+
+        if (parentCAOpt.isEmpty())
+            throw new CertificateNotFoundException("Certificate with this id doesn't exist");   //parentCA doesnt exist
+
+        LocalDate parentValidFrom = parentCAOpt.get().getValidFrom();
+        LocalDate parentValidTo = parentCAOpt.get().getValidUntil();
+
+        LocalDate dtoValidFrom = dto.getValidFrom().toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
+        LocalDate dtoValidTo = dto.getValidTo().toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
+
+        if (parentValidTo.isBefore(LocalDate.now()))     //parentCA expired
+            throw new DateTimeException("ParentCA expired");
+
+        if (!((dtoValidFrom.isAfter(parentValidFrom) || dtoValidFrom.isEqual(parentValidFrom))
+                && dtoValidFrom.isBefore(parentValidTo)     //parentCA wont be valid
+                && ((dtoValidTo.isBefore(parentValidTo) || dtoValidTo.isEqual(parentValidTo)))))
+            throw new DateTimeException("ParentCA wont be valid");
+
+        verifyDigitalSignature(parentCAOpt.get());
+        return true;
+    }
+
+    public void verifyDigitalSignature(Certificate current) throws CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchProviderException {
+        while (current != null){
+            X509Certificate currentX509 = certificateMapper.toX509(current.getEncoded());  //DIGITAL SIGNATURE
+            if (current.getIssuer() == null) {
+                currentX509.verify(currentX509.getPublicKey());
+                break;
+            } else {
+                X509Certificate parentX509 = certificateMapper.toX509(current.getIssuer().getEncoded());
+                currentX509.verify(parentX509.getPublicKey());
+                current = current.getIssuer();
+            }
+        }
     }
 
     @Transactional
@@ -131,7 +171,7 @@ public class CertificateService {
         try {
             parentPrivateKey = getDecryptedPrivateKey(parentCert);
         }catch (Exception e){
-            return null;
+            throw new CertificateIssuingException("Failed to decrypt private key");
         }
 
         X500Name issuerName = X500Name.getInstance(parentCert.getSubjectNameEncoded());
@@ -221,7 +261,7 @@ public class CertificateService {
         Optional<Account> owner = accountRepository.findById(userId);
         Certificate certificate = certificateMapper.toCertificate(cert, org, issuer);
 
-        if(owner.isPresent()) certificate.setOwner(owner.get());
+        if (owner.isPresent()) certificate.setOwner(owner.get());
 
         encryptAndSetPrivateKey(certificate, privateKey);
         certificateRepository.save(certificate);

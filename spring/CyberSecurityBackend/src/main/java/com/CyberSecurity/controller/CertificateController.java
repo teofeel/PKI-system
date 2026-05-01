@@ -1,49 +1,30 @@
 package com.CyberSecurity.controller;
-
-import com.CyberSecurity.certificate.dto.CertificateRequestDTO;
-
+import com.CyberSecurity.certificateGenerator.dto.CertificateRequestDTO;
 import com.CyberSecurity.dto.certficate.GetCertificateListDTO;
 import com.CyberSecurity.mapper.CertificateMapper;
 import com.CyberSecurity.model.Account;
 import com.CyberSecurity.model.Certificate;
-import com.CyberSecurity.certificate.dto.ParentCAResponseDTO;
+import com.CyberSecurity.certificateGenerator.dto.ParentCAResponseDTO;
 import com.CyberSecurity.enums.AccountType;
-import com.CyberSecurity.model.User;
-
 import com.CyberSecurity.service.CertificateService;
-import com.CyberSecurity.service.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
-
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.bind.annotation.*;
-
 import javax.security.auth.login.AccountNotFoundException;
-import java.security.Principal;
-import java.security.cert.X509Certificate;
-import java.util.Base64;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
-import javax.print.attribute.standard.Media;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 @RestController
 @RequiredArgsConstructor

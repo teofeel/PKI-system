@@ -73,4 +73,7 @@ public class Certificate {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name= "account_id")
     private Account owner;
+
+    @Column
+    private byte[] encoded;
 }
