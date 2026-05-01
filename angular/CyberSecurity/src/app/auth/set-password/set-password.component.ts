@@ -2,10 +2,12 @@ import { ChangeDetectorRef, Component } from '@angular/core';
 import { AuthService } from '../../service/auth.service';
 import { ActivatedRoute } from '@angular/router';
 import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { zxcvbn } from '@zxcvbn-ts/core';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-set-password',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './set-password.component.html',
   styleUrl: './set-password.component.css',
 })
@@ -17,6 +19,9 @@ export class SetPasswordComponent {
   });
   errormsg: string = '';
   showError: boolean = false;
+
+  strengthScore: number = 0;
+  feedback: string = '';
 
   constructor(
     private authService: AuthService,
@@ -35,6 +40,20 @@ export class SetPasswordComponent {
         this.cdr.detectChanges();
       },
     });
+  }
+
+  checkPassword() {
+    const result = zxcvbn(this.passwordForm.value.password!);
+
+    this.strengthScore = result.score;
+
+    if (result.feedback.warning) {
+      this.feedback = result.feedback.warning;
+    } else if (result.feedback.suggestions.length) {
+      this.feedback = result.feedback.suggestions.join(', ');
+    } else {
+      this.feedback = '';
+    }
   }
 
   setPassword() {

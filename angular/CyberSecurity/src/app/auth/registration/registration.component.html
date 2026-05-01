@@ -40,8 +40,21 @@
           class="form-input"
           type="password"
           placeholder="Password"
+          (input)="checkPassword()"
           formControlName="password"
         />
+
+        <div>
+          Strength:
+          <span [ngSwitch]="strengthScore">
+            <span *ngSwitchCase="0">Very weak</span>
+            <span *ngSwitchCase="1">Weak</span>
+            <span *ngSwitchCase="2">Fair</span>
+            <span *ngSwitchCase="3">Good</span>
+            <span *ngSwitchCase="4">Strong</span>
+          </span>
+        </div>
+        <div *ngIf="feedback">Hint: {{ feedback }}</div>
       </div>
 
       <div class="form-group" *ngIf="role !== 'ADMIN'">

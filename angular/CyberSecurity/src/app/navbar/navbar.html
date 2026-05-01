@@ -6,7 +6,8 @@
       @if (authService.role()) {
         <a routerLink="/certification-page" class="nav-item">View Certificates</a>
         @if (authService.role() == 'ADMIN') {
-            <a routerLink="/create-organization" class="nav-item">Create Organization</a>
+          <a routerLink="/create-organization" class="nav-item">Create Organization</a>
+          <a routerLink="/register" class="nav-item">Register CA</a>
         }
 
         @if (authService.role() !== 'USER') {
