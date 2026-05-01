@@ -1,0 +1,28 @@
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-brand" routerLink="/">PKI</div>
+
+    <div class="nav-links">
+      @if (authService.role()) {
+        <a routerLink="/certification-page" class="nav-item">View Certificates</a>
+        @if (authService.role() == 'ADMIN') {
+          <a routerLink="/create-organization" class="nav-item">Create Organization</a>
+          <a routerLink="/register" class="nav-item">Register CA</a>
+        }
+
+        @if (authService.role() !== 'USER') {
+          <a routerLink="/generate-certificate" class="nav-item">Issue Certificate</a>
+        }
+      }
+    </div>
+
+    <div class="nav-actions">
+      @if (!authService.role()) {
+        <a routerLink="/register" class="nav-link-btn">Register</a>
+        <button routerLink="/login" class="nav-btn">Login</button>
+      } @else {
+        <button (click)="logout()" class="nav-btn">Logout</button>
+      }
+    </div>
+  </div>
+</nav>

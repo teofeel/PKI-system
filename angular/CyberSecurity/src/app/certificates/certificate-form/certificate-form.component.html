@@ -1,0 +1,161 @@
+<div class="certificate-wrapper">
+  <div class="certificate-card">
+    <h1 class="certificate-title">Certificate</h1>
+
+    <form class="certificate-form" [formGroup]="formData" (ngSubmit)="issue()">
+      <div class="form-columns">
+        <div class="form-col">
+          <div class="form-group">
+            <input
+              id="name"
+              class="form-input"
+              type="text"
+              placeholder="Common Name"
+              formControlName="name"
+            />
+          </div>
+
+          <div class="form-group">
+            <input
+              id="surname"
+              class="form-input"
+              type="text"
+              placeholder="Surname"
+              formControlName="surname"
+            />
+          </div>
+
+          <div class="form-group">
+            <input
+              id="givenName"
+              class="form-input"
+              type="text"
+              placeholder="Given Name"
+              formControlName="givenName"
+            />
+          </div>
+
+          <div class="form-group">
+            <input
+              id="email"
+              class="form-input"
+              type="email"
+              placeholder="E-mail"
+              formControlName="email"
+            />
+          </div>
+
+          <div class="form-group" style="position: relative">
+            <input
+              id="organization"
+              class="form-input"
+              type="text"
+              placeholder="Organization"
+              formControlName="organization"
+              autocomplete="off"
+              readonly
+              (focus)="showOrgDropdown = true; filteredOrgs = organizations"
+              (blur)="hideOrgDropdown()"
+            />
+            <ul class="combo-dropdown" *ngIf="showOrgDropdown && filteredOrgs.length > 0">
+              <li *ngFor="let org of filteredOrgs" (mousedown)="selectOrg(org)">{{ org.name }}</li>
+            </ul>
+          </div>
+
+          <div class="form-group">
+            <input
+              id="organizationUnit"
+              class="form-input"
+              type="text"
+              placeholder="Organization Unit"
+              formControlName="organizationUnit"
+            />
+          </div>
+        </div>
+
+        <div class="form-col">
+          <div class="form-group">
+            <input
+              id="country"
+              class="form-input"
+              type="text"
+              placeholder="Country"
+              formControlName="country"
+            />
+          </div>
+
+          <div class="form-group" style="position: relative">
+            <input
+              id="owner"
+              class="form-input"
+              type="text"
+              placeholder="Owner"
+              formControlName="ownerDisplay"
+              autocomplete="off"
+              readonly
+              (focus)="showOwnerDropdown = true; filteredOwners = owners"
+              (blur)="hideOwnerDropdown()"
+            />
+            <ul class="combo-dropdown" *ngIf="showOwnerDropdown && filteredOwners.length > 0">
+              <li *ngFor="let owner of filteredOwners" (mousedown)="selectOwner(owner)">
+                {{ owner.name + ' ' + owner.lastname }}
+              </li>
+            </ul>
+          </div>
+
+          <div class="form-group" style="position: relative">
+            <input
+              id="certType"
+              class="form-input"
+              type="text"
+              placeholder="Certificate Type"
+              formControlName="certType"
+              autocomplete="off"
+              readonly
+              (focus)="showCertTypeDropdown = true"
+              (blur)="hideCertTypeDropdown()"
+            />
+            <ul class="combo-dropdown" *ngIf="showCertTypeDropdown">
+              <li *ngFor="let certType of certTypes" (mousedown)="selectCertType(certType)">
+                {{ certType }}
+              </li>
+            </ul>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group half">
+              <label class="form-label" for="validFrom">Start Date</label>
+              <input
+                id="validFrom"
+                class="form-input date-input"
+                type="date"
+                formControlName="validFrom"
+              />
+            </div>
+            <div class="form-group half">
+              <label class="form-label" for="validTo">End Date</label>
+              <input
+                id="validTo"
+                class="form-input date-input"
+                type="date"
+                formControlName="validTo"
+              />
+            </div>
+          </div>
+
+          <div class="form-group" style="position: relative" *ngIf="formData.get('certType')?.value !== 'ROOT'">
+            <input id="parentCA" class="form-input" type="text" placeholder="Parent CA" formControlName="parentCADisplay" autocomplete="off" readonly (focus)="showParentDropdown = true" (blur)="hideParentDropdown()" />
+            <ul class="combo-dropdown" *ngIf="showParentDropdown">
+              <li *ngFor="let parentCA of parentCAs" (mousedown)="selectParentCA(parentCA)">{{ parentCA.commonName }}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group submit-group">
+        <p class="errormsg" [style.display]="errormsg != null ? 'block' : 'none'">{{ errormsg }}</p>
+        <button id="submitBtn" class="submit-btn" type="submit">Issue</button>
+      </div>
+    </form>
+  </div>
+</div>
