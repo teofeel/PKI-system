@@ -54,6 +54,9 @@ public class CertificateService {
 
     @Transactional
     public X509Certificate issueCertificate(CertificateRequestDTO dto) throws CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchProviderException {
+        if (dto.getValidFrom().after(dto.getValidTo()))     //dto date is not valid
+            throw new IllegalArgumentException("ValidTo must be after ValidFrom");
+
         boolean valid = true;
         if (!dto.getCertificateType().equals(CertificateType.ROOT))
             valid = validate(dto);
@@ -73,9 +76,6 @@ public class CertificateService {
 
     @Transactional
     public boolean validate(CertificateRequestDTO dto) throws CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchProviderException {
-        if (dto.getValidFrom().after(dto.getValidTo()))     //dto date is not valid
-            return false;
-
         Optional<Certificate> parentCAOpt = certificateRepository.findById(Long.parseLong(dto.getParentCAId()));
 
         if (parentCAOpt.isEmpty())
@@ -99,20 +99,22 @@ public class CertificateService {
                 && ((dtoValidTo.isBefore(parentValidTo) || dtoValidTo.isEqual(parentValidTo)))))
             throw new DateTimeException("ParentCA wont be valid");
 
-
-        if ((dto.getCertificateType().equals(CertificateType.INTERMEDIATE) || dto.getCertificateType().equals(CertificateType.END_ENTITY))
-                && (dto.getParentCAId() == null))   //intermediate and ee must have root
-            return false;
-
-        X509Certificate parentX509 = certificateMapper.toX509(parentCAOpt.get().getEncoded());  //DIGITAL SIGNATURE
-        if (parentCAOpt.get().getIssuer() == null) {
-            parentX509.verify(parentX509.getPublicKey());
-        } else {
-            X509Certificate grandParentX509 = certificateMapper.toX509(parentCAOpt.get().getIssuer().getEncoded());
-            parentX509.verify(grandParentX509.getPublicKey());
-        }
-
+        verifyDigitalSignature(parentCAOpt.get());
         return true;
+    }
+
+    public void verifyDigitalSignature(Certificate current) throws CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchProviderException {
+        while (current != null){
+            X509Certificate currentX509 = certificateMapper.toX509(current.getEncoded());  //DIGITAL SIGNATURE
+            if (current.getIssuer() == null) {
+                currentX509.verify(currentX509.getPublicKey());
+                break;
+            } else {
+                X509Certificate parentX509 = certificateMapper.toX509(current.getIssuer().getEncoded());
+                currentX509.verify(parentX509.getPublicKey());
+                current = current.getIssuer();
+            }
+        }
     }
 
     @Transactional
@@ -169,7 +171,7 @@ public class CertificateService {
         try {
             parentPrivateKey = getDecryptedPrivateKey(parentCert);
         }catch (Exception e){
-            return null;
+            throw new CertificateIssuingException("Failed to decrypt private key");
         }
 
         X500Name issuerName = X500Name.getInstance(parentCert.getSubjectNameEncoded());
