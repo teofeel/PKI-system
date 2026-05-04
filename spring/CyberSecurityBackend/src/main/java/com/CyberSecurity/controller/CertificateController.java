@@ -51,7 +51,7 @@ public class CertificateController {
         }
     }
 
-
+    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER', 'USER')")
     @GetMapping(value = "/accounts/{id}/certificates")
     public ResponseEntity<List<GetCertificateListDTO>> fetchByAccount(@PathVariable long id){
         try{
@@ -66,6 +66,7 @@ public class CertificateController {
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(value = "/certificates/admin")
     public ResponseEntity<List<GetCertificateListDTO>> fetchByAdmin(){
         List<Certificate> certificates = certificateService.fetchByAdmin();
@@ -73,12 +74,14 @@ public class CertificateController {
         return  ResponseEntity.ok(certificateDTOs);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
     @GetMapping(value = "/certificates/{id}/children")
     public ResponseEntity<List<GetCertificateListDTO>> fetchChildren(@PathVariable long id) {
         List<Certificate> certificates = certificateService.fetchByIssuer(id);
         List<GetCertificateListDTO> certificateDTOs = certificateMapper.toGetCertificateListDTO(certificates);
         return ResponseEntity.ok(certificateDTOs);
     }
+    
     @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
     @GetMapping(value = "/get-parent-ca", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Collection<ParentCAResponseDTO>> getAllParentCA

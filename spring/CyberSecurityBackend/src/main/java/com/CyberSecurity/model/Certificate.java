@@ -74,6 +74,6 @@ public class Certificate {
     @JoinColumn(name= "account_id")
     private Account owner;
 
-    @Column
+    @Column(nullable = false)
     private byte[] encoded;
 }

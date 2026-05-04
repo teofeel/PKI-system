@@ -155,9 +155,6 @@ public class CertificateService {
         Subject subject = new Subject(rootName, rootKeyPair.getPublic());
         Issuer issuer = new Issuer(rootName, rootKeyPair.getPrivate());
 
-        //Date validFrom = new Date();
-        //Date validTo = new Date(validFrom.getTime() + 10L * 365 * 24 * 60 * 60 * 1000);
-
         Date validFrom = dto.getValidFrom();
         Date validTo = dto.getValidTo();
         
