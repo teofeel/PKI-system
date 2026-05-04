@@ -1,22 +1,19 @@
 package com.CyberSecurity.service;
 
 import com.CyberSecurity.KeyPairGeneratorService;
+import com.CyberSecurity.model.*;
+import com.CyberSecurity.model.Certificate;
+import com.CyberSecurity.repository.UserRepository;
 import com.CyberSecurity.utils.CertificateGenerator;
-import com.CyberSecurity.model.Issuer;
-import com.CyberSecurity.model.Subject;
 import com.CyberSecurity.dto.certficate.CertificateRequestDTO;
 import com.CyberSecurity.dto.certficate.ParentCAResponseDTO;
 import com.CyberSecurity.dto.encryption.EncryptionResult;
 import com.CyberSecurity.enums.CertificateType;
 import com.CyberSecurity.exceptions.CertificateIssuingException;
 import com.CyberSecurity.mapper.CertificateMapper;
-import com.CyberSecurity.model.Account;
 import com.CyberSecurity.repository.AccountRepository;
 import com.CyberSecurity.enums.AccountType;
 import com.CyberSecurity.exceptions.CertificateNotFoundException;
-import com.CyberSecurity.model.Certificate;
-import com.CyberSecurity.model.EncryptedData;
-import com.CyberSecurity.model.Organization;
 import com.CyberSecurity.repository.CertificateRepository;
 import com.CyberSecurity.repository.OrganizationRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -51,6 +48,7 @@ public class CertificateService {
     private final CertificateRepository certificateRepository;
     private final CertificateMapper certificateMapper;
     private final OrganizationRepository organizationRepository;
+    private final UserRepository usersRepository;
 
     @Transactional
     public X509Certificate issueCertificate(CertificateRequestDTO dto) throws CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchProviderException {
@@ -277,10 +275,13 @@ public class CertificateService {
     @Transactional
     public Certificate createAndSaveCertificate(X509Certificate cert, Organization org, PrivateKey privateKey,
                                                 Long userId, Certificate issuer, Integer pathLen) throws Exception {
-        Optional<Account> owner = accountRepository.findById(userId);
+        Optional<User> userOptional = usersRepository.findById(userId);
+        if (userOptional.isEmpty()) return null;
+        User user = userOptional.get();
+        Account owner = user.getAccount();
         Certificate certificate = certificateMapper.toCertificate(cert, org, issuer, pathLen);
 
-        if (owner.isPresent()) certificate.setOwner(owner.get());
+        certificate.setOwner(owner);
 
         encryptAndSetPrivateKey(certificate, privateKey);
         certificateRepository.save(certificate);

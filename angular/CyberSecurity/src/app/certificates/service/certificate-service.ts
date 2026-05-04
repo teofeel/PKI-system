@@ -13,8 +13,10 @@ import { Observable } from 'rxjs';
 export class CertificateService {
   constructor(private readonly http: HttpClient) {}
 
-  issue(certRequest: CertificateRequest){
-    return this.http.post(`${environment.apiHost}/certificates`, certRequest);
+  issue(certRequest: CertificateRequest) : Observable<string> {
+    return this.http.post(`${environment.apiHost}/certificates`, certRequest, {
+    responseType: 'text'
+  });
   }
 
   fetchCertificatesByAccount(accountId: number | string) : Observable<CertificateListItem[]> {

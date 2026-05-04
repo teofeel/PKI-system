@@ -212,6 +212,7 @@ export class CertificateFormComponent implements OnInit {
       next: (res) => {
         console.log(res)
         this.formData.reset()
+        this.errormsg = 'Successfully issued certificate !'
         this.cdr.detectChanges()
       },
       error: (err) => {
