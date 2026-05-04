@@ -1,11 +1,11 @@
 package com.CyberSecurity.service;
 
 import com.CyberSecurity.KeyPairGeneratorService;
-import com.CyberSecurity.certificateGenerator.CertificateGenerator;
-import com.CyberSecurity.certificateGenerator.data.Issuer;
-import com.CyberSecurity.certificateGenerator.data.Subject;
-import com.CyberSecurity.certificateGenerator.dto.CertificateRequestDTO;
-import com.CyberSecurity.certificateGenerator.dto.ParentCAResponseDTO;
+import com.CyberSecurity.utils.CertificateGenerator;
+import com.CyberSecurity.model.Issuer;
+import com.CyberSecurity.model.Subject;
+import com.CyberSecurity.dto.certficate.CertificateRequestDTO;
+import com.CyberSecurity.dto.certficate.ParentCAResponseDTO;
 import com.CyberSecurity.dto.encryption.EncryptionResult;
 import com.CyberSecurity.enums.CertificateType;
 import com.CyberSecurity.exceptions.CertificateIssuingException;
@@ -68,7 +68,27 @@ public class CertificateService {
                 Optional<Certificate> parentCAOpt = certificateRepository.findById(Long.parseLong(dto.getParentCAId()));
                 if (parentCAOpt.isEmpty())
                     throw new CertificateNotFoundException("Certificate with this id doesn't exist");
-                cert = issueChildCertificate(dto, parentCAOpt.get());
+                Certificate parentCA = parentCAOpt.get();
+                if (CertificateType.INTERMEDIATE.equals(dto.getCertificateType())) {
+                    if (CertificateType.INTERMEDIATE.equals(parentCA.getType()) ){
+                        if (parentCA.getPathLength() > 0) {
+                            cert = issueChildCertificate(dto, parentCA, parentCA.getPathLength() - 1);
+                        } else {
+                            throw new CertificateIssuingException("Parent certificate can't issue any more intermediate certificates");
+                        }
+                    } else if (CertificateType.ROOT.equals(parentCA.getType())) {
+                        if (dto.getPathLen() == null){
+                            cert = issueChildCertificate(dto, parentCA, 0);
+                        } else {
+                            cert = issueChildCertificate(dto, parentCA, dto.getPathLen());
+                        }
+                    } else {
+                        throw new CertificateIssuingException("Parent Type Is Not Valid");
+                    }
+                } else {
+                    cert = issueChildCertificate(dto, parentCA, null);
+                }
+
             }
         }
         return cert;
@@ -135,19 +155,16 @@ public class CertificateService {
         Subject subject = new Subject(rootName, rootKeyPair.getPublic());
         Issuer issuer = new Issuer(rootName, rootKeyPair.getPrivate());
 
-        //Date validFrom = new Date();
-        //Date validTo = new Date(validFrom.getTime() + 10L * 365 * 24 * 60 * 60 * 1000);
-
         Date validFrom = dto.getValidFrom();
         Date validTo = dto.getValidTo();
         
         X509Certificate cert = CertificateGenerator.generateCertificate(
                 subject, issuer, validFrom, validTo,
-                new BigInteger(64, new SecureRandom()).toString(), dto.getCertificateType()
+                new BigInteger(64, new SecureRandom()).toString(), dto.getCertificateType(), null
         );
 
         try{
-            this.createAndSaveCertificate(cert, org, rootKeyPair.getPrivate(), dto.getUserId(), null);
+            this.createAndSaveCertificate(cert, org, rootKeyPair.getPrivate(), dto.getUserId(), null, null);
         }catch(Exception e){
             e.printStackTrace();
             throw new CertificateIssuingException("Failed to issue certificate");
@@ -159,7 +176,8 @@ public class CertificateService {
     @Transactional
     public X509Certificate issueChildCertificate(
             CertificateRequestDTO dto,
-            Certificate parentCert
+            Certificate parentCert,
+            Integer pathLen
     ) {
         Organization org = organizationRepository.findByName(dto.getOrganization());
         if(org == null) {
@@ -193,12 +211,12 @@ public class CertificateService {
                 subject, issuer,
                 dto.getValidFrom(), dto.getValidTo(),
                 new BigInteger(64, new SecureRandom()).toString(),
-                dto.getCertificateType()
+                dto.getCertificateType(), pathLen
         );
 
 
         try{
-            this.createAndSaveCertificate(cert, org, subjectKeyPair.getPrivate(), dto.getUserId(), parentCert);
+            this.createAndSaveCertificate(cert, org, subjectKeyPair.getPrivate(), dto.getUserId(), parentCert, pathLen);
         }catch(Exception e){
             throw new CertificateIssuingException("Failed to issue certificate");
         }
@@ -257,9 +275,10 @@ public class CertificateService {
     }
 
     @Transactional
-    public Certificate createAndSaveCertificate(X509Certificate cert, Organization org, PrivateKey privateKey, Long userId, Certificate issuer) throws Exception {
+    public Certificate createAndSaveCertificate(X509Certificate cert, Organization org, PrivateKey privateKey,
+                                                Long userId, Certificate issuer, Integer pathLen) throws Exception {
         Optional<Account> owner = accountRepository.findById(userId);
-        Certificate certificate = certificateMapper.toCertificate(cert, org, issuer);
+        Certificate certificate = certificateMapper.toCertificate(cert, org, issuer, pathLen);
 
         if (owner.isPresent()) certificate.setOwner(owner.get());
 
