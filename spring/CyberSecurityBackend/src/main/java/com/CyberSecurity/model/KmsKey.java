@@ -17,7 +17,7 @@ import java.util.UUID;
 public class KmsKey {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private String id;
 
     @Embedded
     private EncryptedData encryptedData;
