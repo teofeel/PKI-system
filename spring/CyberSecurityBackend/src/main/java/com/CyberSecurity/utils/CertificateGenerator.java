@@ -1,7 +1,7 @@
-package com.CyberSecurity.certificateGenerator;
+package com.CyberSecurity.utils;
 
-import com.CyberSecurity.certificateGenerator.data.Issuer;
-import com.CyberSecurity.certificateGenerator.data.Subject;
+import com.CyberSecurity.model.Issuer;
+import com.CyberSecurity.model.Subject;
 import com.CyberSecurity.enums.CertificateType;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 
@@ -9,6 +9,7 @@ import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.KeyUsage;
 
+import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
@@ -34,7 +35,8 @@ public class CertificateGenerator {
 
     public static X509Certificate generateCertificate(Subject subject, Issuer issuer,
                                                       Date startDate, Date endDate,
-                                                      String serialNumber, CertificateType type) {
+                                                      String serialNumber, CertificateType type,
+                                                      Integer pathLen) {
         try {
             JcaContentSignerBuilder builder = new JcaContentSignerBuilder("SHA256WithRSAEncryption");
             builder = builder.setProvider("BC");
@@ -48,20 +50,18 @@ public class CertificateGenerator {
                     endDate,
                     subject.getX500Name(),
                     subject.getPublicKey());
-            try {
-                if (CertificateType.END_ENTITY.equals(type)) {
-                    certGen.addExtension(Extension.basicConstraints, true, new BasicConstraints(false));
-                    certGen.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment));
-                }else{
-                    certGen.addExtension(Extension.basicConstraints, true, new BasicConstraints(true));
-                    certGen.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.keyCertSign | KeyUsage.cRLSign));
-                }
-                certGen.addExtension(Extension.subjectKeyIdentifier, false,
-                        new JcaX509ExtensionUtils().createSubjectKeyIdentifier(subject.getPublicKey()));
-            }catch (Exception e){
-                e.printStackTrace();
-                return null;
+
+            if (CertificateType.END_ENTITY.equals(type)) {
+                certGen.addExtension(Extension.basicConstraints, true, new BasicConstraints(false));
+                certGen.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment));
+            }else if (CertificateType.INTERMEDIATE.equals(type)){
+                certGen.addExtension(Extension.basicConstraints, true, new BasicConstraints(pathLen));
+                certGen.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyCertSign | KeyUsage.cRLSign));
+            }else{
+                certGen.addExtension(Extension.basicConstraints, true, new BasicConstraints(true));
+                certGen.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyCertSign | KeyUsage.cRLSign));
             }
+
             X509CertificateHolder certHolder = certGen.build(contentSigner);
 
             JcaX509CertificateConverter certConverter = new JcaX509CertificateConverter();
@@ -78,6 +78,8 @@ public class CertificateGenerator {
         } catch (OperatorCreationException e) {
             e.printStackTrace();
         } catch (CertificateException e) {
+            e.printStackTrace();
+        } catch (CertIOException e) {
             e.printStackTrace();
         }
         return null;

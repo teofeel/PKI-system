@@ -1,10 +1,11 @@
 package com.CyberSecurity.controller;
-import com.CyberSecurity.certificateGenerator.dto.CertificateRequestDTO;
+import com.CyberSecurity.dto.certficate.CertificateRequestDTO;
 import com.CyberSecurity.dto.certficate.GetCertificateListDTO;
+import com.CyberSecurity.exceptions.CertificateIssuingException;
 import com.CyberSecurity.mapper.CertificateMapper;
 import com.CyberSecurity.model.Account;
 import com.CyberSecurity.model.Certificate;
-import com.CyberSecurity.certificateGenerator.dto.ParentCAResponseDTO;
+import com.CyberSecurity.dto.certficate.ParentCAResponseDTO;
 import com.CyberSecurity.enums.AccountType;
 import com.CyberSecurity.service.CertificateService;
 import jakarta.validation.Valid;
@@ -43,6 +44,8 @@ public class CertificateController {
             }
             String encoded = Base64.getEncoder().encodeToString(cert.getEncoded());
             return ResponseEntity.ok(encoded);
+        } catch (CertificateIssuingException e) {
+            return ResponseEntity.badRequest().body("Request is not valid");
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Failed: " + e.getMessage());
         }

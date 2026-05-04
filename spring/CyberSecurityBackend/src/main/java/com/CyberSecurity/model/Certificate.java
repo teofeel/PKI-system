@@ -57,7 +57,7 @@ public class Certificate {
     private Organization organization;
 
     @Column
-    private String extensions;
+    private Integer pathLength;
 
     @Embedded
     @AttributeOverrides({
