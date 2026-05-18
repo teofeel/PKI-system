@@ -114,7 +114,7 @@ export class Profile implements OnInit{
         code: this.mfaVerificationCode
     };
     
-    console.log(mfaCodeDto)
+
     if(!this.using2FA){
       this.mfaService.setupVerifyMfa(mfaCodeDto).subscribe({
         next: (res: any) => {

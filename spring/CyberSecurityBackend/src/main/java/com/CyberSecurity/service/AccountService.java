@@ -51,8 +51,12 @@ public class AccountService {
     public LoginResponseDTO login(Account account){
         if (account.getAccountStatus() == AccountStatus.UNVERIFIED)
             throw new AccountNotVerifiedException("Account has not been verified");
-        String token = jwtService.generateToken(account);
-        return LoginResponseDTO.builder().accessToken(token).build();
+        String token;
+
+        if(account.isUsing2FA()) token = jwtService.generateShortToken(account);
+        else token = jwtService.generateToken(account);
+
+        return LoginResponseDTO.builder().accessToken(token).using2FA(account.isUsing2FA()).build();
     }
 
     public User register(RegisterDTO registrationData) {

@@ -10,7 +10,7 @@ public class UserMapper {
         return UserDTO.builder()
                 .name(user.getName())
                 .lastname(user.getLastname())
-                .organization(user.getOrganization().getName())
+                .organization(user.getOrganization() != null ? user.getOrganization().getName() : "System Administration")
                 .build();
     }
 }
