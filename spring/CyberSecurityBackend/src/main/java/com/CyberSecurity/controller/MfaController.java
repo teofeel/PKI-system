@@ -76,7 +76,7 @@ public class MfaController {
         }
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER', 'USER')")
+    @PreAuthorize("hasRole('TWOFA')")
     @PostMapping("/verify")
     public ResponseEntity<LoginResponseDTO> loginMfaVerify(@AuthenticationPrincipal Account acc, @Valid @RequestBody MfaCode code){
         try{

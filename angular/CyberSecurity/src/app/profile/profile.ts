@@ -6,6 +6,7 @@ import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { MfaService } from '../service/mfa.service';
 import { MfaQrCode } from '../model/MfaQrCode';
 import { MfaCode } from '../model/MfaCode';
+import { UpdateUserDTO } from '../model/UpdateUserDTO';
 
 @Component({
   selector: 'app-profile',
@@ -41,10 +42,6 @@ export class Profile implements OnInit{
   loadUserAccount(): void{
     this.userService.getUser().subscribe({
       next: (data: GetAccountDetailsDTO) => {
-        console.log('Full user data:', data);
-        console.log('isUsing2FA value:', data.using2FA);
-        console.log('isUsing2FA type:', typeof data.using2FA);
-
         this.user = data;
         this.using2FA = data.using2FA;
 
@@ -159,5 +156,34 @@ export class Profile implements OnInit{
     this.cdr.detectChanges();
   }
 
-  saveProfile(): void {}
+  saveProfile(): void {
+    this.errormsg = null;
+
+    if (this.profileForm.invalid) {
+    this.errormsg = 'Please fill in all required fields correctly.';
+    return;
+  }
+
+  const updateDto: UpdateUserDTO = {
+    firstname: this.profileForm.value.name,
+    lastname: this.profileForm.value.lastname
+  };
+
+
+  this.userService.updateUser(updateDto).subscribe({
+    next: (updatedData) => {
+      if (this.user) {
+        this.user.user.name = updateDto.firstname;
+        this.user.user.lastname = updateDto.lastname;
+      }
+
+      alert('Profile updated successfully!'); 
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      this.errormsg = err.error?.message || 'Failed to update profile information.';
+      this.cdr.detectChanges();
+    }
+  });
+  }
 }

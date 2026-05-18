@@ -69,7 +69,7 @@ public class JWTService {
         return Jwts.builder()
                 .setSubject(account.getEmail())
                 .claim("id", account.getId())
-                .claim("type", account.getAccountType())
+                .claim("type", "twofa")
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + shortExpiration))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
