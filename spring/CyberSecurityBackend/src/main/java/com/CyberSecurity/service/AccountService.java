@@ -1,12 +1,10 @@
 package com.CyberSecurity.service;
 
-import com.CyberSecurity.dto.account.AccountDTO;
 import com.CyberSecurity.dto.account.GetAccountDetailsDTO;
 import com.CyberSecurity.dto.authentication.LoginResponseDTO;
 import com.CyberSecurity.dto.authentication.RegisterCAUserDTO;
 import com.CyberSecurity.dto.authentication.RegisterDTO;
 import com.CyberSecurity.enums.AccountStatus;
-import com.CyberSecurity.enums.AccountType;
 import com.CyberSecurity.exceptions.AccountNotFoundException;
 import com.CyberSecurity.exceptions.AccountNotVerifiedException;
 import com.CyberSecurity.mapper.AccountMapper;
@@ -24,8 +22,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.PublicKey;
 import java.util.Date;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -45,6 +45,8 @@ public class AccountService {
     private  EmailUtils emailUtils;
     @Autowired
     private AccountMapper accountMapper;
+    @Autowired
+    private EncryptionService encryptionService;
 
 
 
@@ -73,6 +75,25 @@ public class AccountService {
         return null;
     }
 
+    public String generateVerificationChallenge(Account account) {
+        try {
+            // 1. Pretvori string iz baze u ključ
+            PublicKey publicKey = encryptionService.getPublicKeyFromString(account.getUser().getPublicKey());
+
+            // 2. Generiši nasumični string (npr. UUID)
+            String secretPayload = UUID.randomUUID().toString();
+            User user = account.getUser();
+            user.setSecretPayload(secretPayload);
+            account.setUser(user);
+            accountRepository.save(account);
+            // 4. Enkriptuj ga
+            return encryptionService.encryptChallenge(secretPayload, publicKey);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Greška pri generisanju enkripcije", e);
+        }
+    }
+
     public User registerCAUser(RegisterCAUserDTO registrationData) {
         if (accountRepository.findAccountByEmail(registrationData.getEmail()) == null) {
             Account newAccount = new Account(registrationData.getEmail(), registrationData.getAccountType());
@@ -90,15 +111,21 @@ public class AccountService {
         return null;
     }
 
-    public boolean verifyAccountToken(String token){
+    public Account verifyAccountToken(String token){
+        return accountRepository.findAccountByVerification(token);
+    }
+
+    public boolean verifyDecryptedSecret(String token,String decrypted){
         Account acc = accountRepository.findAccountByVerification(token);
-        if (acc != null) {
-            long now = new Date().getTime();
-            if (now - acc.getLastPasswordResetTime().getTime() < 600000)
-                acc.setAccountStatus(AccountStatus.VERIFIED);
-            acc.setVerification(null);
-            accountRepository.save(acc);
-            return true;
+        if (acc != null){
+            if (acc.getUser().getSecretPayload().equals(decrypted)){
+                long now = new Date().getTime();
+                if (now - acc.getLastPasswordResetTime().getTime() < 600000)
+                    acc.setAccountStatus(AccountStatus.VERIFIED);
+                acc.setVerification(null);
+                accountRepository.save(acc);
+                return true;
+            }
         }
         return false;
     }

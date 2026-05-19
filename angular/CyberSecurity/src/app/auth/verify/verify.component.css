@@ -75,3 +75,86 @@
   line-height: 1.7;
   letter-spacing: 0.02em;
 }
+
+/* Kontejner za upload sekciju */
+.upload-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.upload-hint {
+  font-size: 0.85rem !important;
+  opacity: 0.8;
+  margin-bottom: -0.5rem !important;
+}
+
+/* Stil za prilagođeni "dugme-label" */
+.custom-file-upload {
+  display: inline-block;
+  padding: 1.2rem 2rem;
+  cursor: pointer;
+  background: rgba(214, 232, 239, 0.1);
+  border: 2px dashed #a8ccd8;
+  border-radius: 1rem;
+  transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.custom-file-upload:hover {
+  background: rgba(214, 232, 239, 0.2);
+  border-color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.upload-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.upload-icon {
+  font-size: 1.5rem;
+}
+
+.upload-text {
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: #ffffff;
+  /* Sprečava predugačka imena fajlova da pokvare dizajn */
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Sakrivanje pravog inputa */
+input[type='file'] {
+  display: none;
+}
+
+/* Glavno dugme za verifikaciju (pojavljuje se tek kad je fajl tu) */
+.btn-verify {
+  background-color: #d6e8ef;
+  color: #2c5566;
+  border: none;
+  padding: 1rem 2.5rem;
+  border-radius: 2rem;
+  font-family: 'Georgia', serif;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.btn-verify:hover {
+  background-color: #ffffff;
+  transform: scale(1.05);
+}

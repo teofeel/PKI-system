@@ -1,5 +1,6 @@
 package com.CyberSecurity.controller;
 
+import com.CyberSecurity.dto.ChallengeDTO;
 import com.CyberSecurity.dto.account.AccountDTO;
 import com.CyberSecurity.dto.authentication.*;
 import com.CyberSecurity.dto.user.CreatedUserDTO;
@@ -8,6 +9,7 @@ import com.CyberSecurity.model.User;
 import com.CyberSecurity.service.AccountService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.bouncycastle.asn1.cmp.Challenge;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -76,11 +78,24 @@ public class AuthenticationController {
     }
 
     @GetMapping(value = "/verify/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> verifyAccount(@PathVariable String token){
-        boolean checkToken = accountService.verifyAccountToken(token);
-        if (!checkToken)
+    public ResponseEntity<ChallengeDTO> verifyAccount(@PathVariable String token){
+        Account acc = accountService.verifyAccountToken(token);
+        if (acc == null)
             return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
-        return ResponseEntity.ok(null);
+        String secret = accountService.generateVerificationChallenge(acc);
+        ChallengeDTO dto = new ChallengeDTO(secret);
+        return new ResponseEntity<>(dto, HttpStatus.OK);
+    }
+
+    @PostMapping("/verify/{token}/{decrypted}")
+    public ResponseEntity<?> verifyAccount(@PathVariable String token, @PathVariable String decrypted) {
+
+        boolean isCorrect = accountService.verifyDecryptedSecret(token,decrypted);
+        if (isCorrect){
+            return ResponseEntity.ok(HttpStatus.OK);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Neispravan ključ!");
+        }
     }
 
     @GetMapping(value = "/set-password/{token}", produces = MediaType.APPLICATION_JSON_VALUE)

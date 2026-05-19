@@ -39,13 +39,16 @@ export class CryptoService {
     ]);
   }
 
-  async decryptMessage(encryptedBase64: string, privateKey: CryptoKey): Promise<string> {
-    const encryptedBuffer = Uint8Array.from(atob(encryptedBase64), (c) => c.charCodeAt(0));
+  async decryptMessage(encryptedString: string, privateKey: CryptoKey): Promise<string> {
+    const cleanBase64 = encryptedString.replace(/\s+/g, '');
+
+    const encryptedBuffer = Uint8Array.from(window.atob(cleanBase64), (c) => c.charCodeAt(0));
     const decryptedBuffer = await window.crypto.subtle.decrypt(
       { name: 'RSA-OAEP' },
       privateKey,
       encryptedBuffer,
     );
+
     return new TextDecoder().decode(decryptedBuffer);
   }
 }

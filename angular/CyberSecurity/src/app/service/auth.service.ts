@@ -4,6 +4,7 @@ import { environment } from '../environments/environment';
 import { RegistrationData } from '../model/RegistrationData';
 import { LoginData } from '../model/LoginData';
 import { JwtHelperService } from '@auth0/angular-jwt';
+import { ChallengeDTO } from '../auth/verify/verify.component';
 
 @Injectable({
   providedIn: 'root',
@@ -21,7 +22,9 @@ export class AuthService {
 
   register(data: RegistrationData) {
     console.log(data);
-    return this.http.post<any>(`${environment.authHost}/register`, data, { observe: 'response' });
+    return this.http.post<any>(`${environment.authHost}/register`, data, {
+      observe: 'response',
+    });
   }
 
   registerCAUser(data: RegistrationData) {
@@ -31,7 +34,13 @@ export class AuthService {
   }
 
   verify(token: string) {
-    return this.http.get<any>(`${environment.authHost}/verify/${token}`, {
+    return this.http.get<ChallengeDTO>(`${environment.authHost}/verify/${token}`, {
+      observe: 'response',
+    });
+  }
+
+  completeVerification(token: string, decryptedString: string) {
+    return this.http.post<any>(`${environment.authHost}/verify/${token}/${decryptedString}`, {
       observe: 'response',
     });
   }

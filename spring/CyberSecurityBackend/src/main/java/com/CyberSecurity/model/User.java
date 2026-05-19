@@ -27,8 +27,11 @@ public class User {
     @ManyToOne
     private Organization organization;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String publicKey;
+
+    @Column(columnDefinition = "TEXT")
+    private String secretPayload;
 
     @OneToOne
     @JoinColumn(name = "account_id")
