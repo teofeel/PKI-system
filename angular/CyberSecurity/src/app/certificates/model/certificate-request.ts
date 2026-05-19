@@ -15,5 +15,6 @@ export interface CertificateRequest {
   validTo: Date;
 
   parentCAId?: string;
+  pathLen?: number;
   certificateType: CertificateType;
 }

@@ -186,7 +186,7 @@ public class EmailUtils {
         body = body.replace("{{name}}", account.getUser().getName());
         body = body.replace("{{verificationLink}}", verificationLink);
         try{
-            sendMail("ignjaticivana70@gmail.com", subject, body);
+            sendMail("isidorakorda24@gmail.com", subject, body);
         }catch (IOException e){
             System.out.println(e.getMessage());
         }
@@ -332,7 +332,7 @@ public class EmailUtils {
         body = body.replace("{{name}}", token.getAccount().getUser().getName());
         body = body.replace("{{passwordLink}}", setPasswordLink);
         try{
-            sendMail("ignjaticivana70@gmail.com", subject, body);
+            sendMail("isidorakorda24@gmail.com", subject, body);
         }catch (IOException e){
             System.out.println(e.getMessage());
         }

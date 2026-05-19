@@ -128,7 +128,8 @@
 #organizationUnit,
 #owner,
 #validTo,
-#validFrom {
+#validFrom,
+#pathLen {
   background-color: var(--input-bg-dark);
 }
 
@@ -236,6 +237,7 @@
   font-size: 0.85rem;
   margin: 0;
 }
+
 
 @media (max-width: 640px) {
   .form-columns {

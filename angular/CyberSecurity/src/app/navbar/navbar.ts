@@ -15,10 +15,15 @@ export class Navbar {
   private router = inject(Router);
 
   logout() {
-    localStorage.removeItem('jwt');
-    localStorage.removeItem('expires_in');
-    this.authService.role.set(null);
-    this.authService.id.set(null);
-    this.router.navigate(['/login']);
+    this.authService.logout().subscribe({
+      next: () => {
+        this.router.navigate(['/login']);
+      },
+      error: (err) => {
+        console.error('Logout failed:', err);
+        this.authService.clearSession();
+        this.router.navigate(['/login']);
+      }
+    });
   }
 }

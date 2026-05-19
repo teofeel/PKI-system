@@ -1,4 +1,4 @@
-package com.CyberSecurity.certificateGenerator.dto;
+package com.CyberSecurity.dto.certficate;
 
 import lombok.*;
 

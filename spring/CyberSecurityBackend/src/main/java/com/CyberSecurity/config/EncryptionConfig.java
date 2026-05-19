@@ -26,7 +26,7 @@ public class EncryptionConfig {
         byte[] decodedKey = Base64.getDecoder().decode(key);
 
         if (decodedKey.length != 32) {
-            throw new IllegalStateException("ROOT_KEY mora imati tačno 32 bajta (256 bita) nakon dekodiranja.");
+            throw new IllegalStateException("ROOT_KEY must have 32 bytes");
         }
 
         return decodedKey;

@@ -144,10 +144,29 @@
           </div>
 
           <div class="form-group" style="position: relative" *ngIf="formData.get('certType')?.value !== 'ROOT'">
-            <input id="parentCA" class="form-input" type="text" placeholder="Parent CA" formControlName="parentCADisplay" autocomplete="off" readonly (focus)="showParentDropdown = true" (blur)="hideParentDropdown()" />
+            <input id="parentCA" 
+              class="form-input" 
+              type="text" 
+              placeholder="Parent CA" 
+              formControlName="parentCADisplay" 
+              autocomplete="off" 
+              readonly (focus)="showParentDropdown = true" 
+              (blur)="hideParentDropdown()" 
+            />
             <ul class="combo-dropdown" *ngIf="showParentDropdown">
               <li *ngFor="let parentCA of parentCAs" (mousedown)="selectParentCA(parentCA)">{{ parentCA.commonName }}</li>
             </ul>
+          </div>
+
+          <div class="form-group" *ngIf="formData.get('certType')?.value == 'INTERMEDIATE'">
+            <input
+              id="pathLen"
+              class="form-input"
+              type="number"
+              min="0"
+              placeholder="Path Length"
+              formControlName="pathLen"
+            />
           </div>
         </div>
       </div>
