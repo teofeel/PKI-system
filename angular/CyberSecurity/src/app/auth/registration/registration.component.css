@@ -178,6 +178,33 @@
   transform: translateY(0);
 }
 
+.key-actions {
+  padding: 0.8rem 1.7rem;
+  background-color: var(--submit-bg);
+  border: 2.5px solid var(--submit-border);
+  border-radius: var(--border-radius-btn);
+  color: var(--submit-text);
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition:
+    background-color var(--transition),
+    color var(--transition),
+    transform var(--transition);
+}
+
+.key-actions:hover {
+  background-color: var(--submit-hover-bg);
+  color: var(--submit-hover-text);
+  transform: translateY(-1px);
+}
+
+.key-actions:active {
+  transform: translateY(0);
+}
+
 @media (max-width: 480px) {
   .form-row {
     flex-direction: column;
