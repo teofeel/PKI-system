@@ -2,6 +2,7 @@ package com.CyberSecurity.service;
 
 import com.CyberSecurity.KeyPairGeneratorService;
 import com.CyberSecurity.model.*;
+import com.CyberSecurity.model.Certificate;
 import com.CyberSecurity.repository.UserRepository;
 import com.CyberSecurity.utils.CertificateGenerator;
 import com.CyberSecurity.dto.certficate.CertificateRequestDTO;

@@ -82,13 +82,14 @@ public class MfaController {
         try{
             mfaService.verify(acc.getId(), code, MfaVerifyStatus.LOGIN_VERIFY);
 
-            String finalToken = jwtService.generateToken(acc);
+            String refreshToken = jwtService.generateRefreshToken(acc);
+            String accessToken = jwtService.generateAccessToken(acc);
 
             LoginResponseDTO dto = LoginResponseDTO.builder()
-                    .accessToken(finalToken)
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
                     .using2FA(false)
                     .build();
-
             return new ResponseEntity<>(dto, HttpStatus.OK);
         }catch(AccountNotFoundException e){
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -98,6 +99,4 @@ public class MfaController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-
 }
