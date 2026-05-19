@@ -54,6 +54,7 @@ export class CertificateFormComponent implements OnInit {
     validFrom: new FormControl<string>('', Validators.required),
     validTo: new FormControl<string>('', Validators.required),
     parentCADisplay: new FormControl<string>(''),
+    pathLen: new FormControl<number | undefined>(undefined),
   });
 
   detectErrors(): boolean {
@@ -200,6 +201,7 @@ export class CertificateFormComponent implements OnInit {
       validFrom: new Date(formValue.validFrom!),
       validTo: new Date(formValue.validTo!),
       certificateType: formValue.certType!,
+      pathLen: formValue.pathLen!
     };
 
     if (this.selectedParentCA != null) certificateRequest.parentCAId = this.selectedParentCA?.id;
@@ -209,6 +211,9 @@ export class CertificateFormComponent implements OnInit {
     this.certificateService.issue(certificateRequest).subscribe({
       next: (res) => {
         console.log(res)
+        this.formData.reset()
+        this.errormsg = 'Successfully issued certificate !'
+        this.cdr.detectChanges()
       },
       error: (err) => {
         console.log(err)
@@ -219,9 +224,9 @@ export class CertificateFormComponent implements OnInit {
         } else {
           this.errormsg = 'Failed to issue certificate!';
         }
+        this.cdr.detectChanges()
       }
     });
-    this.formData.reset()
-    this.cdr.detectChanges()
+    
   }
 }

@@ -1,12 +1,13 @@
 package com.CyberSecurity.controller;
-import com.CyberSecurity.certificateGenerator.dto.CertificateRequestDTO;
-import com.CyberSecurity.dto.certficate.DownloadCertNoPkDTO;
+import com.CyberSecurity.dto.certficate.CertificateRequestDTO;
 import com.CyberSecurity.dto.certficate.GetCertificateListDTO;
+import com.CyberSecurity.exceptions.CertificateIssuingException;
+import com.CyberSecurity.dto.certficate.DownloadCertNoPkDTO;
 import com.CyberSecurity.exceptions.CertificateNotFoundException;
 import com.CyberSecurity.mapper.CertificateMapper;
 import com.CyberSecurity.model.Account;
 import com.CyberSecurity.model.Certificate;
-import com.CyberSecurity.certificateGenerator.dto.ParentCAResponseDTO;
+import com.CyberSecurity.dto.certficate.ParentCAResponseDTO;
 import com.CyberSecurity.enums.AccountType;
 import com.CyberSecurity.service.CertificateService;
 import jakarta.validation.Valid;
@@ -45,12 +46,14 @@ public class CertificateController {
             }
             String encoded = Base64.getEncoder().encodeToString(cert.getEncoded());
             return ResponseEntity.ok(encoded);
+        } catch (CertificateIssuingException e) {
+            return ResponseEntity.badRequest().body("Request is not valid");
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Failed: " + e.getMessage());
         }
     }
 
-
+    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER', 'USER')")
     @GetMapping(value = "/accounts/{id}/certificates")
     public ResponseEntity<List<GetCertificateListDTO>> fetchByAccount(@PathVariable long id){
         try{
@@ -65,6 +68,7 @@ public class CertificateController {
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(value = "/certificates/admin")
     public ResponseEntity<List<GetCertificateListDTO>> fetchByAdmin(){
         List<Certificate> certificates = certificateService.fetchByAdmin();
@@ -72,12 +76,14 @@ public class CertificateController {
         return  ResponseEntity.ok(certificateDTOs);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
     @GetMapping(value = "/certificates/{id}/children")
     public ResponseEntity<List<GetCertificateListDTO>> fetchChildren(@PathVariable long id) {
         List<Certificate> certificates = certificateService.fetchByIssuer(id);
         List<GetCertificateListDTO> certificateDTOs = certificateMapper.toGetCertificateListDTO(certificates);
         return ResponseEntity.ok(certificateDTOs);
     }
+    
     @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
     @GetMapping(value = "/get-parent-ca", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Collection<ParentCAResponseDTO>> getAllParentCA

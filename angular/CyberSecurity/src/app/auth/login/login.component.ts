@@ -62,23 +62,9 @@ export class LoginComponent {
         if(body?.using2FA){
           this.showTwoFactor = true;
           this.tempToken = body.accessToken;  
-          this.errormsg = null; 
-
-          localStorage.setItem('jwt', body.accessToken);
-          localStorage.setItem('expires_in', String(Date.now() + 2 * 60 * 1000));
+          this.errormsg = null;
 
           this.cdr.detectChanges(); 
-        }else{
-          const token = body?.accessToken;
-          this.authService.getRole();
-          if (token) {
-            localStorage.setItem('jwt', token);
-            localStorage.setItem('expires_in', String(Date.now() + 60 * 60 * 1000));
-
-            this.authService.getRole();
-            this.authService.role.set(this.authService.getRole());
-            this.router.navigate(['/']);
-          }
         }
       },
       error: (err) => {

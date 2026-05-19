@@ -1,4 +1,4 @@
-package com.CyberSecurity.certificateGenerator.dto;
+package com.CyberSecurity.dto.certficate;
 
 import com.CyberSecurity.enums.CertificateType;
 import jakarta.validation.constraints.*;
@@ -43,6 +43,8 @@ public class CertificateRequestDTO {
     private Date validTo;
 
     private String parentCAId;
+
+    private Integer pathLen;
 
     @NotNull(message = "Certificate type is required")
     private CertificateType certificateType;

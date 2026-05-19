@@ -1,7 +1,7 @@
 package com.CyberSecurity.mapper;
 
 
-import com.CyberSecurity.certificateGenerator.CertificateGenerator;
+import com.CyberSecurity.utils.CertificateGenerator;
 import com.CyberSecurity.dto.certficate.GetCertificateListDTO;
 import com.CyberSecurity.model.Certificate;
 import com.CyberSecurity.model.Organization;
@@ -41,7 +41,7 @@ public class CertificateMapper {
                 .build();
     }
 
-    public Certificate toCertificate(X509Certificate cert, Organization org, Certificate issuer) throws Exception {
+    public Certificate toCertificate(X509Certificate cert, Organization org, Certificate issuer, Integer pathLen) throws Exception {
         String commonName = certificateGenerator.x500NameExtractor(cert.getSubjectX500Principal().getName(), "CN");
         String issuerName = cert.getIssuerX500Principal().getName();
 
@@ -59,6 +59,7 @@ public class CertificateMapper {
                 .subjectNameEncoded(cert.getSubjectX500Principal().getEncoded())
                 .encoded(cert.getEncoded())
                 .type(certificateGenerator.determineCertificateType(cert))
+                .pathLength(pathLen)
                 .encoded(cert.getEncoded())
                 .build();
     }

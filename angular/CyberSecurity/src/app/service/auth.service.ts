@@ -5,6 +5,7 @@ import { RegistrationData } from '../model/RegistrationData';
 import { LoginData } from '../model/LoginData';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { ChallengeDTO } from '../auth/verify/verify.component';
+import { Observable, tap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -17,11 +18,12 @@ export class AuthService {
   public readonly id = signal<number | null>(this.getId());
 
   login(data: LoginData) {
-    return this.http.post<any>(`${environment.authHost}/login`, data, { observe: 'response' });
+    return this.http
+      .post<any>(`${environment.authHost}/login`, data)
+      .pipe(tap((res) => this.setSession(res)));
   }
 
   register(data: RegistrationData) {
-    console.log(data);
     return this.http.post<any>(`${environment.authHost}/register`, data, {
       observe: 'response',
     });
@@ -57,15 +59,38 @@ export class AuthService {
     );
   }
 
-  isLoggedIn() {
-    const expiration = localStorage.getItem('expires_in');
-    if (expiration) {
-      const currentTime = Date.now();
-      const isValid = currentTime < Number(expiration);
-      return isValid;
-    } else {
-      return false;
+  refreshToken(): Observable<any> {
+    const refreshToken = localStorage.getItem('refreshToken');
+    return this.http
+      .post<any>(`${environment.authHost}/refresh`, { refreshToken })
+      .pipe(tap((res) => this.setSession(res)));
+  }
+
+  logout() {
+    const refreshToken = localStorage.getItem('refreshToken');
+    return this.http
+      .post<any>(`${environment.authHost}/logout`, { refreshToken })
+      .pipe(tap(() => this.clearSession()));
+  }
+
+  isLoggedIn(): boolean {
+    return !!localStorage.getItem('refreshToken');
+  }
+
+  private setSession(res: any): void {
+    if (res && res.accessToken && res.refreshToken) {
+      localStorage.setItem('jwt', res.accessToken);
+      localStorage.setItem('refreshToken', res.refreshToken);
+      this.role.set(this.getRole());
+      this.id.set(this.getId());
     }
+  }
+
+  public clearSession(): void {
+    localStorage.removeItem('jwt');
+    localStorage.removeItem('refreshToken');
+    this.role.set(null);
+    this.id.set(null);
   }
 
   public getRole(): string | null {

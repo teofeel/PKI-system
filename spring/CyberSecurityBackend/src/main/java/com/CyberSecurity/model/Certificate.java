@@ -57,7 +57,7 @@ public class Certificate {
     private Organization organization;
 
     @Column
-    private String extensions;
+    private Integer pathLength;
 
     @Embedded
     @AttributeOverrides({
@@ -74,6 +74,6 @@ public class Certificate {
     @JoinColumn(name= "account_id")
     private Account owner;
 
-    @Column
+    @Column(nullable = false)
     private byte[] encoded;
 }

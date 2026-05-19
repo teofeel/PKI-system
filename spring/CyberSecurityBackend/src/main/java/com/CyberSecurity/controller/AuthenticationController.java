@@ -4,9 +4,11 @@ import com.CyberSecurity.dto.ChallengeDTO;
 import com.CyberSecurity.dto.account.AccountDTO;
 import com.CyberSecurity.dto.authentication.*;
 import com.CyberSecurity.dto.user.CreatedUserDTO;
+import com.CyberSecurity.exceptions.RefreshTokenException;
 import com.CyberSecurity.model.Account;
 import com.CyberSecurity.model.User;
 import com.CyberSecurity.service.AccountService;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.bouncycastle.asn1.cmp.Challenge;
@@ -50,6 +52,20 @@ public class AuthenticationController {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         } catch (Exception e) {
             e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping(value = "/refresh",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<RefreshTokenResponseDTO> refreshToken(@RequestBody RefreshTokenRequestDTO requestDTO){
+        try {
+            RefreshTokenResponseDTO responseDTO = accountService.refreshToken(requestDTO.getRefreshToken());
+            return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+        }catch (RefreshTokenException e){
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }catch (Exception e){
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -112,5 +128,15 @@ public class AuthenticationController {
             return ResponseEntity.ok(null);
         return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
 
+    }
+
+    @PostMapping(value = "/logout", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> logout(@RequestBody RefreshTokenRequestDTO requestDTO){
+        try{
+            accountService.logout(requestDTO);
+            return new ResponseEntity<>(HttpStatus.OK);
+        }catch (Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
