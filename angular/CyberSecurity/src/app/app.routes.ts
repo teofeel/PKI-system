@@ -6,6 +6,7 @@ import { SetPasswordComponent } from './auth/set-password/set-password.component
 import { CertificateFormComponent } from './certificates/certificate-form/certificate-form.component';
 import { CreateOrganizationComponent } from './organization/create-organization/create-organization.component';
 import { CertificatesPage } from './certificates/certificates-page/certificates-page';
+import { Profile } from './profile/profile';
 
 export const routes: Routes = [
   {
@@ -35,5 +36,9 @@ export const routes: Routes = [
   {
     path: 'certification-page',
     component: CertificatesPage
+  },
+  {
+    path: 'profile',
+    component: Profile
   }
 ];

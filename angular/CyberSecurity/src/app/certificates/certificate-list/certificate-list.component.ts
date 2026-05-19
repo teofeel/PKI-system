@@ -52,7 +52,7 @@ export class CertificateList {
 
     if (cert.isExpanded && !cert.children) {
       cert.isLoading = true;
-
+      
       this.certService.getChildren(cert.id).subscribe({
         next: (children) => {
           cert.children = children;

@@ -1,11 +1,15 @@
 package com.CyberSecurity.service;
 
+import com.CyberSecurity.dto.account.AccountDTO;
+import com.CyberSecurity.dto.account.GetAccountDetailsDTO;
 import com.CyberSecurity.dto.authentication.LoginResponseDTO;
 import com.CyberSecurity.dto.authentication.RegisterCAUserDTO;
 import com.CyberSecurity.dto.authentication.RegisterDTO;
 import com.CyberSecurity.enums.AccountStatus;
 import com.CyberSecurity.enums.AccountType;
+import com.CyberSecurity.exceptions.AccountNotFoundException;
 import com.CyberSecurity.exceptions.AccountNotVerifiedException;
+import com.CyberSecurity.mapper.AccountMapper;
 import com.CyberSecurity.model.Account;
 import com.CyberSecurity.model.SetPasswordToken;
 import com.CyberSecurity.model.User;
@@ -21,6 +25,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -38,12 +43,20 @@ public class AccountService {
     private  SetPasswordTokenRepository sptRepository;
     @Autowired
     private  EmailUtils emailUtils;
+    @Autowired
+    private AccountMapper accountMapper;
+
+
 
     public LoginResponseDTO login(Account account){
         if (account.getAccountStatus() == AccountStatus.UNVERIFIED)
             throw new AccountNotVerifiedException("Account has not been verified");
-        String token = jwtService.generateToken(account);
-        return LoginResponseDTO.builder().accessToken(token).build();
+        String token;
+
+        if(account.isUsing2FA()) token = jwtService.generateShortToken(account);
+        else token = jwtService.generateToken(account);
+
+        return LoginResponseDTO.builder().accessToken(token).using2FA(account.isUsing2FA()).build();
     }
 
     public User register(RegisterDTO registrationData) {
@@ -107,4 +120,14 @@ public class AccountService {
         sptRepository.delete(spt);
         return true;
     }
+
+    public GetAccountDetailsDTO getAccount(Long accountID){
+        Optional<Account> accountOpt = accountRepository.findById(accountID);
+
+        if (accountOpt.isEmpty()) throw new AccountNotFoundException("Account doesn't exist");
+
+        return accountMapper.toAccountDetailsDTO(accountOpt.get());
+    }
+
+
 }

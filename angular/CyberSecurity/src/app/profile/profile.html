@@ -1,0 +1,121 @@
+<div class="profile-wrapper">
+  <div class="profile-card">
+    <h1 class="profile-title">Profile</h1>
+    
+    <div *ngIf="!user && !errormsg" class="loading">
+      <p>Loading profile data...</p>
+    </div>
+
+    <form *ngIf="user" class="profile-form" [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+      <div class="form-row">
+        <div class="form-group half">
+          <label class="form-label" for="name">Name</label>
+          <input
+            id="name"
+            class="form-input"
+            type="text"
+            placeholder="Name"
+            formControlName="name"
+          />
+        </div>
+        <div class="form-group half">
+          <label class="form-label" for="lastname">Lastname</label>
+          <input
+            id="lastname"
+            class="form-input"
+            type="text"
+            placeholder="Lastname"
+            formControlName="lastname"
+          />
+        </div>
+      </div>
+ 
+      <div class="form-group">
+        <label class="form-label" for="email">E-mail</label>
+        <input
+          id="email"
+          class="form-input"
+          type="email"
+          placeholder="E-mail"
+          formControlName="email"
+        />
+      </div>
+ 
+      <div class="form-group" style="position: relative">
+        <label class="form-label" for="organization">Organization</label>
+        <input
+          id="organization"
+          class="form-input"
+          type="text"
+          placeholder="Organization name"
+          formControlName="organization"
+        />
+      </div>
+ 
+      <div class="form-group twofa-group">
+        <label class="form-label">Two-Factor Authentication</label>
+        <div class="twofa-row">
+          <div class="twofa-status">
+            <span class="twofa-badge" [class.active]="using2FA">
+              {{ using2FA ? 'Enabled' : 'Disabled' }}
+            </span>
+            <span class="twofa-hint">
+              {{ using2FA ? 'Your account is protected with 2FA' : 'Add an extra layer of security' }}
+            </span>
+          </div>
+          <button
+            type="button"
+            class="twofa-btn"
+            [class.enabled]="using2FA"
+            (click)="toggle2FA()"
+          >
+            {{ using2FA ? 'Disable 2FA' : 'Enable 2FA' }}
+          </button>
+        </div>
+      </div>
+ 
+      <div class="form-group submit-group">
+        <p class="errormsg" [style.display]="errormsg != null ? 'block' : 'none'">{{ errormsg }}</p>
+        <button id="submitBtn" class="submit-btn" type="submit">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<div class="modal-overlay" *ngIf="showMfaSetup" (click)="closeMfaModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+ 
+    <button class="modal-close" (click)="closeMfaModal()">&#x2715;</button>
+    
+    <h2 class="modal-title">
+        {{ using2FA ? 'Disable Two-Factor Authentication' : 'Enable Two-Factor Authentication' }}
+    </h2>
+ 
+    <div *ngIf="!using2FA && qrCodeImage" class="qr-wrapper">
+      <img
+        *ngIf="qrCodeImage"
+        [src]="'data:image/png;base64,' + qrCodeImage"
+        alt="2FA QR Code"
+        class="qr-image"
+      />
+    </div>
+ 
+    <p class="modal-subtitle">{{ using2FA ? 'Enter a code from your authenticator app to disable 2FA' : 'Scan the QR code and enter the verification code' }}</p>
+ 
+    <input
+      class="form-input mfa-input"
+      type="text"
+      placeholder="000000"
+      maxlength="6"
+      [(ngModel)]="mfaVerificationCode"
+    />
+ 
+    <p class="mfa-error" *ngIf="mfaError">{{ mfaError }}</p>
+ 
+    <button class="submit-btn modal-confirm-btn" (click)="confirmMfa()">
+      Confirm & Enable
+    </button>
+ 
+  </div>
+</div>

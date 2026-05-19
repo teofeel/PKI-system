@@ -47,6 +47,12 @@ public class Account implements UserDetails {
     @Column(unique = true)
     private String verification;
 
+    @Column(nullable = false)
+    private boolean isUsing2FA = false;
+
+    @Column(nullable = true, length = 255)
+    private String secret2FA;
+
     @Column
     private Timestamp lastPasswordResetTime;
 
