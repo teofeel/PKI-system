@@ -27,6 +27,9 @@ public class User {
     @ManyToOne
     private Organization organization;
 
+    @Lob
+    private String publicKey;
+
     @OneToOne
     @JoinColumn(name = "account_id")
     private Account account;
@@ -34,6 +37,7 @@ public class User {
     public User(RegisterDTO registrationData) {
         name = registrationData.getName();
         lastname = registrationData.getLastname();
+        publicKey = registrationData.getPublicKey();
     }
 
     public User(RegisterCAUserDTO registrationData) {

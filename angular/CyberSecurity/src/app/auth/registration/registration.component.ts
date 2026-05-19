@@ -8,6 +8,8 @@ import { OrganizationService } from '../../service/organization.service';
 import { zxcvbn } from '@zxcvbn-ts/core';
 import { CryptoService } from '../../utils/crypto-service';
 import { FormsModule } from '@angular/forms';
+import { SimpleMessageDialogComponent } from '../../utils/simple-message-dialog/simple-message-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-registration',
@@ -36,6 +38,7 @@ export class RegistrationComponent implements OnInit {
   constructor(
     private organizationService: OrganizationService,
     private cryptoService: CryptoService,
+    private dialog: MatDialog,
   ) {
     this.role = this.authService.role();
   }
@@ -107,6 +110,13 @@ export class RegistrationComponent implements OnInit {
     this.formData.get('publicKey')?.setValue(publicKeyString);
     const privateKeyPem = await this.cryptoService.exportPrivateKey(keyPair.privateKey);
     this.downloadFile(privateKeyPem, 'private_key.pem');
+    this.dialog.open(SimpleMessageDialogComponent, {
+      width: '300px',
+      data: {
+        message:
+          'IMPORTANT! Your keys are successfully generated. Private key is downloaded on your PC locally. Keep it in a safe place!',
+      },
+    });
   }
 
   register() {
@@ -124,6 +134,7 @@ export class RegistrationComponent implements OnInit {
       lastname: formValue.lastname!,
       organization: formValue.organization!,
       accountType: AccountType.USER,
+      publicKey: formValue.publicKey!,
     };
 
     if (this.authService.isLoggedIn() == false) {

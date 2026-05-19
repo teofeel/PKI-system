@@ -5,6 +5,7 @@ export interface RegistrationData {
   password: string;
   organization: string;
   accountType: AccountType;
+  publicKey: string;
 }
 
 export interface Organization {

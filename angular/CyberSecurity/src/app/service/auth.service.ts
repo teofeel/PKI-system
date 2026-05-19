@@ -20,6 +20,7 @@ export class AuthService {
   }
 
   register(data: RegistrationData) {
+    console.log(data);
     return this.http.post<any>(`${environment.authHost}/register`, data, { observe: 'response' });
   }
 
