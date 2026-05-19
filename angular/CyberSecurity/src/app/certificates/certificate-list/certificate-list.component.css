@@ -268,16 +268,15 @@
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  margin-left: auto; /* push to the right */
+  margin-left: auto; 
 }
 
-/* ===== Download Dropdown Wrapper ===== */
+
 .cl-download-dropdown {
-  position: relative;    /* anchor for the dropdown */
+  position: relative;   
   display: inline-block;
 }
 
-/* ===== Download Button (matches expand button style) ===== */
 .cl-action-btn {
   width: 32px;
   height: 32px;
@@ -303,18 +302,16 @@
   transform: scale(0.96);
 }
 
-/* ===== Icon inside the button ===== */
 .cl-action-icon {
   width: 18px;
   height: 18px;
   pointer-events: none;
 }
 
-/* ===== Dropdown Menu ===== */
 .cl-dropdown-menu {
   position: absolute;
   right: 0;
-  top: calc(100% + 6px);   /* small gap below button */
+  top: calc(100% + 6px);   
   min-width: 160px;
   background: #ffffff;
   border: 1px solid rgba(45, 90, 110, 0.2);
@@ -322,7 +319,7 @@
   box-shadow: 0 8px 20px rgba(45, 90, 110, 0.25);
   padding: 0.4rem 0;
   z-index: 100;
-  overflow: hidden;        /* keeps child border-radius */
+  overflow: hidden;       
   animation: cl-dropdown-fade 0.15s ease;
 }
 
@@ -337,7 +334,6 @@
   }
 }
 
-/* ===== Individual Dropdown Items ===== */
 .cl-dropdown-item {
   display: block;
   width: 100%;
@@ -363,7 +359,7 @@
   background: rgba(45, 90, 110, 0.15);
 }
 
-/* ===== Ensure nested containers don't clip the dropdown ===== */
+
 .cl-item {
-  overflow: visible;       /* already fine, but double-check */
+  overflow: visible;      
 }
