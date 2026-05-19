@@ -262,3 +262,108 @@
   background: #7fb7e6;   
   color: white;
 }
+
+
+.cl-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: auto; /* push to the right */
+}
+
+/* ===== Download Dropdown Wrapper ===== */
+.cl-download-dropdown {
+  position: relative;    /* anchor for the dropdown */
+  display: inline-block;
+}
+
+/* ===== Download Button (matches expand button style) ===== */
+.cl-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(45, 90, 110, 0.45);
+  background: rgba(184, 205, 212, 0.35);
+  color: #2d5a6e;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+}
+
+.cl-action-btn:hover {
+  background: rgba(184, 205, 212, 0.65);
+  border-color: #2d5a6e;
+  transform: scale(1.08);
+}
+
+.cl-action-btn:active {
+  transform: scale(0.96);
+}
+
+/* ===== Icon inside the button ===== */
+.cl-action-icon {
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+/* ===== Dropdown Menu ===== */
+.cl-dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);   /* small gap below button */
+  min-width: 160px;
+  background: #ffffff;
+  border: 1px solid rgba(45, 90, 110, 0.2);
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(45, 90, 110, 0.25);
+  padding: 0.4rem 0;
+  z-index: 100;
+  overflow: hidden;        /* keeps child border-radius */
+  animation: cl-dropdown-fade 0.15s ease;
+}
+
+@keyframes cl-dropdown-fade {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Individual Dropdown Items ===== */
+.cl-dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.6rem 1rem;
+  border: none;
+  background: transparent;
+  color: #2d5a6e;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+  font-family: inherit;
+  letter-spacing: 0.01em;
+}
+
+.cl-dropdown-item:hover {
+  background: rgba(45, 90, 110, 0.08);
+  color: #1d3b4a;
+}
+
+.cl-dropdown-item:active {
+  background: rgba(45, 90, 110, 0.15);
+}
+
+/* ===== Ensure nested containers don't clip the dropdown ===== */
+.cl-item {
+  overflow: visible;       /* already fine, but double-check */
+}

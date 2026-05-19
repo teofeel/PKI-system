@@ -33,4 +33,12 @@ export class CertificateService {
   getAllParentCA() : Observable<CertificateResponse[]> {
     return this.http.get<CertificateResponse[]>(`${environment.apiHost}/get-parent-ca`);
   }
+
+  downloadCertificateNoPk(certId: number, format: string){
+    return this.http.get(`${environment.apiHost}/certificates/${certId}/export-no-pk`, {
+      params: {format}, 
+      observe: 'response',
+      responseType: 'blob'
+    });
+  }
 }
