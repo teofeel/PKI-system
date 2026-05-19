@@ -35,6 +35,9 @@ public class JWTService {
 
     private final RefreshTokenRepository refreshTokenRepository;
 
+    @Value("${jwt.shortExpiration}")
+    private long shortExpiration;
+
     private Key getSigningKey(){
         byte[] keyBytes = Decoders.BASE64.decode(secret);
         return Keys.hmacShaKeyFor(keyBytes);
@@ -80,12 +83,23 @@ public class JWTService {
     }
 
     public String generateToken(Account account, long tokenExpiration){
-        return Jwts.builder()
+         return Jwts.builder()
                 .setSubject(account.getEmail())
                 .claim("id", account.getId())
                 .claim("type", account.getAccountType())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + tokenExpiration))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public String generateShortToken(Account account){
+        return Jwts.builder()
+                .setSubject(account.getEmail())
+                .claim("id", account.getId())
+                .claim("type", "twofa")
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + shortExpiration))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

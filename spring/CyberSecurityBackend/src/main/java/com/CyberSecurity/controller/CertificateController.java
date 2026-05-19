@@ -2,6 +2,8 @@ package com.CyberSecurity.controller;
 import com.CyberSecurity.dto.certficate.CertificateRequestDTO;
 import com.CyberSecurity.dto.certficate.GetCertificateListDTO;
 import com.CyberSecurity.exceptions.CertificateIssuingException;
+import com.CyberSecurity.dto.certficate.DownloadCertNoPkDTO;
+import com.CyberSecurity.exceptions.CertificateNotFoundException;
 import com.CyberSecurity.mapper.CertificateMapper;
 import com.CyberSecurity.model.Account;
 import com.CyberSecurity.model.Certificate;
@@ -10,9 +12,7 @@ import com.CyberSecurity.enums.AccountType;
 import com.CyberSecurity.service.CertificateService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,6 +22,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.security.auth.login.AccountNotFoundException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.AccessDeniedException;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.Collection;
@@ -97,5 +99,45 @@ public class CertificateController {
         List<ParentCAResponseDTO> parentCAs = certificateService.getAllParentCA(type, orgId);
         return new ResponseEntity<>(parentCAs, HttpStatus.OK);
 
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER', 'USER')")
+    @GetMapping(value = "/certificates/{id}/export-no-pk")
+    public ResponseEntity<byte[]> exportNoPK(
+            @AuthenticationPrincipal Account acc,
+            @PathVariable long id,
+            @RequestParam(value = "format", defaultValue = "pem") String format
+    ){
+        try{
+            DownloadCertNoPkDTO data;
+
+            if("pem".equalsIgnoreCase(format)){
+                data = certificateService.exportCertAsPem(acc.getId(), id);
+
+            }else if("cer".equalsIgnoreCase(format)) {
+                data = certificateService.exportCertAsCerBytes(acc.getId(), id);
+            }else
+                throw new IllegalStateException();
+
+            ContentDisposition contentDisposition = ContentDisposition.attachment()
+                    .filename(data.getFilename())
+                    .build();
+
+            return ResponseEntity.ok()
+                    .contentType(data.getMediaType())
+                    .headers(headers -> {
+                        headers.setContentDisposition(contentDisposition);
+                        headers.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
+                    })
+                    .body(data.getCert());
+        }catch(CertificateNotFoundException e){
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch(AccessDeniedException e){
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        } catch(IllegalStateException | IllegalArgumentException e){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch(Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

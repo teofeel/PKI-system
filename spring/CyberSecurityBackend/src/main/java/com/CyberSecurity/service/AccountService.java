@@ -4,6 +4,11 @@ import com.CyberSecurity.dto.authentication.*;
 import com.CyberSecurity.enums.AccountStatus;
 import com.CyberSecurity.exceptions.AccountNotVerifiedException;
 import com.CyberSecurity.exceptions.RefreshTokenException;
+import com.CyberSecurity.dto.account.AccountDTO;
+import com.CyberSecurity.dto.account.GetAccountDetailsDTO;
+import com.CyberSecurity.enums.AccountType;
+import com.CyberSecurity.exceptions.AccountNotFoundException;
+import com.CyberSecurity.mapper.AccountMapper;
 import com.CyberSecurity.model.Account;
 import com.CyberSecurity.model.RefreshToken;
 import com.CyberSecurity.model.SetPasswordToken;
@@ -42,15 +47,23 @@ public class AccountService {
     private SetPasswordTokenRepository sptRepository;
     @Autowired
     private EmailUtils emailUtils;
+    @Autowired
+    private AccountMapper accountMapper;
+
+
 
     public LoginResponseDTO login(Account account){
         if (account.getAccountStatus() == AccountStatus.UNVERIFIED)
             throw new AccountNotVerifiedException("Account has not been verified");
-        String accessToken = jwtService.generateAccessToken(account);
         String refreshToken = jwtService.generateRefreshToken(account);
+        String accessToken;
+        if(account.isUsing2FA()) accessToken = jwtService.generateShortToken(account);
+        else accessToken = jwtService.generateToken(account);
+
         return LoginResponseDTO.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
+                .using2FA(account.isUsing2FA())
                 .build();
     }
 
@@ -138,4 +151,13 @@ public class AccountService {
     public void logout(RefreshTokenRequestDTO requestDTO){
         refreshTokenRepository.deleteByToken(requestDTO.getRefreshToken());
     }
+    
+    public GetAccountDetailsDTO getAccount(Long accountID){
+        Optional<Account> accountOpt = accountRepository.findById(accountID);
+
+        if (accountOpt.isEmpty()) throw new AccountNotFoundException("Account doesn't exist");
+
+        return accountMapper.toAccountDetailsDTO(accountOpt.get());
+    }
+
 }

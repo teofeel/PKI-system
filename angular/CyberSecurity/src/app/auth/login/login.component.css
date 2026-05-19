@@ -178,6 +178,11 @@
   transform: translateY(0);
 }
 
+
+#twoFactorCode {
+  background-color: var(--input-bg-light);
+}
+
 @media (max-width: 480px) {
   .form-row {
     flex-direction: column;

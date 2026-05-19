@@ -51,12 +51,21 @@ public class JWTAuthFilter extends OncePerRequestFilter {
                 String email = jwtService.extractEmail(token);
                 if (email != null && !email.isEmpty()){
                     UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+                    String tokenType = jwtService.extractAccountType(token);
+                    java.util.Collection<? extends org.springframework.security.core.GrantedAuthority> authorities;
+
+                    if ("twofa".equals(tokenType)) {
+                        authorities = java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_TWOFA"));
+                    } else {
+                        authorities = userDetails.getAuthorities();
+                    }
+
                     if (jwtService.validateToken(token, userDetails)){
                         UsernamePasswordAuthenticationToken authentication =
                                 new UsernamePasswordAuthenticationToken(
                                         userDetails,
-                                        token,
-                                        userDetails.getAuthorities()
+                                        null,
+                                        authorities
                                 );
 
                         authentication.setDetails(
