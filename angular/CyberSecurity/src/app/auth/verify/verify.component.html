@@ -7,5 +7,20 @@
     <h1>{{ verificationStatus }}</h1>
     <div class="verification-divider"></div>
     <p>{{ verificationMessage }}</p>
+    <div *ngIf="!isSuccess && challengeDTO.secret" class="upload-container">
+      <p class="upload-hint">Upload your <code>.pem</code> file to proceed</p>
+
+      <label for="fileInput" class="custom-file-upload">
+        <div class="upload-content">
+          <span class="upload-text">{{ selectedFileName || 'Choose Private Key' }}</span>
+        </div>
+      </label>
+
+      <input type="file" (change)="onFileSelected($event)" id="fileInput" accept=".pem" />
+
+      <button class="btn-verify" *ngIf="selectedFileName" (click)="onUpload()">
+        Verify & Activate
+      </button>
+    </div>
   </div>
 </div>

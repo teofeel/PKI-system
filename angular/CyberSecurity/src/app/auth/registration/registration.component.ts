@@ -6,10 +6,14 @@ import { AuthService } from '../../service/auth.service';
 import { CommonModule } from '@angular/common';
 import { OrganizationService } from '../../service/organization.service';
 import { zxcvbn } from '@zxcvbn-ts/core';
+import { CryptoService } from '../../utils/crypto-service';
+import { FormsModule } from '@angular/forms';
+import { SimpleMessageDialogComponent } from '../../utils/simple-message-dialog/simple-message-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-registration',
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, FormsModule],
   templateUrl: './registration.component.html',
   styleUrl: './registration.component.css',
 })
@@ -22,6 +26,8 @@ export class RegistrationComponent implements OnInit {
   filteredOrgs: Organization[] = [];
   showOrgDropdown = false;
 
+  publicKeyString: string = '';
+
   errormsg: string | null = null;
 
   strengthScore: number = 0;
@@ -29,7 +35,11 @@ export class RegistrationComponent implements OnInit {
 
   role: string | null;
 
-  constructor(private organizationService: OrganizationService) {
+  constructor(
+    private organizationService: OrganizationService,
+    private cryptoService: CryptoService,
+    private dialog: MatDialog,
+  ) {
     this.role = this.authService.role();
   }
 
@@ -51,6 +61,7 @@ export class RegistrationComponent implements OnInit {
     password: new FormControl('', [Validators.required, Validators.minLength(8)]),
     confirmPassword: new FormControl('', Validators.required),
     organization: new FormControl('', Validators.required),
+    publicKey: new FormControl('', Validators.required),
   });
 
   detectErrors() {
@@ -62,7 +73,7 @@ export class RegistrationComponent implements OnInit {
       this.errormsg = 'Please enter a valid email address!';
     } else if (!formValue.password && this.role !== 'ADMIN') {
       this.errormsg = 'Password is required!';
-    } else if (this.formData.get('password')?.hasError('minLength')) {
+    } else if (this.formData.get('password')?.hasError('minlength')) {
       this.errormsg = 'Password must be at least 6 characters long!';
     } else if (!formValue.confirmPassword && this.role !== 'ADMIN') {
       this.errormsg = 'Please confirm your password!';
@@ -74,6 +85,8 @@ export class RegistrationComponent implements OnInit {
       this.errormsg = 'Last name is required!';
     } else if (!formValue.organization) {
       this.errormsg = 'Organization is required!';
+    } else if (!formValue.publicKey) {
+      this.errormsg = 'Public Key is required. Please generate keys!';
     }
   }
 
@@ -91,6 +104,21 @@ export class RegistrationComponent implements OnInit {
     }
   }
 
+  async generateKeys() {
+    const keyPair = await this.cryptoService.generateKeys();
+    const publicKeyString = await this.cryptoService.exportPublicKey(keyPair.publicKey);
+    this.formData.get('publicKey')?.setValue(publicKeyString);
+    const privateKeyPem = await this.cryptoService.exportPrivateKey(keyPair.privateKey);
+    this.downloadFile(privateKeyPem, 'private_key.pem');
+    this.dialog.open(SimpleMessageDialogComponent, {
+      width: '300px',
+      data: {
+        message:
+          'IMPORTANT! Your keys are successfully generated. Private key is downloaded on your PC locally. Keep it in a safe place!',
+      },
+    });
+  }
+
   register() {
     if (this.formData.invalid) {
       this.detectErrors();
@@ -106,6 +134,7 @@ export class RegistrationComponent implements OnInit {
       lastname: formValue.lastname!,
       organization: formValue.organization!,
       accountType: AccountType.USER,
+      publicKey: formValue.publicKey!,
     };
 
     if (this.authService.isLoggedIn() == false) {
@@ -125,6 +154,15 @@ export class RegistrationComponent implements OnInit {
         },
       });
     }
+  }
+
+  private downloadFile(content: string, fileName: string) {
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
   }
 
   prepareOrg() {

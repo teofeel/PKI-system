@@ -24,4 +24,5 @@ public class RegisterDTO {
     private String password;
     private AccountType accountType;
     private String organization;
+    private String publicKey;
 }

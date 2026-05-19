@@ -4,6 +4,7 @@ import { environment } from '../environments/environment';
 import { RegistrationData } from '../model/RegistrationData';
 import { LoginData } from '../model/LoginData';
 import { JwtHelperService } from '@auth0/angular-jwt';
+import { ChallengeDTO } from '../auth/verify/verify.component';
 import { Observable, tap } from 'rxjs';
 
 @Injectable({
@@ -17,13 +18,15 @@ export class AuthService {
   public readonly id = signal<number | null>(this.getId());
 
   login(data: LoginData) {
-    return this.http.post<any>(`${environment.authHost}/login`, data).pipe(
-      tap((res) => this.setSession(res))
-    );
+    return this.http
+      .post<any>(`${environment.authHost}/login`, data)
+      .pipe(tap((res) => this.setSession(res)));
   }
 
   register(data: RegistrationData) {
-    return this.http.post<any>(`${environment.authHost}/register`, data, { observe: 'response' });
+    return this.http.post<any>(`${environment.authHost}/register`, data, {
+      observe: 'response',
+    });
   }
 
   registerCAUser(data: RegistrationData) {
@@ -33,7 +36,13 @@ export class AuthService {
   }
 
   verify(token: string) {
-    return this.http.get<any>(`${environment.authHost}/verify/${token}`, {
+    return this.http.get<ChallengeDTO>(`${environment.authHost}/verify/${token}`, {
+      observe: 'response',
+    });
+  }
+
+  completeVerification(token: string, decryptedString: string) {
+    return this.http.post<any>(`${environment.authHost}/verify/${token}/${decryptedString}`, {
       observe: 'response',
     });
   }
@@ -52,16 +61,16 @@ export class AuthService {
 
   refreshToken(): Observable<any> {
     const refreshToken = localStorage.getItem('refreshToken');
-    return this.http.post<any>(`${environment.authHost}/refresh`, { refreshToken }).pipe(
-      tap((res) => this.setSession(res))
-    );
+    return this.http
+      .post<any>(`${environment.authHost}/refresh`, { refreshToken })
+      .pipe(tap((res) => this.setSession(res)));
   }
 
   logout() {
     const refreshToken = localStorage.getItem('refreshToken');
-    return this.http.post<any>(`${environment.authHost}/logout`, { refreshToken }).pipe(
-      tap(() => this.clearSession())
-    );
+    return this.http
+      .post<any>(`${environment.authHost}/logout`, { refreshToken })
+      .pipe(tap(() => this.clearSession()));
   }
 
   isLoggedIn(): boolean {
