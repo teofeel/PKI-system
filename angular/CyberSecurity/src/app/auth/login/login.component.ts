@@ -50,17 +50,8 @@ export class LoginComponent {
     };
 
     this.authService.login(loginData).subscribe({
-      next: (response) => {
-        const token = response.body?.accessToken;
-        this.authService.getRole();
-        if (token) {
-          localStorage.setItem('jwt', token);
-          localStorage.setItem('expires_in', String(Date.now() + 60 * 60 * 1000));
-
-          this.authService.getRole();
-          this.authService.role.set(this.authService.getRole());
-          this.router.navigate(['/']);
-        }
+      next: () => {
+        this.router.navigate(['/']);
       },
       error: (err) => {
         if (err.status === 401) {

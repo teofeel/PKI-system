@@ -1,19 +1,20 @@
 package com.CyberSecurity.service;
 
-import com.CyberSecurity.dto.authentication.LoginResponseDTO;
-import com.CyberSecurity.dto.authentication.RegisterCAUserDTO;
-import com.CyberSecurity.dto.authentication.RegisterDTO;
+import com.CyberSecurity.dto.authentication.*;
 import com.CyberSecurity.enums.AccountStatus;
-import com.CyberSecurity.enums.AccountType;
 import com.CyberSecurity.exceptions.AccountNotVerifiedException;
+import com.CyberSecurity.exceptions.RefreshTokenException;
 import com.CyberSecurity.model.Account;
+import com.CyberSecurity.model.RefreshToken;
 import com.CyberSecurity.model.SetPasswordToken;
 import com.CyberSecurity.model.User;
 import com.CyberSecurity.repository.AccountRepository;
 import com.CyberSecurity.repository.OrganizationRepository;
+import com.CyberSecurity.repository.RefreshTokenRepository;
 import com.CyberSecurity.repository.SetPasswordTokenRepository;
 import com.CyberSecurity.utils.EmailUtils;
 import com.CyberSecurity.utils.JWTService;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -29,21 +31,27 @@ public class AccountService {
     @Autowired
     private JWTService jwtService;
     @Autowired
-    private  AccountRepository accountRepository;
+    private AccountRepository accountRepository;
     @Autowired
-    private  OrganizationRepository organizationRepository;
+    private RefreshTokenRepository refreshTokenRepository;
     @Autowired
-    private  PasswordEncoder passwordEncoder;
+    private OrganizationRepository organizationRepository;
     @Autowired
-    private  SetPasswordTokenRepository sptRepository;
+    private PasswordEncoder passwordEncoder;
     @Autowired
-    private  EmailUtils emailUtils;
+    private SetPasswordTokenRepository sptRepository;
+    @Autowired
+    private EmailUtils emailUtils;
 
     public LoginResponseDTO login(Account account){
         if (account.getAccountStatus() == AccountStatus.UNVERIFIED)
             throw new AccountNotVerifiedException("Account has not been verified");
-        String token = jwtService.generateToken(account);
-        return LoginResponseDTO.builder().accessToken(token).build();
+        String accessToken = jwtService.generateAccessToken(account);
+        String refreshToken = jwtService.generateRefreshToken(account);
+        return LoginResponseDTO.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
     }
 
     public User register(RegisterDTO registrationData) {
@@ -90,6 +98,24 @@ public class AccountService {
         return false;
     }
 
+    public RefreshTokenResponseDTO refreshToken(String token){
+        Optional<RefreshToken> refreshTokenOpt = refreshTokenRepository.findByToken(token);
+        if (refreshTokenOpt.isEmpty())
+            throw new RefreshTokenException("Refresh token is missing");
+        RefreshToken refreshToken = refreshTokenOpt.get();
+
+        if (refreshToken.getExpiryDate().before(new Date())) {
+            refreshTokenRepository.delete(refreshToken);
+            throw new RefreshTokenException("The refresh token has expired");
+        }
+
+        Account account = refreshToken.getAccount();
+        return RefreshTokenResponseDTO.builder()
+                .accessToken(jwtService.generateAccessToken(account))
+                .refreshToken(jwtService.generateRefreshToken(account))
+                .build();
+    }
+
     public boolean verifySetPasswordToken(String token){
         SetPasswordToken spt = sptRepository.findByToken(token);
         return spt != null;
@@ -106,5 +132,10 @@ public class AccountService {
         accountRepository.save(acc);
         sptRepository.delete(spt);
         return true;
+    }
+
+    @Transactional
+    public void logout(RefreshTokenRequestDTO requestDTO){
+        refreshTokenRepository.deleteByToken(requestDTO.getRefreshToken());
     }
 }
