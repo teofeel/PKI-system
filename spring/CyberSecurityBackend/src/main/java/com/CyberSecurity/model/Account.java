@@ -50,8 +50,23 @@ public class Account implements UserDetails {
     @Column(nullable = false)
     private boolean isUsing2FA = false;
 
-    @Column(nullable = true, length = 255)
-    private String secret2FA;
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "encryptedText", column = @Column(name = "secret_2fa_text")),
+            @AttributeOverride(name = "iv", column = @Column(name = "secret_2fa_iv")),
+            @AttributeOverride(name = "tag", column = @Column(name = "secret_2fa_tag"))
+    })
+    private EncryptedData secret2FA;
+
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "encryptedText", column = @Column(name = "dek_text")),
+            @AttributeOverride(name = "iv", column = @Column(name = "dek_iv")),
+            @AttributeOverride(name = "tag", column = @Column(name = "dek_tag"))
+    })
+    private EncryptedData dek;
+
+
 
     @Column
     private Timestamp lastPasswordResetTime;
