@@ -99,29 +99,10 @@ public class MfaService {
 
     public MfaQrCode generateCode(Long accountID) throws QrGenerationException, AccountNotFoundException, Exception {
         Account acc = this.checkAndExtractAccount(accountID);
-        byte[] rawPlaintextDek;
-
-
-        if (acc.getDek() != null && acc.getDek().getEncryptedText() != null) {
-            byte[] masterKekBytes = this.getActiveMasterKek();
-
-            rawPlaintextDek = encryptionService.decrypt(
-                    acc.getDek().getEncryptedText(),
-                    acc.getDek().getIv(),
-                    acc.getDek().getTag(),
-                    masterKekBytes,
-                    null,
-                    null
-            );
-
-        } else {
-            rawPlaintextDek = encryptionService.generateRandomBytes(32);
-            EncryptedData encryptedData = this.getDek(rawPlaintextDek);
-            acc.setDek(encryptedData);
-        }
+        byte[] masterKekBytes = this.getActiveMasterKek();
 
         String secret = secretGenerator.generate();
-        EncryptedData encryptedData = getSecret2FA(secret, rawPlaintextDek);
+        EncryptedData encryptedData = getSecret2FA(secret, masterKekBytes);
         acc.setSecret2FA(encryptedData);
 
         accountRepository.save(acc);
@@ -145,21 +126,12 @@ public class MfaService {
         Account acc = this.checkAndExtractAccount(accountID);
         byte[] masterKekBytes = this.getActiveMasterKek();
 
-        EncryptedData encryptedDek = acc.getDek();
-        byte[] decryptedDek = encryptionService.decrypt(
-                encryptedDek.getEncryptedText(),
-                encryptedDek.getIv(),
-                encryptedDek.getTag(),
-                masterKekBytes,
-                null, null
-        );
-
         EncryptedData encryptedSecret2Fa = acc.getSecret2FA();
         byte[] decryptedSecret2FA = encryptionService.decrypt(
                 encryptedSecret2Fa.getEncryptedText(),
                 encryptedSecret2Fa.getIv(),
                 encryptedSecret2Fa.getTag(),
-                decryptedDek,
+                masterKekBytes,
                 null, null
         );
 

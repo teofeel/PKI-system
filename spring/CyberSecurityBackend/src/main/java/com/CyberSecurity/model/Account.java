@@ -58,14 +58,6 @@ public class Account implements UserDetails {
     })
     private EncryptedData secret2FA;
 
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "encryptedText", column = @Column(name = "dek_text")),
-            @AttributeOverride(name = "iv", column = @Column(name = "dek_iv")),
-            @AttributeOverride(name = "tag", column = @Column(name = "dek_tag"))
-    })
-    private EncryptedData dek;
-
 
 
     @Column
