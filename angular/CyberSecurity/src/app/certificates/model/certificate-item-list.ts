@@ -8,6 +8,7 @@ export interface CertificateListItem {
   validUntil: string;
   type: CertificateType;
   status: CertificateStatus;
+  showDownloadMenu?: boolean;
   children?: CertificateListItem[];
   isExpanded?: boolean;
   isLoading?: boolean;
