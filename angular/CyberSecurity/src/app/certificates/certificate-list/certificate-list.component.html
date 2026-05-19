@@ -75,6 +75,9 @@
             <button type="button" class="cl-dropdown-item" (click)="download(cert.id, 'cer', false)">
               Export as .CER
             </button>
+            <button type="button" class="cl-dropdown-item" (click)="download(cert.id, 'p12', true)">
+              Export as PKCS12 (.p12)
+            </button>
           </div>
         </div>
       </div>

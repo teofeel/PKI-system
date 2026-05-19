@@ -20,10 +20,10 @@ export class LoginComponent {
   mfaService: MfaService = inject(MfaService);
 
   errormsg: string | null = null;
-  
-  showTwoFactor = false;                 
-  twoFactorCode = new FormControl('', [Validators.required]); 
-  private tempToken: string | null = null; 
+
+  showTwoFactor = false;
+  twoFactorCode = new FormControl('', [Validators.required]);
+  private tempToken: string | null = null;
 
   formData = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email]),
@@ -58,13 +58,12 @@ export class LoginComponent {
 
     this.authService.login(loginData).subscribe({
       next: (response) => {
-        if(response?.using2FA){
+        if (response.using2FA) {
           this.showTwoFactor = true;
-          this.tempToken = response.accessToken;  
+          this.tempToken = response.accessToken;
           this.errormsg = null;
-
-          this.cdr.detectChanges(); 
-        }else{
+          this.cdr.detectChanges();
+        } else {
           this.router.navigate(['/']);
         }
       },
@@ -85,8 +84,8 @@ export class LoginComponent {
     code: new FormControl('', [Validators.required])
   });
 
-  verify2FA(){
-    if(this.twoFactorCode.invalid){
+  verify2FA() {
+    if (this.twoFactorCode.invalid) {
       this.errormsg = 'Please enter the 2FA code';
       return;
     }

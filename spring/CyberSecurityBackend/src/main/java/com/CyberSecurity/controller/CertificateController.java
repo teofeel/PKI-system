@@ -1,13 +1,10 @@
 package com.CyberSecurity.controller;
-import com.CyberSecurity.dto.certficate.CertificateRequestDTO;
-import com.CyberSecurity.dto.certficate.GetCertificateListDTO;
+import com.CyberSecurity.dto.certficate.*;
 import com.CyberSecurity.exceptions.CertificateIssuingException;
-import com.CyberSecurity.dto.certficate.DownloadCertNoPkDTO;
 import com.CyberSecurity.exceptions.CertificateNotFoundException;
 import com.CyberSecurity.mapper.CertificateMapper;
 import com.CyberSecurity.model.Account;
 import com.CyberSecurity.model.Certificate;
-import com.CyberSecurity.dto.certficate.ParentCAResponseDTO;
 import com.CyberSecurity.enums.AccountType;
 import com.CyberSecurity.service.CertificateService;
 import jakarta.validation.Valid;
@@ -138,6 +135,23 @@ public class CertificateController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } catch(Exception e){
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER', 'USER')")
+    @PostMapping("/{id}/export-keystore")
+    public ResponseEntity<byte[]> exportKeystore(
+            @PathVariable Long id,
+            @RequestBody ExportKeystoreDTO dto) {
+        try {
+            byte[] filePayload = certificateService.exportToPkcs12(id, dto.getPassword());
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"certificate_" + id + ".p12\"")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(filePayload);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
         }
     }
 }
