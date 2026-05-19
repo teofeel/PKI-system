@@ -6,6 +6,7 @@ import com.CyberSecurity.certificateGenerator.data.Issuer;
 import com.CyberSecurity.certificateGenerator.data.Subject;
 import com.CyberSecurity.certificateGenerator.dto.CertificateRequestDTO;
 import com.CyberSecurity.certificateGenerator.dto.ParentCAResponseDTO;
+import com.CyberSecurity.dto.certficate.DownloadCertNoPkDTO;
 import com.CyberSecurity.dto.encryption.EncryptionResult;
 import com.CyberSecurity.enums.CertificateType;
 import com.CyberSecurity.exceptions.CertificateIssuingException;
@@ -19,15 +20,20 @@ import com.CyberSecurity.model.EncryptedData;
 import com.CyberSecurity.model.Organization;
 import com.CyberSecurity.repository.CertificateRepository;
 import com.CyberSecurity.repository.OrganizationRepository;
+import com.CyberSecurity.utils.SecurityUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+
 import javax.security.auth.login.AccountNotFoundException;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.AccessDeniedException;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -51,6 +57,7 @@ public class CertificateService {
     private final CertificateRepository certificateRepository;
     private final CertificateMapper certificateMapper;
     private final OrganizationRepository organizationRepository;
+    private final SecurityUtil securityUtil;
 
     @Transactional
     public X509Certificate issueCertificate(CertificateRequestDTO dto) throws CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchProviderException {
@@ -286,5 +293,52 @@ public class CertificateService {
         }
         return dto;
     }
+
+    public DownloadCertNoPkDTO exportCertAsPem(Long accID, Long certID)  throws AccessDeniedException{
+        Certificate cert = certificateRepository.findById(certID)
+                .orElseThrow(() -> new CertificateNotFoundException("Certificate not found"));
+
+        if (!cert.getOwner().getId().equals(accID))
+            throw new AccessDeniedException("You don't have permission to download this cert");
+
+        byte[] certEncoded = cert.getEncoded();
+        if( certEncoded == null || certEncoded.length == 0 )
+            throw new IllegalStateException("Certificate data is empty");
+
+        String pemString = convertCertToPem(certEncoded);
+        return DownloadCertNoPkDTO.builder()
+                .cert(pemString.getBytes(StandardCharsets.UTF_8))
+                .filename(securityUtil.sanitizeFilename(cert.getCommonName())+".pem")
+                .mediaType(MediaType.parseMediaType("application/x-pem-file"))
+                .build();
+    }
+
+    public DownloadCertNoPkDTO exportCertAsCerBytes(Long accID, Long certID) throws AccessDeniedException{
+        Certificate cert = certificateRepository.findById(certID)
+                .orElseThrow(() -> new CertificateNotFoundException("Certificate not found"));
+
+        if (!cert.getOwner().getId().equals(accID))
+            throw new AccessDeniedException("You don't have permission to download this cert");
+
+        byte[] certEncoded = cert.getEncoded();
+        if( certEncoded == null || certEncoded.length == 0 )
+            throw new IllegalStateException("Certificate data is empty");
+
+        return DownloadCertNoPkDTO.builder()
+                .cert(certEncoded)
+                .filename(securityUtil.sanitizeFilename(cert.getCommonName())+".cer")
+                .mediaType(MediaType.APPLICATION_OCTET_STREAM)
+                .build();
+    }
+
+    private String convertCertToPem(byte[] certEncoded) {
+        Base64.Encoder encoder = Base64.getMimeEncoder(64, new byte[]{'\n'});
+        String base64Encoded = encoder.encodeToString(certEncoded);
+
+        return "-----BEGIN CERTIFICATE-----\n" +
+                base64Encoded +
+                "\n-----END CERTIFICATE-----\n";
+    }
+
 
 }
