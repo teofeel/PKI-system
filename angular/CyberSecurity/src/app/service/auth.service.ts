@@ -68,7 +68,7 @@ export class AuthService {
     return !!localStorage.getItem('refreshToken');
   }
 
-  private setSession(res: any): void {
+  setSession(res: any): void {
     if (res && res.accessToken && res.refreshToken) {
       localStorage.setItem('jwt', res.accessToken);
       localStorage.setItem('refreshToken', res.refreshToken);

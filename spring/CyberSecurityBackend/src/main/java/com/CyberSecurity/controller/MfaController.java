@@ -90,6 +90,7 @@ public class MfaController {
                     .refreshToken(refreshToken)
                     .using2FA(false)
                     .build();
+
             return new ResponseEntity<>(dto, HttpStatus.OK);
         }catch(AccountNotFoundException e){
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
