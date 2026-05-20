@@ -7,6 +7,7 @@ import { CertificateFormComponent } from './certificates/certificate-form/certif
 import { CreateOrganizationComponent } from './organization/create-organization/create-organization.component';
 import { CertificatesPage } from './certificates/certificates-page/certificates-page';
 import { Profile } from './profile/profile';
+import { CertificateSigningRequest } from './certificates/certificate-signing-request/certificate-signing-request';
 
 export const routes: Routes = [
   {
@@ -40,5 +41,9 @@ export const routes: Routes = [
   {
     path: 'profile',
     component: Profile
+  },
+  {
+    path: 'csr',
+    component: CertificateSigningRequest
   }
 ];

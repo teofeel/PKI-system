@@ -1,0 +1,193 @@
+<div class="pki-layout">
+  <div class="pki-container" [ngSwitch]="currentState">
+    
+
+    <header class="pki-header">
+      <div class="header-content">
+        <button *ngIf="currentState !== 'SELECTION' && currentState !== 'SUCCESS'" 
+                class="btn-back" 
+                (click)="setState('SELECTION')">
+          ← Back
+        </button>
+        <h1 class="pki-title">
+          {{ currentState === 'SELECTION' ? 'Generate Certificate' : 
+             currentState === 'CSR_UPLOAD' ? 'Upload CSR' : 
+             currentState === 'AUTO_GENERATE' ? 'New Certificate' : 'Certificate Issued' }}
+        </h1>
+      </div>
+      <p class="pki-subtitle" *ngIf="currentState === 'SELECTION'">
+        Select a method to generate a new End-Entity certificate.
+      </p>
+    </header>
+
+    <div *ngSwitchCase="'SELECTION'" class="selection-grid">
+      <div class="method-card" (click)="setState('CSR_UPLOAD')">
+        <h3>Upload CSR</h3>
+        <p>Upload an externally generated Certificate Signing Request (.pem). Best for strict local key management.</p>
+      </div>
+      
+      <div class="method-card" (click)="setState('AUTO_GENERATE')">
+        <h3>Auto-Generate</h3>
+        <p>Generate keys and certificate directly in the PKI system. The private key will be provided for a one-time download.</p>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="'CSR_UPLOAD'" class="form-wrapper">
+      <form [formGroup]="csrForm" (ngSubmit)="submitCsr()">
+        <div class="upload-zone" 
+             [class.dragging]="isDragging"
+             (dragover)="onDragOver($event)" 
+             (dragleave)="onDragLeave($event)" 
+             (drop)="onDrop($event)">
+          <input type="file" id="fileInput" class="hidden-input" accept=".pem,.csr" (change)="onFileSelected($event)">
+          <label for="fileInput" class="upload-label">
+            <span class="upload-text" *ngIf="!uploadedCsrFile">Drag & drop your .pem file here or <span class="highlight">browse</span></span>
+            <span class="upload-text file-name" *ngIf="uploadedCsrFile">{{ uploadedCsrFile.name }} ✓</span>
+          </label>
+        </div>
+
+        <div class="form-section mt-6">
+          <h4 class="section-title">Certificate Configuration</h4>
+          <div class="form-row">
+            <div class="input-group">
+              <label>Issuing CA</label>
+              <select formControlName="parentCA" class="pki-input">
+                <option value="" disabled>Select Root/Intermediate CA</option>
+                <option value="ca1">Enterprise Root CA G2</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Duration (Days)</label>
+              <input type="number" formControlName="duration" class="pki-input">
+            </div>
+          </div>
+        </div>
+
+        <div class="actions mt-6">
+          <button type="submit" class="btn-primary" [disabled]="!uploadedCsrFile || csrForm.invalid">Submit Request</button>
+        </div>
+      </form>
+    </div>
+
+    <div *ngSwitchCase="'AUTO_GENERATE'" class="form-wrapper">
+      <form [formGroup]="autoGenForm" (ngSubmit)="submitAutoGenerate()">
+        
+        <div class="form-section">
+          <h4 class="section-title">Subject Information</h4>
+          <div class="form-row">
+            <div class="input-group">
+              <label>Common Name (CN) <span class="req">*</span></label>
+              <input formControlName="name" class="pki-input" placeholder="e.g., prod-api.internal.com">
+            </div>
+            <div class="input-group">
+              <label>Email (E)</label>
+              <input formControlName="email" type="email" class="pki-input" placeholder="admin@company.com">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="input-group">
+              <label>Organization (O)</label>
+              <select formControlName="organization" class="pki-input">
+                <option value="" disabled>Select Organization</option>
+                <option value="Test">Test</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Organizational Unit (OU)</label>
+              <input formControlName="organizationUnit" class="pki-input" placeholder="Engineering">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section mt-6">
+          <h4 class="section-title">Certificate Configuration</h4>
+          <div class="input-group">
+              <label>Issuing CA</label>
+              <select formControlName="parentCA" class="pki-input">
+                <option value="" disabled>Select Root/Intermediate CA</option>
+                <option value="ca1">Enterprise Root CA G2</option>
+              </select>
+            </div>
+          <div class="form-row">
+            <div class="input-group">
+              <label>Valid From</label>
+              <input type="date" formControlName="validFrom" class="pki-input">
+            </div>
+            <div class="input-group">
+              <label>Valid To</label>
+              <input type="date" formControlName="validTo" class="pki-input">
+            </div>
+          </div>
+        </div>
+
+        <div class="actions mt-6">
+          <button type="submit" class="btn-primary" [disabled]="autoGenForm.invalid">Generate Certificate</button>
+        </div>
+      </form>
+    </div>
+
+    <div *ngSwitchCase="'SUCCESS'" class="success-wrapper">
+        <div class="success-header">
+            <div class="success-badge">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="icon-check">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+            </svg>
+            </div>
+            <h2>Certificate successfully created</h2>
+            <p class="success-subtitle">Your EE (end-entity) certificate is generated and ready for download</p>
+        </div>
+
+        <div *ngIf="generationMethod === 'AUTO'" class="security-warning">
+            <div class="warning-header">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-alert">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+            <h4>Critical: Immediately download public key</h4>
+            </div>
+            <p>
+            Private key is generated localy and it is not stored in db. 
+            If you leave this page now, you will permanently loose your keys.
+            </p>
+            
+            <div class="download-actions">
+            <button class="btn btn-danger flex-1" (click)="downloadKeyedBundle('pkcs12')">
+                <span>Download PKCS12 (.p12)</span>
+            </button>
+            <button class="btn btn-secondary flex-1" (click)="downloadKeyedBundle('jks')">
+                <span>Download JKS (.jks)</span>
+            </button>
+            </div>
+        </div>
+
+
+        <div class="cert-details mt-6">
+            <div class="section-title">Public Certificate</div>
+            <p class="section-description">Download public certificate with public key and CA</p>
+            
+            <div class="download-actions">
+            <button class="btn btn-outline flex-1" (click)="downloadCertificate('pem')">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-inline">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
+                Download .PEM format
+            </button>
+            <button class="btn btn-outline flex-1" (click)="downloadCertificate('cer')">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-inline">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
+                Download .CER format
+            </button>
+            </div>
+    </div>
+
+
+    <div class="workflow-footer">
+        <button class="btn-back" (click)="resetWorkflow()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-inline">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+        </svg>
+        Generate another
+        </button>
+    </div>
+    </div>
+</div>
