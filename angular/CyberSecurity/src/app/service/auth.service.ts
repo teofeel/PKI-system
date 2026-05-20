@@ -59,8 +59,8 @@ export class AuthService {
     );
   }
 
-  changePasswordRequest(loginData: LoginData) {
-    return this.http.post<any>(`${environment.authHost}/change-password`, loginData, {
+  changePasswordRequest(data: { email: string }) {
+    return this.http.post<any>(`${environment.authHost}/change-password`, data, {
       observe: 'response',
     });
   }
@@ -83,7 +83,7 @@ export class AuthService {
     return !!localStorage.getItem('refreshToken');
   }
 
-  private setSession(res: any): void {
+  setSession(res: any): void {
     if (res && res.accessToken && res.refreshToken) {
       localStorage.setItem('jwt', res.accessToken);
       localStorage.setItem('refreshToken', res.refreshToken);

@@ -25,7 +25,6 @@ export class ChangePasswordComponent {
 
   formData = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email]),
-    password: new FormControl('', [Validators.required, Validators.minLength(8)]),
   });
 
   detectErrors() {
@@ -43,13 +42,12 @@ export class ChangePasswordComponent {
     }
 
     const formValue = this.formData.value;
-    const loginData: LoginData = {
+    const request = {
       email: formValue.email!,
-      password: '',
     };
 
-    this.authService.changePasswordRequest(loginData).subscribe({
-      next: (response) => {
+    this.authService.changePasswordRequest(request).subscribe({
+      next: () => {
         this.dialog.open(SimpleMessageDialogComponent, {
           width: '300px',
           data: { message: 'We sent you an email. Check your e-mail to change your password!' },

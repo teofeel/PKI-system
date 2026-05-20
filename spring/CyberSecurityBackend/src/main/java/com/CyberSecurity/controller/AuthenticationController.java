@@ -8,10 +8,8 @@ import com.CyberSecurity.exceptions.RefreshTokenException;
 import com.CyberSecurity.model.Account;
 import com.CyberSecurity.model.User;
 import com.CyberSecurity.service.AccountService;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.bouncycastle.asn1.cmp.Challenge;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -127,7 +125,13 @@ public class AuthenticationController {
         if (accountService.setPassword(token, passwordDTO.getPassword()))
             return ResponseEntity.ok(null);
         return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+    }
 
+    @PostMapping(value = "/change-password", consumes = MediaType.APPLICATION_JSON_VALUE)
+        public ResponseEntity<Void> changePassword(@Valid @RequestBody AccountDTO dto){
+            if (accountService.changePasswordToken(dto) != null)
+                return new ResponseEntity<>(HttpStatus.OK);
+            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
     }
 
     @PostMapping(value = "/logout", consumes = MediaType.APPLICATION_JSON_VALUE)

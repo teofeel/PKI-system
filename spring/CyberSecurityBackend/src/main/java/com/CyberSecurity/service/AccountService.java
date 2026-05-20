@@ -1,4 +1,5 @@
 package com.CyberSecurity.service;
+import com.CyberSecurity.dto.account.AccountDTO;
 import com.CyberSecurity.dto.account.GetAccountDetailsDTO;
 import com.CyberSecurity.dto.authentication.LoginResponseDTO;
 import com.CyberSecurity.dto.authentication.RegisterCAUserDTO;
@@ -114,6 +115,16 @@ public class AccountService {
             return newUser;
         }
         return null;
+    }
+
+    public Account changePasswordToken(AccountDTO dto){
+        Account acc = accountRepository.findAccountByEmail(dto.getEmail());
+        if (acc != null){
+            SetPasswordToken token = new SetPasswordToken(acc);
+            sptRepository.save(token);
+            emailUtils.sendSetPasswordEmail(token);
+        }
+        return acc;
     }
 
     public Account verifyAccountToken(String token){

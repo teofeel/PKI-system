@@ -59,13 +59,14 @@ export class LoginComponent {
 
     this.authService.login(loginData).subscribe({
       next: (response) => {
-        const body = response.body;
-        if (body?.using2FA) {
+        if (response?.using2FA) {
           this.showTwoFactor = true;
-          this.tempToken = body.accessToken;
+          this.tempToken = response.accessToken;
           this.errormsg = null;
 
           this.cdr.detectChanges();
+        } else {
+          this.router.navigate(['/']);
         }
       },
       error: (err) => {
@@ -97,27 +98,14 @@ export class LoginComponent {
 
     this.mfaService.verifyMfa(mfaCodeDto).subscribe({
       next: (response) => {
-        const finalToken = response?.accessToken;
-
-        if (finalToken) {
-          this.storeFinalToken(finalToken);
-        } else {
-          this.errormsg = 'Failed to get authentication token';
-          this.cdr.detectChanges();
-        }
+        this.authService.setSession(response);
+        this.router.navigate(['/']);
+        this.cdr.detectChanges();
       },
       error: (err) => {
         this.errormsg = err.error?.message || 'Invalid 2FA code';
         this.cdr.detectChanges();
       },
     });
-  }
-
-  private storeFinalToken(token: string) {
-    localStorage.setItem('jwt', token);
-    localStorage.setItem('expires_in', String(Date.now() + 60 * 60 * 1000));
-    this.authService.getRole();
-    this.authService.role.set(this.authService.getRole());
-    this.router.navigate(['/']);
   }
 }
