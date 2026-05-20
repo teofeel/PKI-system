@@ -4,28 +4,37 @@ import { Router } from '@angular/router';
 import { FormControl } from '@angular/forms';
 import { FormGroup } from '@angular/forms';
 import { Validators } from '@angular/forms';
-import { LoginData } from '../../model/LoginData';
 import { MatDialog } from '@angular/material/dialog';
-import { SimpleMessageDialogComponent } from '../../utils/simple-message-dialog/simple-message-dialog.component';
 import { ReactiveFormsModule } from '@angular/forms';
+import { CryptoService } from '../../utils/crypto-service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-change-password',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './change-password.component.html',
   styleUrl: './change-password.component.css',
 })
 export class ChangePasswordComponent {
-  authService: AuthService = inject(AuthService);
   router: Router = inject(Router);
-  cdr: ChangeDetectorRef = inject(ChangeDetectorRef);
   dialog: MatDialog = inject(MatDialog);
 
   errormsg: string | null = null;
 
+  challengeDTO: any = { secret: null };
+
+  selectedFile: File | null = null;
+  selectedFileName: string = '';
+
   formData = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email]),
   });
+
+  constructor(
+    private authService: AuthService,
+    private cryptoService: CryptoService,
+    private cdr: ChangeDetectorRef,
+  ) {}
 
   detectErrors() {
     this.errormsg = null;
@@ -35,34 +44,57 @@ export class ChangePasswordComponent {
     }
   }
 
-  changePasswordRequest() {
+  getChallenge() {
     if (this.formData.invalid) {
       this.detectErrors();
       return;
     }
-
-    const formValue = this.formData.value;
-    const request = {
-      email: formValue.email!,
-    };
-
-    this.authService.changePasswordRequest(request).subscribe({
-      next: () => {
-        this.dialog.open(SimpleMessageDialogComponent, {
-          width: '300px',
-          data: { message: 'We sent you an email. Check your e-mail to change your password!' },
-        });
+    this.errormsg = '';
+    this.authService.getChallenge(this.formData.value.email!).subscribe({
+      next: (res) => {
+        this.challengeDTO = res.body;
+        this.cdr.detectChanges();
       },
       error: (err) => {
-        if (err.status === 401) {
-          this.errormsg = 'Invalid email.';
-        } else if (err.status === 403) {
-          this.errormsg = 'Account not verified.';
-        } else {
-          this.errormsg = 'An error occurred during request.';
-        }
+        this.errormsg = 'This account does not exist!';
         this.cdr.detectChanges();
       },
     });
+  }
+
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedFile = file;
+      this.selectedFileName = file.name;
+      this.cdr.detectChanges();
+    }
+  }
+
+  async onUpload() {
+    if (!this.selectedFile || !this.challengeDTO.secret) return;
+
+    try {
+      const pemContent = await this.selectedFile.text();
+      const privateKey = await this.cryptoService.importPrivateKey(pemContent);
+
+      const decrypted = await this.cryptoService.decryptMessage(
+        this.challengeDTO.secret,
+        privateKey,
+      );
+
+      this.authService.changePasswordRequest(this.formData.value.email!, decrypted).subscribe({
+        next: (res: any) => {
+          const token = res.body.token;
+          this.router.navigate(['/set-password', token]);
+        },
+        error: () => {
+          this.errormsg = 'Verification did not work!.';
+        },
+      });
+    } catch (err) {
+      this.errormsg = 'Invalid private key file!';
+      this.cdr.detectChanges();
+    }
   }
 }

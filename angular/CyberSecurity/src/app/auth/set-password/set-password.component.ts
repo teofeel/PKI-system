@@ -60,6 +60,7 @@ export class SetPasswordComponent {
   }
 
   setPassword() {
+    const token = this.route.snapshot.paramMap.get('token');
     if (!this.passwordForm.valid) {
       this.errormsg = 'Password needs to be at least 8 characters long!';
       this.showError = true;
@@ -67,9 +68,8 @@ export class SetPasswordComponent {
       this.errormsg = "Confirm password doesn't match password";
       this.showError = true;
     } else {
-      this.authService
-        .setPassword(this.route.snapshot.paramMap.get('token')!, this.passwordForm.value.password!)
-        .subscribe({
+      if (token != null) {
+        this.authService.setPassword(token!, this.passwordForm.value.password!).subscribe({
           next: () => {
             this.dialog.open(SimpleMessageDialogComponent, {
               width: '300px',
@@ -82,6 +82,8 @@ export class SetPasswordComponent {
             this.cdr.detectChanges();
           },
         });
+      } else {
+      }
     }
   }
 }

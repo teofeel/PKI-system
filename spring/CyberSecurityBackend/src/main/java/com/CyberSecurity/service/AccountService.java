@@ -146,6 +146,21 @@ public class AccountService {
         return false;
     }
 
+    public boolean verifyDecryptedSecretPasswordChange(String email,String decrypted){
+        Account acc = accountRepository.findAccountByEmail(email);
+        if (acc != null){
+            if (acc.getUser().getSecretPayload().equals(decrypted)){
+                long now = new Date().getTime();
+                if (now - acc.getLastPasswordResetTime().getTime() < 600000)
+                    acc.setAccountStatus(AccountStatus.VERIFIED);
+                acc.setVerification(null);
+                accountRepository.save(acc);
+                return true;
+            }
+        }
+        return false;
+    }
+
     public RefreshTokenResponseDTO refreshToken(String token){
         Optional<RefreshToken> refreshTokenOpt = refreshTokenRepository.findByToken(token);
         if (refreshTokenOpt.isEmpty())
@@ -193,6 +208,20 @@ public class AccountService {
         if (accountOpt.isEmpty()) throw new AccountNotFoundException("Account doesn't exist");
 
         return accountMapper.toAccountDetailsDTO(accountOpt.get());
+    }
+
+    public Account findAccount(String email){
+        return accountRepository.findAccountByEmail(email);
+    }
+
+    public String createChangePasswordToken(String email){
+        Account acc = accountRepository.findAccountByEmail(email);
+        if (acc != null){
+            SetPasswordToken token = new SetPasswordToken(acc);
+            sptRepository.save(token);
+            return token.getToken();
+        }
+        return null;
     }
 
 }

@@ -2,6 +2,7 @@ package com.CyberSecurity.controller;
 
 import com.CyberSecurity.dto.ChallengeDTO;
 import com.CyberSecurity.dto.account.AccountDTO;
+import com.CyberSecurity.dto.account.TokenResponseDTO;
 import com.CyberSecurity.dto.authentication.*;
 import com.CyberSecurity.dto.user.CreatedUserDTO;
 import com.CyberSecurity.exceptions.RefreshTokenException;
@@ -112,6 +113,16 @@ public class AuthenticationController {
         }
     }
 
+    @PostMapping(value = "/get-challenge", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ChallengeDTO> getChallenge(@RequestBody AccountDTO dto){
+        Account acc = accountService.findAccount(dto.getEmail());
+        if (acc == null)
+            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+        String secret = accountService.generateVerificationChallenge(acc);
+        ChallengeDTO challengeDTO = new ChallengeDTO(secret);
+        return new ResponseEntity<>(challengeDTO, HttpStatus.OK);
+    }
+
     @GetMapping(value = "/set-password/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> verifySetPasswordToken(@PathVariable String token){
         boolean checkToken = accountService.verifySetPasswordToken(token);
@@ -127,10 +138,13 @@ public class AuthenticationController {
         return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
     }
 
-    @PostMapping(value = "/change-password", consumes = MediaType.APPLICATION_JSON_VALUE)
-        public ResponseEntity<Void> changePassword(@Valid @RequestBody AccountDTO dto){
-            if (accountService.changePasswordToken(dto) != null)
-                return new ResponseEntity<>(HttpStatus.OK);
+    @PostMapping(value = "/change-password/{decrypted}")
+        public ResponseEntity<TokenResponseDTO> changePassword(@PathVariable String decrypted, @Valid @RequestBody AccountDTO account){
+            boolean successful = accountService.verifyDecryptedSecretPasswordChange(account.getEmail(), decrypted);
+            if (successful) {
+                String setPasswordToken = accountService.createChangePasswordToken(account.getEmail());
+                return ResponseEntity.ok(new TokenResponseDTO(setPasswordToken));
+            }
             return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
     }
 

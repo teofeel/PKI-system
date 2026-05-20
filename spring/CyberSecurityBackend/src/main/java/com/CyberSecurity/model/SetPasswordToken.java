@@ -22,7 +22,7 @@ public class SetPasswordToken {
     @Column
     private Timestamp createdAt;
 
-    @OneToOne
+    @ManyToOne
     private Account account;
 
     public SetPasswordToken(Account account){

@@ -59,10 +59,20 @@ export class AuthService {
     );
   }
 
-  changePasswordRequest(data: { email: string }) {
-    return this.http.post<any>(`${environment.authHost}/change-password`, data, {
-      observe: 'response',
-    });
+  getChallenge(email: string) {
+    return this.http.post<any>(
+      `${environment.authHost}/get-challenge`,
+      { email: email },
+      { observe: 'response' },
+    );
+  }
+
+  changePasswordRequest(email: string, decrypted: string) {
+    return this.http.post<any>(
+      `${environment.authHost}/change-password/${decrypted}`,
+      { email: email },
+      { observe: 'response' },
+    );
   }
 
   refreshToken(): Observable<any> {
