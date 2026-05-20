@@ -59,6 +59,12 @@ export class AuthService {
     );
   }
 
+  changePasswordRequest(loginData: LoginData) {
+    return this.http.post<any>(`${environment.authHost}/change-password`, loginData, {
+      observe: 'response',
+    });
+  }
+
   refreshToken(): Observable<any> {
     const refreshToken = localStorage.getItem('refreshToken');
     return this.http
