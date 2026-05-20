@@ -65,7 +65,6 @@ public class MfaService {
         if(acc.getAccountType().equals(AccountType.ADMIN)) kekBytes = systemConfigurationService.getUnwrappedSystemDataKey();
         else kekBytes = organizationService.getUnwrappedOrganizationDataKey(acc.getUser().getOrganization());
 
-
         String secret = secretGenerator.generate();
         EncryptedData encryptedData = getSecret2FA(secret, kekBytes);
         acc.setSecret2FA(encryptedData);
