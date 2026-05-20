@@ -1,6 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common'; 
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms'; 
+import { OrganizationService } from '../../service/organization.service';
+import { Organization } from '../../model/RegistrationData';
+import { CertificateResponse } from '../model/certificate-response';
+import { CertificateService } from '../service/certificate-service';
+import { OrganizationDropdownDTO } from '../model/organization-dropdown-item';
+import { CertificateDropdownListDTO } from '../model/certificate-dropdown-item';
 
 type WorkflowState = 'SELECTION' | 'CSR_UPLOAD' | 'AUTO_GENERATE' | 'SUCCESS';
 type GenMethod = 'AUTO' | 'UPLOAD' | null;
@@ -24,24 +30,79 @@ export class CertificateSigningRequest implements OnInit {
   isDragging = false;
 
   generationMethod: GenMethod = null;
+  organizations: OrganizationDropdownDTO[] = [];
+  selectOrganization: OrganizationDropdownDTO | null = null;
 
-  constructor(private fb: FormBuilder) {}
+  parentCAs: CertificateDropdownListDTO[] = [];
+
+
+  constructor(
+    private fb: FormBuilder, 
+    private readonly organizationService: OrganizationService,
+    private readonly certificateService: CertificateService
+  ) {}
 
   ngOnInit() {
     this.initForms();
+    this.prepareOrg();
+  }
+
+  prepareOrg() {
+    this.organizationService.getOrganizations().subscribe((organizations) => {
+      this.organizations = organizations;
+    });
+  }
+
+  prepareParentCA(orgID: number){
+    this.certificateService.getAllOrganizationCA(orgID).subscribe({
+      next:(res) => {
+        console.log(res);
+        this.parentCAs = res;
+      }
+    })
+  }
+
+  onOrganizationSelected(){
+    const currentForm = this.currentState === 'AUTO_GENERATE' ? this.autoGenForm : this.csrForm;
+    const selectedId = currentForm.get('organization')?.value;
+
+    if (!selectedId) {
+      this.selectOrganization = null;
+      this.parentCAs = [];
+      return;
+    }
+
+    const orgId = Number(selectedId);
+
+    const matchedOrg = this.organizations.find(org => org.id === orgId);
+    if (matchedOrg) {
+      this.selectOrganization = matchedOrg;
+      
+      if (this.currentState === 'AUTO_GENERATE') {
+        this.autoGenForm.get('organizationUnit')?.setValue(''); 
+      }
+    }
+
+    this.autoGenForm.get('parentCA')?.setValue('');
+    this.csrForm.get('parentCA')?.setValue('');
+
+    this.prepareParentCA(orgId);
   }
 
   initForms() {
     this.autoGenForm = this.fb.group({
-      name: ['', Validators.required],
+      givenName: ['', Validators.required],
+      surname: ['', Validators.required],
+      commonName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       organization: ['', Validators.required],
-      organizationUnit: [''],
-      country: [''],
-      certType: ['END_ENTITY', Validators.required],
+      organizationUnit: ['', Validators.required],
+      country: ['', [Validators.required, Validators.maxLength(2)]],
+      parentCAId: [''], 
       validFrom: ['', Validators.required],
       validTo: ['', Validators.required],
-      parentCA: ['']
+      exportFormat: ['pkcs12', Validators.required], 
+      keystorePassword: ['', Validators.required]
     });
 
     this.csrForm = this.fb.group({

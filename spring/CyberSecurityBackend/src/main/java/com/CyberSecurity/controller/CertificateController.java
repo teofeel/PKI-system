@@ -1,17 +1,17 @@
 package com.CyberSecurity.controller;
-import com.CyberSecurity.dto.certficate.CertificateRequestDTO;
-import com.CyberSecurity.dto.certficate.GetCertificateListDTO;
+import com.CyberSecurity.dto.certficate.*;
 import com.CyberSecurity.exceptions.CertificateIssuingException;
-import com.CyberSecurity.dto.certficate.DownloadCertNoPkDTO;
 import com.CyberSecurity.exceptions.CertificateNotFoundException;
+import com.CyberSecurity.exceptions.OrganizationNotFoundException;
 import com.CyberSecurity.mapper.CertificateMapper;
 import com.CyberSecurity.model.Account;
 import com.CyberSecurity.model.Certificate;
-import com.CyberSecurity.dto.certficate.ParentCAResponseDTO;
 import com.CyberSecurity.enums.AccountType;
 import com.CyberSecurity.service.CertificateService;
+import com.CyberSecurity.utils.SecurityUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.bouncycastle.jce.exception.ExtCertPathBuilderException;
 import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.security.auth.login.AccountNotFoundException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AccessDeniedException;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.Collection;
@@ -35,6 +36,7 @@ import java.util.List;
 public class CertificateController {
     private final CertificateService certificateService;
     private final CertificateMapper certificateMapper;
+    private final SecurityUtil securityUtil;
 
     @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
     @PostMapping(value = "/certificates", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -135,6 +137,74 @@ public class CertificateController {
         } catch(AccessDeniedException e){
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         } catch(IllegalStateException | IllegalArgumentException e){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch(Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping(value = "/certificates/{organizationID}")
+    public ResponseEntity<Collection<CertificateDropdownListDTO>> getAllOrganizationCA
+            (@AuthenticationPrincipal Account account, @PathVariable Long organizationID){
+        if (account == null)
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
+        if(organizationID == null)
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+
+        try{
+            List<CertificateDropdownListDTO> dto = certificateService.getOrganizationCA(organizationID);
+            return new ResponseEntity<>(dto, HttpStatus.OK);
+
+        }catch(OrganizationNotFoundException e){
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch(Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    @PreAuthorize("hasRole('USER')")
+    @PostMapping(value = "/certificates/ee/autogenerate")
+    public ResponseEntity<byte[]> createEECert(
+            @AuthenticationPrincipal Account acc,
+            @Valid @RequestBody AutoGenerateRequestDTO data
+
+    ){
+        try{
+            if(data == null) throw new IllegalStateException("Certificate data is missing");
+
+            byte[] cert = certificateService.issueEECertificateWithExternalPublicKey(data);
+            MediaType mediaType;
+            String fileExtension;
+
+            if("pkcs12".equalsIgnoreCase(data.getExportFormat())){
+                mediaType = MediaType.parseMediaType("application/x-pkcs12");
+                fileExtension = ".p12";
+            }else if("jks".equalsIgnoreCase(data.getExportFormat())) {
+                mediaType = MediaType.APPLICATION_OCTET_STREAM;
+                fileExtension = ".jks";
+            }else
+                throw new IllegalStateException("Unsupported export format");
+
+            String finalFilename = securityUtil.sanitizeFilename(data.getCommonName()) + fileExtension;
+            ContentDisposition contentDisposition = ContentDisposition.attachment()
+                    .filename(finalFilename)
+                    .build();
+
+            return ResponseEntity.ok()
+                    .contentType(mediaType)
+                    .headers(headers -> {
+                        headers.setContentDisposition(contentDisposition);
+                        headers.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
+                    })
+                    .body(cert);
+
+        } catch(OrganizationNotFoundException | CertificateNotFoundException e){
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch(IllegalArgumentException | IllegalStateException | CertificateException e){
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } catch(Exception e){
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

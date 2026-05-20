@@ -2,11 +2,13 @@ package com.CyberSecurity.dto.certficate;
 
 import com.CyberSecurity.enums.CertificateType;
 import jakarta.validation.constraints.*;
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.Date;
 
 @Data
+@Builder
 public class CertificateRequestDTO {
 
     @NotBlank(message = "Common name is required")

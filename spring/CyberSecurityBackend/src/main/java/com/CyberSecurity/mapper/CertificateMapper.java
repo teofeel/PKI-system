@@ -1,6 +1,10 @@
 package com.CyberSecurity.mapper;
 
 
+import com.CyberSecurity.dto.certficate.AutoGenerateRequestDTO;
+import com.CyberSecurity.dto.certficate.CertificateDropdownListDTO;
+import com.CyberSecurity.dto.certficate.CertificateRequestDTO;
+import com.CyberSecurity.enums.CertificateType;
 import com.CyberSecurity.utils.CertificateGenerator;
 import com.CyberSecurity.dto.certficate.GetCertificateListDTO;
 import com.CyberSecurity.model.Certificate;
@@ -77,5 +81,30 @@ public class CertificateMapper {
         } catch (Exception e) {
             throw new RuntimeException("Invalid certificate");
         }
+    }
+
+    public CertificateDropdownListDTO toCertListDTO(Certificate cert){
+        return CertificateDropdownListDTO.builder()
+                .id(cert.getId())
+                .commonName(cert.getCommonName())
+                .build();
+    }
+
+    public CertificateRequestDTO toCertReqDTO(AutoGenerateRequestDTO dto){
+        return CertificateRequestDTO.builder()
+                .commonName(dto.getCommonName())
+                .email(dto.getEmail())
+                .organization(dto.getOrganization())
+                .organizationUnit(dto.getOrganizationUnit())
+                .userId(dto.getUserId())
+                .validFrom(dto.getValidFrom())
+                .validTo(dto.getValidTo())
+                .parentCAId(dto.getParentCAId())
+                .certificateType(CertificateType.END_ENTITY)
+                .pathLen(null)
+                .surname(dto.getSurname())
+                .givenName(dto.getGivenName())
+                .country(dto.getCountry())
+                .build();
     }
 }

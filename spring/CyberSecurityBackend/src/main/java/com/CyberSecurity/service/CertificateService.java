@@ -1,13 +1,12 @@
 package com.CyberSecurity.service;
 
 import com.CyberSecurity.KeyPairGeneratorService;
+import com.CyberSecurity.dto.certficate.*;
+import com.CyberSecurity.exceptions.OrganizationNotFoundException;
 import com.CyberSecurity.model.*;
 import com.CyberSecurity.model.Certificate;
 import com.CyberSecurity.repository.UserRepository;
 import com.CyberSecurity.utils.CertificateGenerator;
-import com.CyberSecurity.dto.certficate.CertificateRequestDTO;
-import com.CyberSecurity.dto.certficate.ParentCAResponseDTO;
-import com.CyberSecurity.dto.certficate.DownloadCertNoPkDTO;
 import com.CyberSecurity.dto.encryption.EncryptionResult;
 import com.CyberSecurity.enums.CertificateType;
 import com.CyberSecurity.exceptions.CertificateIssuingException;
@@ -290,7 +289,10 @@ public class CertificateService {
 
         certificate.setOwner(owner);
 
-        encryptAndSetPrivateKey(certificate, privateKey);
+        if(privateKey != null){
+            encryptAndSetPrivateKey(certificate, privateKey);
+        }
+
         certificateRepository.save(certificate);
 
         return certificate;
@@ -361,4 +363,93 @@ public class CertificateService {
     }
 
 
+    public List<CertificateDropdownListDTO> getOrganizationCA(Long organizationID){
+        Organization org = organizationRepository.findById(organizationID)
+                .orElseThrow(() -> new OrganizationNotFoundException("Couldnt find this organization"));
+
+        List<Certificate> certs = certificateRepository.findParentCAForCAUser(organizationID);
+        return certs
+                .stream()
+                .map((cert) -> certificateMapper.toCertListDTO(cert))
+                .toList();
+    }
+
+    @Transactional
+    public byte[] issueEECertificateWithExternalPublicKey(AutoGenerateRequestDTO data)
+            throws CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchProviderException, Exception{
+
+        CertificateRequestDTO certDto = certificateMapper.toCertReqDTO(data);
+
+        if(!this.validate(certDto)) throw new CertificateException("Certificate request is not valid");
+
+        Certificate parentCA = certificateRepository.findById(Long.parseLong(certDto.getParentCAId()))
+                .orElseThrow(() -> new CertificateNotFoundException("Certificate with this id doesn't exist"));
+
+        Organization org = organizationRepository.findByName(certDto.getOrganization());
+        if (org == null) throw new OrganizationNotFoundException("Organization not found");
+
+        KeyPair subjectKeyPair = keyPairGeneratorService.generateKeyPair();
+
+        PrivateKey parentPrivateKey = getDecryptedPrivateKey(parentCA);
+        X500Name issuerName = X500Name.getInstance(parentCA.getSubjectNameEncoded());
+        Issuer issuer = new Issuer(issuerName, parentPrivateKey);
+
+        X500Name subjectName = new X500NameBuilder(BCStyle.INSTANCE)
+                .addRDN(BCStyle.CN, certDto.getCommonName())
+                .addRDN(BCStyle.SURNAME, certDto.getSurname())
+                .addRDN(BCStyle.GIVENNAME, certDto.getGivenName())
+                .addRDN(BCStyle.O, certDto.getOrganization())
+                .addRDN(BCStyle.OU, certDto.getOrganizationUnit())
+                .addRDN(BCStyle.C, certDto.getCountry())
+                .addRDN(BCStyle.E, certDto.getEmail())
+                .build();
+
+
+        Subject subject = new Subject(subjectName, subjectKeyPair.getPublic());
+
+        X509Certificate x509Cert = CertificateGenerator.generateCertificate(
+                subject, issuer,
+                certDto.getValidFrom(), certDto.getValidTo(),
+                new BigInteger(64, new SecureRandom()).toString(),
+                certDto.getCertificateType(), null
+        );
+
+        if (x509Cert == null) {
+            throw new CertificateException("Certificate couldn't be generated");
+        }
+
+        this.createAndSaveCertificate(x509Cert, org, null, certDto.getUserId(), parentCA, null);
+
+        java.security.cert.Certificate parentX509 = certificateMapper.toX509(parentCA.getEncoded());
+        java.security.cert.Certificate[] chain = new java.security.cert.Certificate[] { x509Cert, parentX509 };
+
+        return packToBundle(subjectKeyPair.getPrivate(), chain, data.getExportFormat(), data.getKeystorePassword(), certDto.getCommonName());
+    }
+
+    private byte[] packToBundle(
+            PrivateKey privateKey,
+            java.security.cert.Certificate[] certChain,
+            String format,
+            String keystorePass,
+            String alias
+    ){
+        try{
+            String keyStoreType = "pkcs12".equalsIgnoreCase(format) ? "PKCS12" : "JKS";
+            KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+
+            keyStore.load(null, null);
+
+            char[] passwordChars = keystorePass.toCharArray();
+
+            keyStore.setKeyEntry(alias, privateKey, passwordChars, certChain);
+
+            try (java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream()) {
+                keyStore.store(bos, passwordChars);
+                return bos.toByteArray();
+            }
+
+        }catch(Exception e){
+            throw new CertificateIssuingException("Failed to generate secure bundle");
+        }
+    }
 }

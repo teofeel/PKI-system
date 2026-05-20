@@ -282,7 +282,6 @@ button {
   line-height: 1.5;
 }
 
-/* Security Notification Box Adaptation */
 .security-warning {
   background-color: var(--danger-bg);
   border: 1px solid var(--danger-border);
@@ -315,7 +314,6 @@ button {
   }
 }
 
-/* Asset Container Card */
 .cert-details {
   background: var(--bg-surface);
   border-radius: var(--border-radius-lg);
@@ -332,7 +330,7 @@ button {
   line-height: 1.5;
 }
 
-/* Core Layout Utilities */
+
 .download-actions {
   display: flex;
   gap: 1rem;
@@ -349,7 +347,7 @@ button {
   justify-content: center;
   gap: 0.5rem;
   font-size: 0.95rem;
-  height: 46px; /* Uniform interaction targets */
+  height: 46px; 
 }
 
 .workflow-footer {

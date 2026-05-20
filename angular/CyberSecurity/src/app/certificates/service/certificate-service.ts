@@ -6,6 +6,9 @@ import { CertificateListItem } from '../model/certificate-item-list';
 import { CertificateResponse } from '../model/certificate-response';
 
 import { Observable } from 'rxjs';
+import { OrganizationDropdownDTO } from '../model/organization-dropdown-item';
+import { CertificateDropdownListDTO } from '../model/certificate-dropdown-item';
+import { AutoGenerateRequestDTO } from '../model/auto-generate-request';
 
 @Injectable({
   providedIn: 'root',
@@ -39,6 +42,17 @@ export class CertificateService {
   downloadCertificateNoPk(certId: number, format: string){
     return this.http.get(`${environment.apiHost}/certificates/${certId}/export-no-pk`, {
       params: {format}, 
+      observe: 'response',
+      responseType: 'blob'
+    });
+  }
+
+  getAllOrganizationCA(orgID: number): Observable<CertificateDropdownListDTO[]>{
+    return this.http.get<CertificateDropdownListDTO[]>(`${environment.apiHost}/certificates/${orgID}`);
+  }
+
+  generateEECert(data: AutoGenerateRequestDTO){
+    return this.http.post(`${environment.apiHost}/certificates/ee/autogenerate`, data, {
       observe: 'response',
       responseType: 'blob'
     });
