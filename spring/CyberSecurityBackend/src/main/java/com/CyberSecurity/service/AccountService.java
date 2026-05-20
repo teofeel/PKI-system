@@ -27,6 +27,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.security.PublicKey;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.TemporalUnit;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
@@ -181,7 +184,7 @@ public class AccountService {
 
     public boolean verifySetPasswordToken(String token){
         SetPasswordToken spt = sptRepository.findByToken(token);
-        return spt != null;
+        return spt != null && Instant.now().isBefore(spt.getCreatedAt().toInstant().plusMillis(24*60*60*1000));
     }
 
     public boolean setPassword(String token, String password){
