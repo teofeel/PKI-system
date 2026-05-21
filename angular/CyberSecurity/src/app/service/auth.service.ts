@@ -59,6 +59,22 @@ export class AuthService {
     );
   }
 
+  getChallenge(email: string) {
+    return this.http.post<any>(
+      `${environment.authHost}/get-challenge`,
+      { email: email },
+      { observe: 'response' },
+    );
+  }
+
+  changePasswordRequest(email: string, decrypted: string) {
+    return this.http.post<any>(
+      `${environment.authHost}/change-password/${decrypted}`,
+      { email: email },
+      { observe: 'response' },
+    );
+  }
+
   refreshToken(): Observable<any> {
     const refreshToken = localStorage.getItem('refreshToken');
     return this.http

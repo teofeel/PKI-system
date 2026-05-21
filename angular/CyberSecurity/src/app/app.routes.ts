@@ -8,6 +8,8 @@ import { CreateOrganizationComponent } from './organization/create-organization/
 import { CertificatesPage } from './certificates/certificates-page/certificates-page';
 import { Profile } from './profile/profile';
 import { CertificateSigningRequest } from './certificates/certificate-signing-request/certificate-signing-request';
+import { ChangePasswordComponent } from './auth/change-password/change-password.component';
+
 
 export const routes: Routes = [
   {
@@ -32,11 +34,11 @@ export const routes: Routes = [
   },
   {
     path: 'create-organization',
-    component: CreateOrganizationComponent
+    component: CreateOrganizationComponent,
   },
   {
     path: 'certification-page',
-    component: CertificatesPage
+    component: CertificatesPage,
   },
   {
     path: 'profile',
@@ -45,5 +47,9 @@ export const routes: Routes = [
   {
     path: 'csr',
     component: CertificateSigningRequest
-  }
+  },
+  {
+    path: 'change-password',
+    component: ChangePasswordComponent,
+  },
 ];
