@@ -7,6 +7,7 @@ import { CertificateFormComponent } from './certificates/certificate-form/certif
 import { CreateOrganizationComponent } from './organization/create-organization/create-organization.component';
 import { CertificatesPage } from './certificates/certificates-page/certificates-page';
 import { Profile } from './profile/profile';
+import { ChangePasswordComponent } from './auth/change-password/change-password.component';
 
 export const routes: Routes = [
   {
@@ -31,14 +32,18 @@ export const routes: Routes = [
   },
   {
     path: 'create-organization',
-    component: CreateOrganizationComponent
+    component: CreateOrganizationComponent,
   },
   {
     path: 'certification-page',
-    component: CertificatesPage
+    component: CertificatesPage,
   },
   {
     path: 'profile',
-    component: Profile
-  }
+    component: Profile,
+  },
+  {
+    path: 'change-password',
+    component: ChangePasswordComponent,
+  },
 ];
