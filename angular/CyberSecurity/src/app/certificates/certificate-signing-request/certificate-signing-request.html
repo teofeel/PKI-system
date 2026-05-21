@@ -58,8 +58,16 @@
               </select>
             </div>
             <div class="input-group">
-              <label>Duration (Days)</label>
-              <input type="number" formControlName="duration" class="pki-input">
+              <div class="form-row">
+            <div class="input-group">
+              <label>Valid From <span class="req">*</span></label>
+              <input type="date" formControlName="validFrom" class="pki-input">
+            </div>
+            <div class="input-group">
+              <label>Valid To <span class="req">*</span></label>
+              <input type="date" formControlName="validTo" class="pki-input">
+            </div>
+          </div>
             </div>
           </div>
         </div>

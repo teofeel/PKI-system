@@ -2,8 +2,6 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common'; 
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms'; 
 import { OrganizationService } from '../../service/organization.service';
-import { Organization } from '../../model/RegistrationData';
-import { CertificateResponse } from '../model/certificate-response';
 import { CertificateService } from '../service/certificate-service';
 import { OrganizationDropdownDTO } from '../model/organization-dropdown-item';
 import { CertificateDropdownListDTO } from '../model/certificate-dropdown-item';
@@ -110,7 +108,8 @@ export class CertificateSigningRequest implements OnInit {
 
     this.csrForm = this.fb.group({
       parentCA: ['', Validators.required],
-      duration: ['30', Validators.required]
+      validFrom: ['', Validators.required],
+      validTo: ['', Validators.required]
     });
   }
 
@@ -210,7 +209,8 @@ export class CertificateSigningRequest implements OnInit {
     
     const data: any = {
       parentCAId: this.csrForm.get('parentCA')?.value,
-      duration: this.csrForm.get('duration')?.value
+      validFrom: this.csrForm.get('validFrom')?.value,
+      validTo: this.csrForm.get('validTo')?.value
     };
 
     const formData = new FormData();
@@ -221,8 +221,10 @@ export class CertificateSigningRequest implements OnInit {
 
     this.certificateService.generateCsrEECert(formData).subscribe({
         next: (certID: number) => {
-            console.log(certID);
             this.generatedCertId = certID;
+            this.generationMethod = 'UPLOAD';
+            this.setState('SUCCESS');
+            this.cdr.detectChanges();
         },
         error: (err) => {
           alert("Couldn't generate EE cert");

@@ -210,7 +210,7 @@ public class CertificateController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER', 'USER')")
-    @PostMapping(value = "/certificates/ee/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/certificates/ee/csr", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Long> uploadCertificate(
             @AuthenticationPrincipal Account acc,
             @RequestPart("data") CsrUploadRequestDTO data,

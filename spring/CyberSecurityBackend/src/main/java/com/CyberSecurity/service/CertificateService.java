@@ -460,13 +460,11 @@ public class CertificateService {
         JcaPKCS10CertificationRequest jcsCsr = new JcaPKCS10CertificationRequest(csr);
 
         X500Name subjectName = jcsCsr.getSubject();
-        Date validFrom = new Date();
-        Date validTo = Date.from(validFrom.toInstant().plus(data.getDuration(), ChronoUnit.DAYS));
 
-        CertificateRequestDTO certDto = certificateMapper.toCertificateRequestDTO(subjectName, data, validTo);
+        CertificateRequestDTO certDto = certificateMapper.toCertificateRequestDTO(subjectName, data);
         if(!this.validate(certDto)) throw new CertificateException("Certificate request is not valid");
 
-        X509Certificate x509Cert = this.getX509Cert(parentCA, jcsCsr.getPublicKey(), subjectName, validFrom, validTo, certDto);
+        X509Certificate x509Cert = this.getX509Cert(parentCA, jcsCsr.getPublicKey(), subjectName, data.getValidFrom(), data.getValidTo(), certDto);
 
         Organization org = organizationRepository.findByName(certificateGenerator.getRDNValue(subjectName, BCStyle.O));
         if (org == null) throw new OrganizationNotFoundException("Organization not found");

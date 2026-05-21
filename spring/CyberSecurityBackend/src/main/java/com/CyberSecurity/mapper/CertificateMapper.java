@@ -111,7 +111,7 @@ public class CertificateMapper {
                 .build();
     }
 
-    public CertificateRequestDTO toCertificateRequestDTO(X500Name subjectName, CsrUploadRequestDTO data, Date validTo) {
+    public CertificateRequestDTO toCertificateRequestDTO(X500Name subjectName, CsrUploadRequestDTO data) {
         return CertificateRequestDTO.builder()
                 .commonName(certificateGenerator.getRDNValue(subjectName, BCStyle.CN))
                 .surname(certificateGenerator.getRDNValue(subjectName, BCStyle.SURNAME))
@@ -121,8 +121,8 @@ public class CertificateMapper {
                 .country(certificateGenerator.getRDNValue(subjectName, BCStyle.C))
                 .email(certificateGenerator.getRDNValue(subjectName, BCStyle.EmailAddress))
                 .parentCAId(data.getParentCAId())
-                .validFrom(new Date())
-                .validTo(validTo)
+                .validFrom(data.getValidFrom())
+                .validTo(data.getValidTo())
                 .certificateType(CertificateType.END_ENTITY)
                 .userId(1L)
                 .pathLen(0)
