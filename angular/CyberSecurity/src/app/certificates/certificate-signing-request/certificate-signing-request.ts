@@ -9,6 +9,7 @@ import { OrganizationDropdownDTO } from '../model/organization-dropdown-item';
 import { CertificateDropdownListDTO } from '../model/certificate-dropdown-item';
 import { AutoGenerateRequestDTO } from '../model/auto-generate-request';
 import { AuthService } from '../../service/auth.service';
+import { HttpResponse } from '@angular/common/http';
 
 type WorkflowState = 'SELECTION' | 'CSR_UPLOAD' | 'AUTO_GENERATE' | 'SUCCESS';
 type GenMethod = 'AUTO' | 'UPLOAD' | null;
@@ -37,9 +38,11 @@ export class CertificateSigningRequest implements OnInit {
 
   parentCAs: CertificateDropdownListDTO[] = [];
 
+  generatedCertId: number | null = null;
+
 
   constructor(
-    private fb: FormBuilder, 
+    private readonly fb: FormBuilder, 
     private readonly organizationService: OrganizationService,
     private readonly certificateService: CertificateService,
     private readonly authService: AuthService,
@@ -49,6 +52,7 @@ export class CertificateSigningRequest implements OnInit {
   ngOnInit() {
     this.initForms();
     this.prepareOrg();
+    this.prepareParentCA();
   }
 
   prepareOrg() {
@@ -57,14 +61,8 @@ export class CertificateSigningRequest implements OnInit {
     });
   }
 
-  prepareParentCA(orgID: number | undefined){
-    if(orgID === undefined || orgID === null){
-      alert('Couldnt load any CAs to sign your request');
-      this.parentCAs = [];
-      return;
-    }
-
-    this.certificateService.getAllOrganizationCA(orgID).subscribe({
+  prepareParentCA(){
+    this.certificateService.getAllCA().subscribe({
       next:(res) => {
         console.log(res);
         this.parentCAs = res;
@@ -92,11 +90,6 @@ export class CertificateSigningRequest implements OnInit {
         this.autoGenForm.get('organizationUnit')?.setValue(''); 
       }
     }
-
-    this.autoGenForm.get('parentCA')?.setValue('');
-    this.csrForm.get('parentCA')?.setValue('');
-
-    this.prepareParentCA(matchedOrg?.id);
   }
 
   initForms() {
@@ -155,7 +148,7 @@ export class CertificateSigningRequest implements OnInit {
     if (file.name.endsWith('.pem')) {
       this.uploadedCsrFile = file;
     } else {
-      alert('Invalid file type. Please upload a .pem file.');
+      alert('Invalid file type. Please upload a .pem file');
     }
   }
 
@@ -194,6 +187,10 @@ export class CertificateSigningRequest implements OnInit {
           link.href = url;
           link.download = filename;
           link.click();
+
+          const certId = response.headers.get('X-Certificate-Id');
+          console.log("Generisan ID:", certId);
+          this.generatedCertId = Number(certId);
         
           window.URL.revokeObjectURL(url);
         }
@@ -209,17 +206,68 @@ export class CertificateSigningRequest implements OnInit {
   }
 
   submitCsr() {
-    if (this.csrForm.valid && this.uploadedCsrFile) {
-      this.setState('SUCCESS');
-    }
-  }
+    if (this.csrForm.valid && !this.uploadedCsrFile) return;
+    
+    const data: any = {
+      parentCAId: this.csrForm.get('parentCA')?.value,
+      duration: this.csrForm.get('duration')?.value
+    };
 
-  downloadKeyedBundle(format: 'pkcs12' | 'jks') {
-    console.log(`API Target: Fetching active container map in ${format.toUpperCase()} structural binary array.`);
+    const formData = new FormData();
+    formData.append('file', this.uploadedCsrFile!);
+    formData.append('data', new Blob([JSON.stringify(data)], {
+        type: 'application/json'
+    }));
+
+    this.certificateService.generateCsrEECert(formData).subscribe({
+        next: (certID: number) => {
+            console.log(certID);
+            this.generatedCertId = certID;
+        },
+        error: (err) => {
+          alert("Couldn't generate EE cert");
+        }
+    });
   }
 
   downloadCertificate(extension: 'pem' | 'cer') {
-    console.log(`API Target: Downloading public X509 text blob inside standard .${extension} container layout.`);
+    console.log(this.generatedCertId)
+    this.certificateService.downloadCertificateNoPk(this.generatedCertId!, extension)
+        .subscribe({
+          next: (response: HttpResponse<Blob>) => {
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = `certificate.${extension}`; 
+
+            if (contentDisposition) {
+              const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;\n]*)/);
+              if (utf8Match && utf8Match[1]) {
+                filename = decodeURIComponent(utf8Match[1]);
+              } else {
+                const classicMatch = contentDisposition.match(/filename="?([^";\n]+)"?/);
+                if (classicMatch && classicMatch[1]) {
+                  filename = classicMatch[1];
+                }
+              }
+            }
+            
+            const blob = response.body;
+            if (blob) {
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = filename;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              globalThis.URL.revokeObjectURL(url);
+            }
+          },
+          error: (err) => {
+            console.error('Download failed', err);
+          }
+        });
+
+    console.log(`API Target: Downloading public X509 text blob inside standard .${extension} container layout`);
   }
 
 

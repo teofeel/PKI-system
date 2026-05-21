@@ -19,7 +19,6 @@
       </p>
     </header>
 
-    <!-- SELECTION VIEW -->
     <div *ngSwitchCase="'SELECTION'" class="selection-grid">
       <div class="method-card" (click)="setState('CSR_UPLOAD')">
         <h3>Upload CSR</h3>
@@ -32,7 +31,6 @@
       </div>
     </div>
 
-    <!-- CSR UPLOAD VIEW -->
     <div *ngSwitchCase="'CSR_UPLOAD'" class="form-wrapper">
       <form [formGroup]="csrForm" (ngSubmit)="submitCsr()">
         <div class="upload-zone" 
@@ -53,7 +51,7 @@
             <div class="input-group">
               <label>Issuing CA</label>
               <select formControlName="parentCA" class="pki-input">
-                <option value="" disabled>Select Root/Intermediate CA</option>
+                <option value="" disabled>Select Intermediate CA</option>
                 <option *ngFor="let ca of parentCAs" [value]="ca.id">
                   {{ ca.commonName }}
                 </option>
@@ -72,11 +70,9 @@
       </form>
     </div>
 
-    <!-- AUTO GENERATE VIEW -->
     <div *ngSwitchCase="'AUTO_GENERATE'" class="form-wrapper">
       <form [formGroup]="autoGenForm" (ngSubmit)="submitAutoGenerate()">
         
-        <!-- Sekcija za lične i sistemske podatke subjekta -->
         <div class="form-section">
           <h4 class="section-title">Subject Information</h4>
           
@@ -131,8 +127,7 @@
           <div class="input-group mb-4" style="margin-bottom: 1.25rem;">
             <label>Issuing CA</label>
             <select formControlName="parentCAId" class="pki-input">
-              <option value="" disabled>Select Root/Intermediate CA</option>
-              <option value="test">Test</option>
+              <option value="" disabled>Select Intermediate CA</option>
               <option *ngFor="let ca of parentCAs" [value]="ca.id">
                 {{ ca.commonName }}
               </option>

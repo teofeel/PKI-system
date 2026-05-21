@@ -6,6 +6,9 @@
       @if (authService.role()) {
         <a routerLink="/certification-page" class="nav-item">View Certificates</a>
         <a routerLink="/profile" class = "nav-item">Profile</a>
+        @if (authService.role() == 'USER'){
+          <a routerLink="/csr" class="nav-item">CSR</a>
+        }
         @if (authService.role() == 'ADMIN') {
           <a routerLink="/create-organization" class="nav-item">Create Organization</a>
           <a routerLink="/register" class="nav-item">Register CA</a>
@@ -13,6 +16,7 @@
 
         @if (authService.role() !== 'USER') {
           <a routerLink="/generate-certificate" class="nav-item">Issue Certificate</a>
+          
         }
       }
     </div>

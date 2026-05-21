@@ -47,8 +47,8 @@ export class CertificateService {
     });
   }
 
-  getAllOrganizationCA(orgID: number): Observable<CertificateDropdownListDTO[]>{
-    return this.http.get<CertificateDropdownListDTO[]>(`${environment.apiHost}/certificates/${orgID}`);
+  getAllCA(): Observable<CertificateDropdownListDTO[]>{
+    return this.http.get<CertificateDropdownListDTO[]>(`${environment.apiHost}/certificates/ca`);
   }
 
   generateEECert(data: AutoGenerateRequestDTO){
@@ -56,5 +56,9 @@ export class CertificateService {
       observe: 'response',
       responseType: 'blob'
     });
+  }
+
+  generateCsrEECert(formData: FormData): Observable<number>{
+    return this.http.post<number>(`${environment.apiHost}/certificates/ee/csr`, formData)
   }
 }
