@@ -107,7 +107,7 @@
               <label>Organization (O) <span class="req">*</span></label>
               <select formControlName="organization" class="pki-input" (change)="onOrganizationSelected()">
                 <option value="" disabled>Select Organization</option>
-                <option *ngFor="let org of organizations" [value]="org.id">
+                <option *ngFor="let org of organizations" [value]="org.name">
                   {{ org.name }}
                 </option>
               </select>
@@ -126,7 +126,6 @@
           </div>
         </div>
 
-        <!-- Sekcija za vremensko važenje i roditeljski CA -->
         <div class="form-section mt-6">
           <h4 class="section-title">Certificate Configuration</h4>
           <div class="input-group mb-4" style="margin-bottom: 1.25rem;">
@@ -151,7 +150,6 @@
           </div>
         </div>
 
-        <!-- Crveni boks: Pomeren UNUTAR forme kako bi formControlName radio ispravno -->
         <div class="form-section mt-6" style="border: 1px dashed #fca5a5; padding: 15px; border-radius: 8px; background-color: #fef2f2;">
           <h4 class="section-title" style="color: #991b1b; border-bottom: 1px solid #fca5a5;">Private Key Bundle Settings</h4>
           <p style="font-size: 13px; color: #7f1d1d; margin-bottom: 12px;">
@@ -178,7 +176,6 @@
       </form>
     </div>
 
-    <!-- SUCCESS VIEW -->
     <div *ngSwitchCase="'SUCCESS'" class="success-wrapper">
       <div class="success-header">
         <div class="success-badge">
@@ -188,28 +185,6 @@
         </div>
         <h2>Certificate successfully created</h2>
         <p class="success-subtitle">Your EE (end-entity) certificate is generated and ready for download</p>
-      </div>
-
-      <div *ngIf="generationMethod === 'AUTO'" class="security-warning">
-        <div class="warning-header">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-alert">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-          </svg>
-          <h4>Critical: Immediately download public key</h4>
-        </div>
-        <p>
-          Private key is generated locally and it is not stored in db. 
-          If you leave this page now, you will permanently lose your keys.
-        </p>
-        
-        <div class="download-actions">
-          <button class="btn btn-danger flex-1" (click)="downloadKeyedBundle('pkcs12')">
-            <span>Download PKCS12 (.p12)</span>
-          </button>
-          <button class="btn btn-secondary flex-1" (click)="downloadKeyedBundle('jks')">
-            <span>Download JKS (.jks)</span>
-          </button>
-        </div>
       </div>
 
       <div class="cert-details mt-6">

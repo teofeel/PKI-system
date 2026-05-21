@@ -6,7 +6,7 @@ export interface AutoGenerateRequestDTO {
   organization: string;
   organizationUnit: string;
   country: string;
-  userId: number;       
+  userId: number | null;       
   validFrom: string;    
   validTo: string;
   parentCAId: string;   

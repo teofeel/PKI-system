@@ -166,7 +166,7 @@ public class CertificateController {
     }
 
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER', 'USER')")
     @PostMapping(value = "/certificates/ee/autogenerate")
     public ResponseEntity<byte[]> createEECert(
             @AuthenticationPrincipal Account acc,

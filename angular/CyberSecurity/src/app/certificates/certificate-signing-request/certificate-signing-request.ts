@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common'; 
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms'; 
 import { OrganizationService } from '../../service/organization.service';
@@ -7,6 +7,8 @@ import { CertificateResponse } from '../model/certificate-response';
 import { CertificateService } from '../service/certificate-service';
 import { OrganizationDropdownDTO } from '../model/organization-dropdown-item';
 import { CertificateDropdownListDTO } from '../model/certificate-dropdown-item';
+import { AutoGenerateRequestDTO } from '../model/auto-generate-request';
+import { AuthService } from '../../service/auth.service';
 
 type WorkflowState = 'SELECTION' | 'CSR_UPLOAD' | 'AUTO_GENERATE' | 'SUCCESS';
 type GenMethod = 'AUTO' | 'UPLOAD' | null;
@@ -39,7 +41,9 @@ export class CertificateSigningRequest implements OnInit {
   constructor(
     private fb: FormBuilder, 
     private readonly organizationService: OrganizationService,
-    private readonly certificateService: CertificateService
+    private readonly certificateService: CertificateService,
+    private readonly authService: AuthService,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -53,7 +57,13 @@ export class CertificateSigningRequest implements OnInit {
     });
   }
 
-  prepareParentCA(orgID: number){
+  prepareParentCA(orgID: number | undefined){
+    if(orgID === undefined || orgID === null){
+      alert('Couldnt load any CAs to sign your request');
+      this.parentCAs = [];
+      return;
+    }
+
     this.certificateService.getAllOrganizationCA(orgID).subscribe({
       next:(res) => {
         console.log(res);
@@ -64,17 +74,17 @@ export class CertificateSigningRequest implements OnInit {
 
   onOrganizationSelected(){
     const currentForm = this.currentState === 'AUTO_GENERATE' ? this.autoGenForm : this.csrForm;
-    const selectedId = currentForm.get('organization')?.value;
+    const selectedName = currentForm.get('organization')?.value;
 
-    if (!selectedId) {
+    if (!selectedName) {
       this.selectOrganization = null;
       this.parentCAs = [];
       return;
     }
 
-    const orgId = Number(selectedId);
+    const orgName= selectedName;
 
-    const matchedOrg = this.organizations.find(org => org.id === orgId);
+    const matchedOrg = this.organizations.find(org => org.name === orgName);
     if (matchedOrg) {
       this.selectOrganization = matchedOrg;
       
@@ -86,7 +96,7 @@ export class CertificateSigningRequest implements OnInit {
     this.autoGenForm.get('parentCA')?.setValue('');
     this.csrForm.get('parentCA')?.setValue('');
 
-    this.prepareParentCA(orgId);
+    this.prepareParentCA(matchedOrg?.id);
   }
 
   initForms() {
@@ -150,9 +160,52 @@ export class CertificateSigningRequest implements OnInit {
   }
 
   submitAutoGenerate() {
-    if (this.autoGenForm.valid) {
-      this.setState('SUCCESS');
+    if (this.autoGenForm.invalid) {
+      this.autoGenForm.markAllAsTouched();
+      return;
     }
+
+    const formValue = this.autoGenForm.value;
+    const requestData: AutoGenerateRequestDTO = {
+      givenName: formValue.givenName,
+      surname: formValue.surname,
+      commonName: formValue.commonName,
+      email: formValue.email,
+      organization: formValue.organization,
+      organizationUnit: formValue.organizationUnit,
+      country: formValue.country,
+      parentCAId: formValue.parentCAId ? formValue.parentCAId : null,
+      validFrom: formValue.validFrom,
+      validTo: formValue.validTo,
+      exportFormat: formValue.exportFormat,
+      keystorePassword: formValue.keystorePassword,
+      userId: this.authService.getId()
+    }
+
+    this.certificateService.generateEECert(requestData).subscribe({
+      next:(response) => {
+        const blob = response.body;
+        if(blob){
+          const extension = formValue.exportFormat === 'pkcs12' ? 'p12' : 'jks';
+          const filename = `${formValue.commonName}.${extension}`;
+
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = filename;
+          link.click();
+        
+          window.URL.revokeObjectURL(url);
+        }
+        
+        this.generationMethod = 'AUTO';
+        this.setState('SUCCESS');
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        alert('An error occurred while generating');
+      }
+    })
   }
 
   submitCsr() {
