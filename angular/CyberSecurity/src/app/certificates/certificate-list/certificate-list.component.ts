@@ -4,7 +4,6 @@ import { CertificateListItem } from '../model/certificate-item-list';
 import { CertificateType } from '../model/certificate-type';
 import { Router, RouterModule } from '@angular/router';
 import { CertificateService } from '../service/certificate-service';
-import { SimpleChanges } from '@angular/core';
 import { HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -71,13 +70,12 @@ export class CertificateList {
     }
   }
 
-download(id: number, format: string, isUsingPk: boolean): void {
+  download(id: number, format: string, isUsingPk: boolean, passwordInput?: HTMLInputElement): void {
     let downloadObservable$: Observable<HttpResponse<Blob>>;
 
     if (isUsingPk) {
-      const password = prompt('Enter a password to secure your PKCS12 keystore (.p12):');
-      if (password === null) return; 
-      if (!password.trim()) {
+      const password = passwordInput?.value;
+      if (!password || !password.trim()) {
         alert('Password cannot be empty.');
         return;
       }
@@ -86,12 +84,15 @@ download(id: number, format: string, isUsingPk: boolean): void {
       downloadObservable$ = this.certService.downloadCertificateNoPk(id, format);
     }
 
-    this.certificates.forEach(c => (c.showDownloadMenu = false));
+    this.certificates.forEach(c => {
+      c.showDownloadMenu = false;
+      (c as any).showPasswordForm = false;
+    });
 
     downloadObservable$.subscribe({
       next: (response: HttpResponse<Blob>) => {
         const contentDisposition = response.headers.get('Content-Disposition');
-        let filename = `certificate.${format}`; 
+        let filename = `certificate.${format}`;
 
         if (contentDisposition) {
           const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;\n]*)/);
@@ -104,7 +105,7 @@ download(id: number, format: string, isUsingPk: boolean): void {
             }
           }
         }
-        
+
         const blob = response.body;
         if (blob) {
           const url = window.URL.createObjectURL(blob);
@@ -133,5 +134,15 @@ download(id: number, format: string, isUsingPk: boolean): void {
     if (!wasOpen) {
       cert.showDownloadMenu = true;
     }
+  }
+
+  switchToPasswordForm(cert: CertificateListItem, event: Event): void {
+    event.stopPropagation();
+    (cert as any).showPasswordForm = true;
+  }
+
+  cancelPasswordForm(cert: CertificateListItem, event: Event): void {
+    event.stopPropagation();
+    (cert as any).showPasswordForm = false;
   }
 }
