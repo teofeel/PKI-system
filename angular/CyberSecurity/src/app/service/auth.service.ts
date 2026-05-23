@@ -125,7 +125,7 @@ export class AuthService {
     return null;
   }
 
-  private getId(): number | null {
+  getId(): number | null {
     if (this.isLoggedIn()) {
       const accessToken = localStorage.getItem('jwt');
       if (accessToken) {

@@ -1,11 +1,17 @@
 package com.CyberSecurity.mapper;
 
 
+import com.CyberSecurity.dto.certficate.*;
+import com.CyberSecurity.enums.CertificateType;
 import com.CyberSecurity.utils.CertificateGenerator;
-import com.CyberSecurity.dto.certficate.GetCertificateListDTO;
 import com.CyberSecurity.model.Certificate;
 import com.CyberSecurity.model.Organization;
 import lombok.RequiredArgsConstructor;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.x500.RDN;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.asn1.x500.style.IETFUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
@@ -13,6 +19,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 
 @Component
@@ -78,4 +85,48 @@ public class CertificateMapper {
             throw new RuntimeException("Invalid certificate");
         }
     }
+
+    public CertificateDropdownListDTO toCertListDTO(Certificate cert){
+        return CertificateDropdownListDTO.builder()
+                .id(cert.getId())
+                .commonName(cert.getCommonName())
+                .build();
+    }
+
+    public CertificateRequestDTO toCertReqDTO(AutoGenerateRequestDTO dto){
+        return CertificateRequestDTO.builder()
+                .commonName(dto.getCommonName())
+                .email(dto.getEmail())
+                .organization(dto.getOrganization())
+                .organizationUnit(dto.getOrganizationUnit())
+                .userId(dto.getUserId())
+                .validFrom(dto.getValidFrom())
+                .validTo(dto.getValidTo())
+                .parentCAId(dto.getParentCAId())
+                .certificateType(CertificateType.END_ENTITY)
+                .pathLen(null)
+                .surname(dto.getSurname())
+                .givenName(dto.getGivenName())
+                .country(dto.getCountry())
+                .build();
+    }
+
+    public CertificateRequestDTO toCertificateRequestDTO(X500Name subjectName, CsrUploadRequestDTO data) {
+        return CertificateRequestDTO.builder()
+                .commonName(certificateGenerator.getRDNValue(subjectName, BCStyle.CN))
+                .surname(certificateGenerator.getRDNValue(subjectName, BCStyle.SURNAME))
+                .givenName(certificateGenerator.getRDNValue(subjectName, BCStyle.GIVENNAME))
+                .organization(certificateGenerator.getRDNValue(subjectName, BCStyle.O))
+                .organizationUnit(certificateGenerator.getRDNValue(subjectName, BCStyle.OU))
+                .country(certificateGenerator.getRDNValue(subjectName, BCStyle.C))
+                .email(certificateGenerator.getRDNValue(subjectName, BCStyle.EmailAddress))
+                .parentCAId(data.getParentCAId())
+                .validFrom(data.getValidFrom())
+                .validTo(data.getValidTo())
+                .certificateType(CertificateType.END_ENTITY)
+                .userId(1L)
+                .pathLen(0)
+                .build();
+    }
+
 }

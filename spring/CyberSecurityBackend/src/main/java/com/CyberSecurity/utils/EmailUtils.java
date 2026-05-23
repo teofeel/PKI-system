@@ -20,7 +20,7 @@ public class EmailUtils {
     private String sendGridApiKey;
 
     public void sendMail(String to, String subject, String content) throws IOException {
-        Email from = new Email("ignjaticivana70@gmail.com");
+        Email from = new Email("teodor.perun1@gmail.com");
         Email toEmail = new Email(to);
         Content emailContent = new Content("text/html", content);
         Mail mail = new Mail(from, subject, toEmail, emailContent);
