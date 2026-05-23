@@ -31,4 +31,10 @@ public interface CertificateRepository extends JpaRepository<Certificate, Long> 
             "c.organization.id = :orgId")
     List<Certificate> findParentCAForCAUser(@Param("orgId") Long orgId);
 
+    @Query("SELECT c FROM Certificate c WHERE " +
+            "c.type != 'END_ENTITY' AND " +
+            "c.isRevoked = false AND " +
+            "c.validUntil > CURRENT_DATE")
+    List<Certificate> findAllIntermediate();
+
 }

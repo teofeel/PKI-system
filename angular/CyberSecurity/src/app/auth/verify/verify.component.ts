@@ -1,11 +1,8 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { AuthService } from '../../service/auth.service';
 import { ActivatedRoute } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { CryptoService } from '../../utils/crypto-service';
-import { MatDialog } from '@angular/material/dialog';
-import { SimpleMessageDialogComponent } from '../../utils/simple-message-dialog/simple-message-dialog.component';
 
 export interface ChallengeDTO {
   secret?: string;
@@ -32,7 +29,6 @@ export class VerifyComponent implements OnInit {
     private authService: AuthService,
     private cryptoService: CryptoService,
     private cdr: ChangeDetectorRef,
-    private dialog: MatDialog,
   ) {}
 
   ngOnInit() {
@@ -66,12 +62,12 @@ export class VerifyComponent implements OnInit {
       const pemContent = await this.selectedFile.text();
       const privateKey = await this.cryptoService.importPrivateKey(pemContent);
 
-      const dekriptovano = await this.cryptoService.decryptMessage(
+      const decrypted = await this.cryptoService.decryptMessage(
         this.challengeDTO.secret,
         privateKey,
       );
 
-      this.authService.completeVerification(this.token, dekriptovano).subscribe({
+      this.authService.completeVerification(this.token, decrypted).subscribe({
         next: () => {
           this.isSuccess = true;
           this.verificationStatus = 'Account Verified!';

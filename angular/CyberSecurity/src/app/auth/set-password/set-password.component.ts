@@ -4,6 +4,8 @@ import { ActivatedRoute } from '@angular/router';
 import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { zxcvbn } from '@zxcvbn-ts/core';
 import { CommonModule } from '@angular/common';
+import { MatDialog } from '@angular/material/dialog';
+import { SimpleMessageDialogComponent } from '../../utils/simple-message-dialog/simple-message-dialog.component';
 
 @Component({
   selector: 'app-set-password',
@@ -27,6 +29,7 @@ export class SetPasswordComponent {
     private authService: AuthService,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
+    private dialog: MatDialog,
   ) {}
 
   ngOnInit() {
@@ -57,6 +60,7 @@ export class SetPasswordComponent {
   }
 
   setPassword() {
+    const token = this.route.snapshot.paramMap.get('token');
     if (!this.passwordForm.valid) {
       this.errormsg = 'Password needs to be at least 8 characters long!';
       this.showError = true;
@@ -64,16 +68,22 @@ export class SetPasswordComponent {
       this.errormsg = "Confirm password doesn't match password";
       this.showError = true;
     } else {
-      this.authService
-        .setPassword(this.route.snapshot.paramMap.get('token')!, this.passwordForm.value.password!)
-        .subscribe({
-          next: () => {},
+      if (token != null) {
+        this.authService.setPassword(token!, this.passwordForm.value.password!).subscribe({
+          next: () => {
+            this.dialog.open(SimpleMessageDialogComponent, {
+              width: '300px',
+              data: { message: 'You changed password successfully!' },
+            });
+          },
           error: () => {
             this.errormsg = 'Something went wrong!';
             this.showError = true;
             this.cdr.detectChanges();
           },
         });
+      } else {
+      }
     }
   }
 }

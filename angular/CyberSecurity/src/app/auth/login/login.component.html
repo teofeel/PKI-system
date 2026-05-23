@@ -2,8 +2,12 @@
   <div class="registration-card">
     <h1 class="registration-title">Login</h1>
 
-    <form *ngIf="!showTwoFactor" class="registration-form" [formGroup]="formData" (ngSubmit)="login()">
-
+    <form
+      *ngIf="!showTwoFactor"
+      class="registration-form"
+      [formGroup]="formData"
+      (ngSubmit)="login()"
+    >
       <div class="form-group">
         <input
           id="email"
@@ -23,6 +27,8 @@
           formControlName="password"
         />
       </div>
+
+      <a routerLink="/change-password" style="color: darkred">Forgot your password?</a>
 
       <div class="form-group submit-group">
         <p class="errormsg" [style.display]="errormsg != null ? 'block' : 'none'">{{ errormsg }}</p>
@@ -46,7 +52,9 @@
         <p class="errormsg" [style.display]="errormsg != null ? 'block' : 'none'">
           {{ errormsg }}
         </p>
-        <button id="verifyBtn" class="submit-btn" type="button" (click)="verify2FA()">Verify</button>
+        <button id="verifyBtn" class="submit-btn" type="button" (click)="verify2FA()">
+          Verify
+        </button>
       </div>
     </div>
   </div>

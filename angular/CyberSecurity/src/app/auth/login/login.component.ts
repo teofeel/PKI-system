@@ -6,10 +6,11 @@ import { CommonModule } from '@angular/common';
 import { LoginData } from '../../model/LoginData';
 import { MfaService } from '../../service/mfa.service';
 import { MfaCode } from '../../model/MfaCode';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-login.component',
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, RouterLink],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
@@ -58,10 +59,11 @@ export class LoginComponent {
 
     this.authService.login(loginData).subscribe({
       next: (response) => {
-        if (response.using2FA) {
+        if (response?.using2FA) {
           this.showTwoFactor = true;
           this.tempToken = response.accessToken;
           this.errormsg = null;
+
           this.cdr.detectChanges();
         } else {
           this.router.navigate(['/']);
@@ -81,7 +83,7 @@ export class LoginComponent {
   }
 
   twoFactorForm = new FormGroup({
-    code: new FormControl('', [Validators.required])
+    code: new FormControl('', [Validators.required]),
   });
 
   verify2FA() {
@@ -91,7 +93,7 @@ export class LoginComponent {
     }
 
     const mfaCodeDto: MfaCode = {
-      code: this.twoFactorCode.value || ''
+      code: this.twoFactorCode.value || '',
     };
 
     this.mfaService.verifyMfa(mfaCodeDto).subscribe({
@@ -103,7 +105,7 @@ export class LoginComponent {
       error: (err) => {
         this.errormsg = err.error?.message || 'Invalid 2FA code';
         this.cdr.detectChanges();
-      }
-    })
+      },
+    });
   }
 }

@@ -1,4 +1,5 @@
 package com.CyberSecurity.service;
+import com.CyberSecurity.dto.account.AccountDTO;
 import com.CyberSecurity.dto.account.GetAccountDetailsDTO;
 import com.CyberSecurity.dto.authentication.LoginResponseDTO;
 import com.CyberSecurity.dto.authentication.RegisterCAUserDTO;
@@ -26,6 +27,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.security.PublicKey;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.TemporalUnit;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
@@ -116,12 +120,37 @@ public class AccountService {
         return null;
     }
 
+    public Account changePasswordToken(AccountDTO dto){
+        Account acc = accountRepository.findAccountByEmail(dto.getEmail());
+        if (acc != null){
+            SetPasswordToken token = new SetPasswordToken(acc);
+            sptRepository.save(token);
+            emailUtils.sendSetPasswordEmail(token);
+        }
+        return acc;
+    }
+
     public Account verifyAccountToken(String token){
         return accountRepository.findAccountByVerification(token);
     }
 
     public boolean verifyDecryptedSecret(String token,String decrypted){
         Account acc = accountRepository.findAccountByVerification(token);
+        if (acc != null){
+            if (acc.getUser().getSecretPayload().equals(decrypted)){
+                long now = new Date().getTime();
+                if (now - acc.getLastPasswordResetTime().getTime() < 600000)
+                    acc.setAccountStatus(AccountStatus.VERIFIED);
+                acc.setVerification(null);
+                accountRepository.save(acc);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean verifyDecryptedSecretPasswordChange(String email,String decrypted){
+        Account acc = accountRepository.findAccountByEmail(email);
         if (acc != null){
             if (acc.getUser().getSecretPayload().equals(decrypted)){
                 long now = new Date().getTime();
@@ -155,7 +184,7 @@ public class AccountService {
 
     public boolean verifySetPasswordToken(String token){
         SetPasswordToken spt = sptRepository.findByToken(token);
-        return spt != null;
+        return spt != null && Instant.now().isBefore(spt.getCreatedAt().toInstant().plusMillis(24*60*60*1000));
     }
 
     public boolean setPassword(String token, String password){
@@ -182,6 +211,20 @@ public class AccountService {
         if (accountOpt.isEmpty()) throw new AccountNotFoundException("Account doesn't exist");
 
         return accountMapper.toAccountDetailsDTO(accountOpt.get());
+    }
+
+    public Account findAccount(String email){
+        return accountRepository.findAccountByEmail(email);
+    }
+
+    public String createChangePasswordToken(String email){
+        Account acc = accountRepository.findAccountByEmail(email);
+        if (acc != null){
+            SetPasswordToken token = new SetPasswordToken(acc);
+            sptRepository.save(token);
+            return token.getToken();
+        }
+        return null;
     }
 
 }
