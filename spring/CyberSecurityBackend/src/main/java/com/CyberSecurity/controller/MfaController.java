@@ -30,7 +30,7 @@ public class MfaController {
     @PostMapping("/setup")
     public ResponseEntity<MfaQrCode> setupMfa(@AuthenticationPrincipal Account acc){
         try{
-            MfaQrCode dto = mfaService.generateCode(acc.getId());
+            MfaQrCode dto = mfaService.generateCode(acc);
 
             return new ResponseEntity<>(dto, HttpStatus.OK);
         }catch(AccountNotFoundException e){
@@ -47,7 +47,7 @@ public class MfaController {
     public ResponseEntity<?> setupMfaVerify(@AuthenticationPrincipal Account acc, @Valid @RequestBody MfaCode code){
         try{
             System.out.println(code.getCode().toString());
-            mfaService.verify(acc.getId(), code, MfaVerifyStatus.SETUP_VERIFY);
+            mfaService.verify(acc, code, MfaVerifyStatus.SETUP_VERIFY);
 
             return new ResponseEntity<>(HttpStatus.OK);
         }catch(AccountNotFoundException e){
@@ -64,7 +64,7 @@ public class MfaController {
     public ResponseEntity<?> removeMfaVerify(@AuthenticationPrincipal Account acc, @Valid @RequestBody MfaCode code){
         try{
             System.out.println(code.getCode().toString());
-            mfaService.verify(acc.getId(), code, MfaVerifyStatus.REMOVE);
+            mfaService.verify(acc, code, MfaVerifyStatus.REMOVE);
 
             return new ResponseEntity<>(HttpStatus.OK);
         }catch(AccountNotFoundException e){
@@ -80,7 +80,7 @@ public class MfaController {
     @PostMapping("/verify")
     public ResponseEntity<LoginResponseDTO> loginMfaVerify(@AuthenticationPrincipal Account acc, @Valid @RequestBody MfaCode code){
         try{
-            mfaService.verify(acc.getId(), code, MfaVerifyStatus.LOGIN_VERIFY);
+            mfaService.verify(acc, code, MfaVerifyStatus.LOGIN_VERIFY);
 
             String refreshToken = jwtService.generateRefreshToken(acc);
             String accessToken = jwtService.generateAccessToken(acc);
