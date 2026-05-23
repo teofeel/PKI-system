@@ -4,10 +4,13 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../service/auth.service';
 import { CommonModule } from '@angular/common';
 import { LoginData } from '../../model/LoginData';
+import { MfaService } from '../../service/mfa.service';
+import { MfaCode } from '../../model/MfaCode';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-login.component',
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, RouterLink],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
@@ -15,8 +18,13 @@ export class LoginComponent {
   authService: AuthService = inject(AuthService);
   router: Router = inject(Router);
   cdr: ChangeDetectorRef = inject(ChangeDetectorRef);
+  mfaService: MfaService = inject(MfaService);
 
   errormsg: string | null = null;
+
+  showTwoFactor = false;
+  twoFactorCode = new FormControl('', [Validators.required]);
+  private tempToken: string | null = null;
 
   formData = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email]),
@@ -51,14 +59,13 @@ export class LoginComponent {
 
     this.authService.login(loginData).subscribe({
       next: (response) => {
-        const token = response.body?.accessToken;
-        this.authService.getRole();
-        if (token) {
-          localStorage.setItem('jwt', token);
-          localStorage.setItem('expires_in', String(Date.now() + 60 * 60 * 1000));
+        if (response?.using2FA) {
+          this.showTwoFactor = true;
+          this.tempToken = response.accessToken;
+          this.errormsg = null;
 
-          this.authService.getRole();
-          this.authService.role.set(this.authService.getRole());
+          this.cdr.detectChanges();
+        } else {
           this.router.navigate(['/']);
         }
       },
@@ -70,6 +77,33 @@ export class LoginComponent {
         } else {
           this.errormsg = 'An error occurred during login.';
         }
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  twoFactorForm = new FormGroup({
+    code: new FormControl('', [Validators.required]),
+  });
+
+  verify2FA() {
+    if (this.twoFactorCode.invalid) {
+      this.errormsg = 'Please enter the 2FA code';
+      return;
+    }
+
+    const mfaCodeDto: MfaCode = {
+      code: this.twoFactorCode.value || '',
+    };
+
+    this.mfaService.verifyMfa(mfaCodeDto).subscribe({
+      next: (response) => {
+        this.authService.setSession(response);
+        this.router.navigate(['/']);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.errormsg = err.error?.message || 'Invalid 2FA code';
         this.cdr.detectChanges();
       },
     });

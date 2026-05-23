@@ -1,21 +1,18 @@
 package com.CyberSecurity.service;
 
-import com.CyberSecurity.config.EncryptionConfig;
 import com.CyberSecurity.dto.encryption.EncryptionResult;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.GCMParameterSpec;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.spec.*;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyFactory;
+import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.spec.AlgorithmParameterSpec;
+import java.security.spec.MGF1ParameterSpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
-import java.util.HexFormat;
-import java.util.Optional;
 
 @Service
 public class EncryptionService {
@@ -108,6 +105,34 @@ public class EncryptionService {
         byte[] encryptedBytes = cipher.doFinal(data);
 
         return this.splitAndFormat(encryptedBytes, iv, fullAlgo);
+    }
+
+    public PublicKey getPublicKeyFromString(String key) throws Exception {
+        String publicKeyPEM = key
+                .replace("-----BEGIN PUBLIC KEY-----", "")
+                .replaceAll(System.lineSeparator(), "")
+                .replace("-----END PUBLIC KEY-----", "")
+                .trim();
+
+        byte[] encoded = Base64.getDecoder().decode(publicKeyPEM);
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encoded);
+        return keyFactory.generatePublic(keySpec);
+    }
+
+    public String encryptChallenge(String plainText, PublicKey publicKey) throws Exception {
+        Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
+        OAEPParameterSpec oaepParams = new OAEPParameterSpec(
+                "SHA-256",
+                "MGF1",
+                new MGF1ParameterSpec("SHA-256"),
+                PSource.PSpecified.DEFAULT
+        );
+
+        cipher.init(Cipher.ENCRYPT_MODE, publicKey, oaepParams);
+        byte[] encryptedBytes = cipher.doFinal(plainText.getBytes());
+
+        return Base64.getEncoder().encodeToString(encryptedBytes);
     }
 
 }

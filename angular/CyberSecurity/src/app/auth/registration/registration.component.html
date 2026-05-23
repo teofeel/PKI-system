@@ -44,7 +44,7 @@
           formControlName="password"
         />
 
-        <div>
+        <div style="color: antiquewhite">
           Strength:
           <span [ngSwitch]="strengthScore">
             <span *ngSwitchCase="0">Very weak</span>
@@ -54,7 +54,7 @@
             <span *ngSwitchCase="4">Strong</span>
           </span>
         </div>
-        <div *ngIf="feedback">Hint: {{ feedback }}</div>
+        <div *ngIf="feedback" style="color: antiquewhite">Hint: {{ feedback }}</div>
       </div>
 
       <div class="form-group" *ngIf="role !== 'ADMIN'">
@@ -84,6 +84,16 @@
             {{ org.name }}
           </li>
         </ul>
+      </div>
+
+      <div class="form-group">
+        <textarea formControlName="publicKey" rows="5" readonly hidden="true"></textarea>
+      </div>
+
+      <div class="form-group">
+        <button type="button" id="keyaActions" class="key-actions" (click)="generateKeys()">
+          Generate New Key Pair
+        </button>
       </div>
 
       <div class="form-group submit-group">

@@ -3,8 +3,12 @@ package com.CyberSecurity.utils;
 import com.CyberSecurity.model.Issuer;
 import com.CyberSecurity.model.Subject;
 import com.CyberSecurity.enums.CertificateType;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.x500.RDN;
+import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 
+import org.bouncycastle.asn1.x500.style.IETFUtils;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.KeyUsage;
@@ -106,5 +110,13 @@ public class CertificateGenerator {
         }
 
         return "Unknown";
+    }
+
+    public String getRDNValue(X500Name name, ASN1ObjectIdentifier identifier) {
+        RDN[] rdns = name.getRDNs(identifier);
+        if (rdns.length > 0) {
+            return IETFUtils.valueToString(rdns[0].getFirst().getValue());
+        }
+        return "";
     }
 }

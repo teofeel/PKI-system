@@ -20,7 +20,7 @@ public class EmailUtils {
     private String sendGridApiKey;
 
     public void sendMail(String to, String subject, String content) throws IOException {
-        Email from = new Email("ignjaticivana70@gmail.com");
+        Email from = new Email("teodor.perun1@gmail.com");
         Email toEmail = new Email(to);
         Content emailContent = new Content("text/html", content);
         Mail mail = new Mail(from, subject, toEmail, emailContent);
@@ -186,7 +186,7 @@ public class EmailUtils {
         body = body.replace("{{name}}", account.getUser().getName());
         body = body.replace("{{verificationLink}}", verificationLink);
         try{
-            sendMail("isidorakorda24@gmail.com", subject, body);
+            sendMail("ignjaticivana70@gmail.com", subject, body);
         }catch (IOException e){
             System.out.println(e.getMessage());
         }
@@ -332,7 +332,7 @@ public class EmailUtils {
         body = body.replace("{{name}}", token.getAccount().getUser().getName());
         body = body.replace("{{passwordLink}}", setPasswordLink);
         try{
-            sendMail("isidorakorda24@gmail.com", subject, body);
+            sendMail("ignjaticivana70@gmail.com", subject, body);
         }catch (IOException e){
             System.out.println(e.getMessage());
         }

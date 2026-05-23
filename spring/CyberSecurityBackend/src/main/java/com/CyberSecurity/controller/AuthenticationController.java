@@ -1,8 +1,11 @@
 package com.CyberSecurity.controller;
 
+import com.CyberSecurity.dto.ChallengeDTO;
 import com.CyberSecurity.dto.account.AccountDTO;
+import com.CyberSecurity.dto.account.TokenResponseDTO;
 import com.CyberSecurity.dto.authentication.*;
 import com.CyberSecurity.dto.user.CreatedUserDTO;
+import com.CyberSecurity.exceptions.RefreshTokenException;
 import com.CyberSecurity.model.Account;
 import com.CyberSecurity.model.User;
 import com.CyberSecurity.service.AccountService;
@@ -52,6 +55,20 @@ public class AuthenticationController {
         }
     }
 
+    @PostMapping(value = "/refresh",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<RefreshTokenResponseDTO> refreshToken(@RequestBody RefreshTokenRequestDTO requestDTO){
+        try {
+            RefreshTokenResponseDTO responseDTO = accountService.refreshToken(requestDTO.getRefreshToken());
+            return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+        }catch (RefreshTokenException e){
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }catch (Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @PostMapping(value = "/register",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -76,11 +93,34 @@ public class AuthenticationController {
     }
 
     @GetMapping(value = "/verify/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> verifyAccount(@PathVariable String token){
-        boolean checkToken = accountService.verifyAccountToken(token);
-        if (!checkToken)
+    public ResponseEntity<ChallengeDTO> verifyAccount(@PathVariable String token){
+        Account acc = accountService.verifyAccountToken(token);
+        if (acc == null)
             return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
-        return ResponseEntity.ok(null);
+        String secret = accountService.generateVerificationChallenge(acc);
+        ChallengeDTO dto = new ChallengeDTO(secret);
+        return new ResponseEntity<>(dto, HttpStatus.OK);
+    }
+
+    @PostMapping("/verify/{token}/{decrypted}")
+    public ResponseEntity<?> verifyAccount(@PathVariable String token, @PathVariable String decrypted) {
+
+        boolean isCorrect = accountService.verifyDecryptedSecret(token,decrypted);
+        if (isCorrect){
+            return ResponseEntity.ok(HttpStatus.OK);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Neispravan ključ!");
+        }
+    }
+
+    @PostMapping(value = "/get-challenge", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ChallengeDTO> getChallenge(@RequestBody AccountDTO dto){
+        Account acc = accountService.findAccount(dto.getEmail());
+        if (acc == null)
+            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+        String secret = accountService.generateVerificationChallenge(acc);
+        ChallengeDTO challengeDTO = new ChallengeDTO(secret);
+        return new ResponseEntity<>(challengeDTO, HttpStatus.OK);
     }
 
     @GetMapping(value = "/set-password/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -96,6 +136,25 @@ public class AuthenticationController {
         if (accountService.setPassword(token, passwordDTO.getPassword()))
             return ResponseEntity.ok(null);
         return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+    }
 
+    @PostMapping(value = "/change-password/{decrypted}")
+        public ResponseEntity<TokenResponseDTO> changePassword(@PathVariable String decrypted, @Valid @RequestBody AccountDTO account){
+            boolean successful = accountService.verifyDecryptedSecretPasswordChange(account.getEmail(), decrypted);
+            if (successful) {
+                String setPasswordToken = accountService.createChangePasswordToken(account.getEmail());
+                return ResponseEntity.ok(new TokenResponseDTO(setPasswordToken));
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+    }
+
+    @PostMapping(value = "/logout", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> logout(@RequestBody RefreshTokenRequestDTO requestDTO){
+        try{
+            accountService.logout(requestDTO);
+            return new ResponseEntity<>(HttpStatus.OK);
+        }catch (Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
