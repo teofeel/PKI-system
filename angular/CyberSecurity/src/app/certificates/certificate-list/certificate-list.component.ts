@@ -4,8 +4,8 @@ import { CertificateListItem } from '../model/certificate-item-list';
 import { CertificateType } from '../model/certificate-type';
 import { Router, RouterModule } from '@angular/router';
 import { CertificateService } from '../service/certificate-service';
-import { SimpleChanges } from '@angular/core';
 import { HttpResponse } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-certificate-list',
@@ -25,7 +25,7 @@ export class CertificateList {
     private certService: CertificateService,
     private cdr: ChangeDetectorRef,
   ) {
-    
+
   }
 
   getInitials(type: CertificateType): string {
@@ -53,7 +53,7 @@ export class CertificateList {
 
     if (cert.isExpanded && !cert.children) {
       cert.isLoading = true;
-      
+
       this.certService.getChildren(cert.id).subscribe({
         next: (children) => {
           cert.children = children;
@@ -70,45 +70,61 @@ export class CertificateList {
     }
   }
 
-  download(id: number, format: string, isUsingPk: boolean): void{
-    if(!isUsingPk)
-      this.certService.downloadCertificateNoPk(id, format)
-        .subscribe({
-          next: (response: HttpResponse<Blob>) => {
-            const contentDisposition = response.headers.get('Content-Disposition');
-            let filename = `certificate.${format}`; 
+  download(id: number, format: string, isUsingPk: boolean, passwordInput?: HTMLInputElement): void {
+    let downloadObservable$: Observable<HttpResponse<Blob>>;
 
-            if (contentDisposition) {
-              const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;\n]*)/);
-              if (utf8Match && utf8Match[1]) {
-                filename = decodeURIComponent(utf8Match[1]);
-              } else {
-                const classicMatch = contentDisposition.match(/filename="?([^";\n]+)"?/);
-                if (classicMatch && classicMatch[1]) {
-                  filename = classicMatch[1];
-                }
-              }
+    if (isUsingPk) {
+      const password = passwordInput?.value;
+      if (!password || !password.trim()) {
+        alert('Password cannot be empty.');
+        return;
+      }
+      downloadObservable$ = this.certService.exportKeystore(id, password);
+    } else {
+      downloadObservable$ = this.certService.downloadCertificateNoPk(id, format);
+    }
+
+    this.certificates.forEach(c => {
+      c.showDownloadMenu = false;
+      (c as any).showPasswordForm = false;
+    });
+
+    downloadObservable$.subscribe({
+      next: (response: HttpResponse<Blob>) => {
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let filename = `certificate.${format}`;
+
+        if (contentDisposition) {
+          const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;\n]*)/);
+          if (utf8Match && utf8Match[1]) {
+            filename = decodeURIComponent(utf8Match[1]);
+          } else {
+            const classicMatch = contentDisposition.match(/filename="?([^";\n]+)"?/);
+            if (classicMatch && classicMatch[1]) {
+              filename = classicMatch[1];
             }
-            
-            const blob = response.body;
-            if (blob) {
-              const url = window.URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = filename;
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-              globalThis.URL.revokeObjectURL(url);
-            }
-          },
-          error: (err) => {
-            console.error('Download failed', err);
           }
-        });
+        }
+
+        const blob = response.body;
+        if (blob) {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          globalThis.URL.revokeObjectURL(url);
+        }
+      },
+      error: (err) => {
+        console.error('Download failed', err);
+      }
+    });
   }
 
-  toggleDownloadMenu(cert: CertificateListItem, event: Event): void{
+  toggleDownloadMenu(cert: CertificateListItem, event: Event): void {
     event.stopPropagation();
 
     const wasOpen = cert.showDownloadMenu;
@@ -118,5 +134,15 @@ export class CertificateList {
     if (!wasOpen) {
       cert.showDownloadMenu = true;
     }
+  }
+
+  switchToPasswordForm(cert: CertificateListItem, event: Event): void {
+    event.stopPropagation();
+    (cert as any).showPasswordForm = true;
+  }
+
+  cancelPasswordForm(cert: CertificateListItem, event: Event): void {
+    event.stopPropagation();
+    (cert as any).showPasswordForm = false;
   }
 }

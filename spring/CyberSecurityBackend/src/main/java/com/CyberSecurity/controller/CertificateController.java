@@ -142,6 +142,22 @@ public class CertificateController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER', 'USER')")
+    @PostMapping("/{id}/export-keystore")
+    public ResponseEntity<byte[]> exportKeystore(
+            @PathVariable Long id,
+            @RequestBody ExportKeystoreDTO dto) {
+        try {
+            byte[] filePayload = certificateService.exportToPkcs12(id, dto.getPassword());
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"certificate_" + id + ".p12\"")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(filePayload);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER', 'USER')")
     @GetMapping(value = "/certificates/ca")

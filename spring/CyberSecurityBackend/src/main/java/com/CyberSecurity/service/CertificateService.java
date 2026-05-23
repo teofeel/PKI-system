@@ -30,12 +30,15 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 import javax.security.auth.login.AccountNotFoundException;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.StringReader;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AccessDeniedException;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.DateTimeException;
@@ -367,6 +370,45 @@ public class CertificateService {
         return "-----BEGIN CERTIFICATE-----\n" +
                 base64Encoded +
                 "\n-----END CERTIFICATE-----\n";
+    }
+
+    @Transactional
+    public byte[] exportToPkcs12(Long id, String keystorePassword) throws Exception {
+        Certificate certificate = certificateRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Certificate not found with ID: " + id));
+
+        CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+        X509Certificate x509Cert = (X509Certificate) certFactory.generateCertificate(
+                new ByteArrayInputStream(certificate.getEncoded())
+        );
+
+        byte[] dataKeyBytes = organizationService.getUnwrappedOrganizationDataKey(certificate.getOrganization());
+
+        EncryptedData encryptedData = certificate.getEncryptedPrivateKey();
+        byte[] decryptedKeyBytes = encryptionService.decrypt(
+                encryptedData.getEncryptedText(),
+                encryptedData.getIv(),
+                encryptedData.getTag(),
+                dataKeyBytes,
+                null,
+                null
+        );
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decryptedKeyBytes);
+        KeyFactory keyFactory = KeyFactory.getInstance(x509Cert.getPublicKey().getAlgorithm());
+        PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
+
+        KeyStore keyStore = KeyStore.getInstance("PKCS12");
+        keyStore.load(null, null);
+
+        X509Certificate[] chain = new X509Certificate[]{x509Cert};
+        char[] passwordArr = keystorePassword.toCharArray();
+
+        keyStore.setKeyEntry(certificate.getCommonName(), privateKey, passwordArr, chain);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        keyStore.store(outputStream, passwordArr);
+
+        return outputStream.toByteArray();
     }
 
 

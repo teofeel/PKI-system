@@ -6,6 +6,7 @@ import { CertificateListItem } from '../model/certificate-item-list';
 import { CertificateResponse } from '../model/certificate-response';
 
 import { Observable } from 'rxjs';
+import { ExportKeystoreDTO } from '../model/export-keystore.dto';
 import { OrganizationDropdownDTO } from '../model/organization-dropdown-item';
 import { CertificateDropdownListDTO } from '../model/certificate-dropdown-item';
 import { AutoGenerateRequestDTO } from '../model/auto-generate-request';
@@ -14,18 +15,18 @@ import { AutoGenerateRequestDTO } from '../model/auto-generate-request';
   providedIn: 'root',
 })
 export class CertificateService {
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly http: HttpClient) { }
 
-  issue(certRequest: CertificateRequest) : Observable<string> {
+  issue(certRequest: CertificateRequest): Observable<string> {
     return this.http.post(`${environment.apiHost}/certificates`, certRequest, {
-    responseType: 'text'
-  });
+      responseType: 'text'
+    });
   }
 
-  fetchCertificatesByAccount(accountId: number | string) : Observable<CertificateListItem[]> {
+  fetchCertificatesByAccount(accountId: number | string): Observable<CertificateListItem[]> {
     return this.http.get<CertificateListItem[]>(`${environment.apiHost}/accounts/${accountId}/certificates`);
   }
-  
+
   getAdminCertificates(): Observable<CertificateListItem[]> {
     return this.http.get<CertificateListItem[]>(`${environment.apiHost}/certificates/admin`);
   }
@@ -35,13 +36,22 @@ export class CertificateService {
       `${environment.apiHost}/certificates/${certId}/children`,
     );
   }
-  getAllParentCA() : Observable<CertificateResponse[]> {
+  getAllParentCA(): Observable<CertificateResponse[]> {
     return this.http.get<CertificateResponse[]>(`${environment.apiHost}/get-parent-ca`);
   }
 
-  downloadCertificateNoPk(certId: number, format: string){
+  downloadCertificateNoPk(certId: number, format: string) {
     return this.http.get(`${environment.apiHost}/certificates/${certId}/export-no-pk`, {
-      params: {format}, 
+      params: { format },
+      observe: 'response',
+      responseType: 'blob'
+    });
+  }
+
+  exportKeystore(certId: number, password: string) {
+    const body: ExportKeystoreDTO = { password };
+
+    return this.http.post(`${environment.apiHost}/${certId}/export-keystore`, body, {
       observe: 'response',
       responseType: 'blob'
     });
