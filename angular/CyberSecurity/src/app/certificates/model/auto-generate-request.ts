@@ -12,4 +12,5 @@ export interface AutoGenerateRequestDTO {
   parentCAId: string;   
   exportFormat: string; 
   keystorePassword: string;
+  alias?: string;
 }

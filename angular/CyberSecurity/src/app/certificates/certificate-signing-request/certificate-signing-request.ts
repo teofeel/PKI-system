@@ -102,8 +102,9 @@ export class CertificateSigningRequest implements OnInit {
       parentCAId: [''], 
       validFrom: ['', Validators.required],
       validTo: ['', Validators.required],
-      exportFormat: ['pkcs12', Validators.required], 
-      keystorePassword: ['', Validators.required]
+      exportFormat: ['pkcs12', Validators.required],
+      keystorePassword: ['', Validators.required],
+      alias: ['']
     });
 
     this.csrForm = this.fb.group({
@@ -171,6 +172,7 @@ export class CertificateSigningRequest implements OnInit {
       validTo: formValue.validTo,
       exportFormat: formValue.exportFormat,
       keystorePassword: formValue.keystorePassword,
+      alias: formValue.alias || undefined,
       userId: this.authService.getId()
     }
 
