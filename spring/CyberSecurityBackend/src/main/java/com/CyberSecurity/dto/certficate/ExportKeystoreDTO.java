@@ -8,5 +8,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class ExportKeystoreDTO {
+    boolean pkcs12;
+    String alias;
     String password;
 }

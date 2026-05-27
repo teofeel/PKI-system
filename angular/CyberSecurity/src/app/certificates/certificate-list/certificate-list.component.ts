@@ -70,7 +70,7 @@ export class CertificateList {
     }
   }
 
-  download(id: number, format: string, isUsingPk: boolean, passwordInput?: HTMLInputElement): void {
+  download(id: number, format: string, alias:string, isUsingPk: boolean, passwordInput?: HTMLInputElement): void {
     let downloadObservable$: Observable<HttpResponse<Blob>>;
 
     if (isUsingPk) {
@@ -79,7 +79,7 @@ export class CertificateList {
         alert('Password cannot be empty.');
         return;
       }
-      downloadObservable$ = this.certService.exportKeystore(id, password);
+      downloadObservable$ = this.certService.exportKeystore(id, password, format, alias);
     } else {
       downloadObservable$ = this.certService.downloadCertificateNoPk(id, format);
     }

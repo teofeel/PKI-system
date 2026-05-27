@@ -372,20 +372,29 @@ public class CertificateService {
                 "\n-----END CERTIFICATE-----\n";
     }
 
-    @Transactional
-    public byte[] exportToPkcs12(Long id, String keystorePassword) throws Exception {
-        Certificate certificate = certificateRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Certificate not found with ID: " + id));
-
+    private X509Certificate[] generateCertificateChain(Certificate leafCertificate) throws CertificateException {
         CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
-        X509Certificate x509Cert = (X509Certificate) certFactory.generateCertificate(
-                new ByteArrayInputStream(certificate.getEncoded())
-        );
+        List<X509Certificate> certChainList = new ArrayList<>();
+        Certificate current = leafCertificate;
 
+        while (current != null) {
+            X509Certificate x509 = (X509Certificate) certFactory.generateCertificate(
+                    new ByteArrayInputStream(current.getEncoded())
+            );
+            certChainList.add(x509);
+            if (!CertificateType.ROOT.equals(current.getType())) {
+                current = current.getIssuer();
+            }
+            else break;
+        }
+        return certChainList.toArray(new X509Certificate[0]);
+    }
+
+    private byte[] getDecryptedKeyBytes(Certificate certificate) throws Exception {
         byte[] dataKeyBytes = organizationService.getUnwrappedOrganizationDataKey(certificate.getOrganization());
-
         EncryptedData encryptedData = certificate.getEncryptedPrivateKey();
-        byte[] decryptedKeyBytes = encryptionService.decrypt(
+
+        return encryptionService.decrypt(
                 encryptedData.getEncryptedText(),
                 encryptedData.getIv(),
                 encryptedData.getTag(),
@@ -393,17 +402,31 @@ public class CertificateService {
                 null,
                 null
         );
+    }
+
+    @Transactional
+    public byte[] exportToPkcs12(Long id, ExportKeystoreDTO dto) throws Exception {
+        Certificate leafCertificate = certificateRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Certificate not found with ID: " + id));
+
+        X509Certificate[] chain = generateCertificateChain(leafCertificate);
+        byte[] decryptedKeyBytes = getDecryptedKeyBytes(leafCertificate);
+
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decryptedKeyBytes);
-        KeyFactory keyFactory = KeyFactory.getInstance(x509Cert.getPublicKey().getAlgorithm());
+        KeyFactory keyFactory = KeyFactory.getInstance(chain[0].getPublicKey().getAlgorithm());
         PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
 
         KeyStore keyStore = KeyStore.getInstance("PKCS12");
+        if (!dto.isPkcs12()){
+            keyStore = KeyStore.getInstance("JKS");
+        }
         keyStore.load(null, null);
 
-        X509Certificate[] chain = new X509Certificate[]{x509Cert};
-        char[] passwordArr = keystorePassword.toCharArray();
-
-        keyStore.setKeyEntry(certificate.getCommonName(), privateKey, passwordArr, chain);
+        char[] passwordArr = dto.getPassword().toCharArray();
+        String alias = leafCertificate.getCommonName();
+        if (dto.getAlias() != null && !dto.getAlias().trim().isEmpty())
+            alias = dto.getAlias().trim();
+        keyStore.setKeyEntry(alias, privateKey, passwordArr, chain);
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         keyStore.store(outputStream, passwordArr);
