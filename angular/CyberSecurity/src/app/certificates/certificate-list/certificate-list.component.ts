@@ -7,6 +7,8 @@ import { CertificateService } from '../service/certificate-service';
 import { HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { FormsModule } from '@angular/forms';
+import { SimpleMessageDialogComponent } from '../../utils/simple-message-dialog/simple-message-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-certificate-list',
@@ -24,6 +26,7 @@ export class CertificateList {
     private readonly router: Router,
     private certService: CertificateService,
     private cdr: ChangeDetectorRef,
+    private dialog: MatDialog,
   ) {}
 
   getInitials(type: CertificateType): string {
@@ -164,7 +167,19 @@ export class CertificateList {
 
   confirmRevoke(cert: CertificateListItem, event: Event): void {
     event.stopPropagation();
-    this.certService.revoke(cert, cert.revokeReason!, cert.revokeNote);
+    this.certService.revoke(cert).subscribe({
+      next: () => {
+        this.dialog.open(SimpleMessageDialogComponent, {
+          width: '300px',
+          data: {
+            message: 'Certificate successfully revoked',
+          },
+        });
+      },
+      error: (err) => {
+        console.error(err);
+      },
+    });
     cert.showRevokeForm = false;
   }
 }

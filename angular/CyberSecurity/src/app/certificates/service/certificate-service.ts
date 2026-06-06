@@ -74,5 +74,7 @@ export class CertificateService {
     return this.http.post<number>(`${environment.apiHost}/certificates/ee/csr`, formData);
   }
 
-  revoke(cert: CertificateListItem, revokeReason: string, revokeNote: string | undefined) {}
+  revoke(cert: CertificateListItem) {
+    return this.http.post<any>(`${environment.apiHost}/certificates/revoke`, cert);
+  }
 }
