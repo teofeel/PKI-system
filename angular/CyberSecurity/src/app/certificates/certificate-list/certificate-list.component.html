@@ -3,12 +3,24 @@
     <li class="cl-item" *ngFor="let cert of certificates">
       <div class="cl-expand-slot">
         <ng-container *ngIf="canExpand(cert.type); else noButton">
-          <button class="cl-expand-btn" [title]="'Expand ' + cert.commonName"
-            (click)="onExpand(cert); $event.stopPropagation()" aria-label="Expand certificate chain"
-            [attr.aria-expanded]="cert.isExpanded">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="cl-expand-icon"
-              [class.is-rotated]="cert.isExpanded">
+          <button
+            class="cl-expand-btn"
+            [title]="'Expand ' + cert.commonName"
+            (click)="onExpand(cert); $event.stopPropagation()"
+            aria-label="Expand certificate chain"
+            [attr.aria-expanded]="cert.isExpanded"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="cl-expand-icon"
+              [class.is-rotated]="cert.isExpanded"
+            >
               <polyline points="9 18 15 12 9 6" />
             </svg>
           </button>
@@ -23,8 +35,12 @@
         {{ getInitials(cert.type) }}
       </div>
 
-      <button type="button" class="cl-info-btn" [attr.aria-label]="'View details for ' + cert.commonName"
-        (click)="goToDetails(cert.id)">
+      <button
+        type="button"
+        class="cl-info-btn"
+        [attr.aria-label]="'View details for ' + cert.commonName"
+        (click)="goToDetails(cert.id)"
+      >
         <span class="cl-domain">{{ cert.commonName }}</span>
         <span class="cl-dates"> {{ cert.validFrom }}&nbsp;→&nbsp;{{ cert.validUntil }} </span>
       </button>
@@ -38,10 +54,23 @@
 
       <div class="cl-actions">
         <div class="cl-download-dropdown">
-          <button type="button" class="cl-action-btn cl-download-btn" [title]="'Download ' + cert.commonName"
-            (click)="toggleDownloadMenu(cert, $event)" aria-label="Download certificate options">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="cl-action-icon">
+          <button
+            type="button"
+            class="cl-action-btn cl-download-btn"
+            [title]="'Download ' + cert.commonName"
+            (click)="toggleDownloadMenu(cert, $event)"
+            aria-label="Download certificate options"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="cl-action-icon"
+            >
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
@@ -50,13 +79,25 @@
 
           <div class="cl-dropdown-menu" *ngIf="$any(cert).showDownloadMenu">
             <ng-container *ngIf="!$any(cert).showPasswordForm; else passwordFormTpl">
-              <button type="button" class="cl-dropdown-item" (click)="download(cert.id, 'pem', false)">
+              <button
+                type="button"
+                class="cl-dropdown-item"
+                (click)="download(cert.id, 'pem', false)"
+              >
                 Export as .PEM
               </button>
-              <button type="button" class="cl-dropdown-item" (click)="download(cert.id, 'cer', false)">
+              <button
+                type="button"
+                class="cl-dropdown-item"
+                (click)="download(cert.id, 'cer', false)"
+              >
                 Export as .CER
               </button>
-              <button type="button" class="cl-dropdown-item" (click)="switchToPasswordForm(cert, $event)">
+              <button
+                type="button"
+                class="cl-dropdown-item"
+                (click)="switchToPasswordForm(cert, $event)"
+              >
                 Export as PKCS12 (.p12)
               </button>
             </ng-container>
@@ -64,15 +105,26 @@
             <ng-template #passwordFormTpl>
               <div class="cl-pwd-form" (click)="$event.stopPropagation()">
                 <label class="cl-pwd-label">Protect Keystore</label>
-                <input #pkPassword type="password" class="cl-pwd-input" placeholder="Enter secure password"
-                  (keyup.enter)="download(cert.id, 'p12', true, pkPassword)" />
+                <input
+                  #pkPassword
+                  type="password"
+                  class="cl-pwd-input"
+                  placeholder="Enter secure password"
+                  (keyup.enter)="download(cert.id, 'p12', true, pkPassword)"
+                />
                 <div class="cl-pwd-actions">
-                  <button type="button" class="cl-pwd-btn cl-pwd-btn--cancel"
-                    (click)="cancelPasswordForm(cert, $event)">
+                  <button
+                    type="button"
+                    class="cl-pwd-btn cl-pwd-btn--cancel"
+                    (click)="cancelPasswordForm(cert, $event)"
+                  >
                     Back
                   </button>
-                  <button type="button" class="cl-pwd-btn cl-pwd-btn--submit"
-                    (click)="download(cert.id, 'p12', true, pkPassword)">
+                  <button
+                    type="button"
+                    class="cl-pwd-btn cl-pwd-btn--submit"
+                    (click)="download(cert.id, 'p12', true, pkPassword)"
+                  >
                     Export
                   </button>
                 </div>
@@ -80,13 +132,68 @@
             </ng-template>
           </div>
         </div>
+
+        <div class="cl-revoke-wrapper" (click)="$event.stopPropagation()">
+          <button type="button" class="cl-revoke-btn" (click)="toggleRevokeForm(cert, $event)">
+            <i class="ti ti-shield-x" aria-hidden="true"></i>
+            Revoke
+          </button>
+
+          <div class="cl-revoke-form-panel" *ngIf="$any(cert).showRevokeForm">
+            <div class="cl-panel-title">
+              <i class="ti ti-alert-triangle" aria-hidden="true"></i>
+              Revoke certificate
+            </div>
+
+            <label for="revokeReason">Reason for revocation</label>
+            <select
+              class="cl-reason-select"
+              [(ngModel)]="$any(cert).revokeReason"
+              (change)="onRevokeReasonChange(cert)"
+            >
+              <option value="">— Choose reason for revocation —</option>
+              <option value="keyCompromise">Key compromise</option>
+              <option value="caCompromise">CA compromise</option>
+              <option value="affiliationChanged">Affiliation changed</option>
+              <option value="superseded">Superseded</option>
+              <option value="cessationOfOperation">Cessation of operation</option>
+              <option value="other">Other</option>
+            </select>
+
+            <ng-container *ngIf="$any(cert).revokeReason === 'other'">
+              <label>Reason (optional)</label>
+              <textarea
+                class="cl-reason-textarea"
+                [(ngModel)]="$any(cert).revokeNote"
+                placeholder="Details..."
+              ></textarea>
+            </ng-container>
+
+            <div class="cl-revoke-actions">
+              <button type="button" class="cl-btn-cancel" (click)="cancelRevokeForm(cert, $event)">
+                Cancel
+              </button>
+              <button
+                type="button"
+                class="cl-btn-revoke-confirm"
+                [disabled]="!$any(cert).revokeReason"
+                (click)="confirmRevoke(cert, $event)"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="cl-nested-container" *ngIf="cert.isExpanded">
         <div *ngIf="cert.isLoading" class="cl-loader">Loading...</div>
 
-        <app-certificate-list *ngIf="cert.children && cert.children.length > 0" [certificates]="cert.children"
-          [role]="role">
+        <app-certificate-list
+          *ngIf="cert.children && cert.children.length > 0"
+          [certificates]="cert.children"
+          [role]="role"
+        >
         </app-certificate-list>
 
         <div *ngIf="!cert.isLoading && cert.children?.length === 0" class="cl-no-results">

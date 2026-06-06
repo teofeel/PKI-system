@@ -12,4 +12,7 @@ export interface CertificateListItem {
   children?: CertificateListItem[];
   isExpanded?: boolean;
   isLoading?: boolean;
+  showRevokeForm?: boolean;
+  revokeReason?: string;
+  revokeNote?: string;
 }

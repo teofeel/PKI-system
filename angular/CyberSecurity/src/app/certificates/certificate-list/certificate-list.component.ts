@@ -6,11 +6,12 @@ import { Router, RouterModule } from '@angular/router';
 import { CertificateService } from '../service/certificate-service';
 import { HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-certificate-list',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './certificate-list.component.html',
   styleUrls: ['./certificate-list.component.css'],
 })
@@ -19,14 +20,11 @@ export class CertificateList {
   @Input() isLoading: boolean = false;
   @Input() role: string | null = null;
 
-
   constructor(
     private readonly router: Router,
     private certService: CertificateService,
     private cdr: ChangeDetectorRef,
-  ) {
-
-  }
+  ) {}
 
   getInitials(type: CertificateType): string {
     const map: Record<CertificateType, string> = {
@@ -84,7 +82,7 @@ export class CertificateList {
       downloadObservable$ = this.certService.downloadCertificateNoPk(id, format);
     }
 
-    this.certificates.forEach(c => {
+    this.certificates.forEach((c) => {
       c.showDownloadMenu = false;
       (c as any).showPasswordForm = false;
     });
@@ -120,7 +118,7 @@ export class CertificateList {
       },
       error: (err) => {
         console.error('Download failed', err);
-      }
+      },
     });
   }
 
@@ -129,7 +127,7 @@ export class CertificateList {
 
     const wasOpen = cert.showDownloadMenu;
 
-    this.certificates.forEach(c => (c.showDownloadMenu = false));
+    this.certificates.forEach((c) => (c.showDownloadMenu = false));
 
     if (!wasOpen) {
       cert.showDownloadMenu = true;
@@ -144,5 +142,29 @@ export class CertificateList {
   cancelPasswordForm(cert: CertificateListItem, event: Event): void {
     event.stopPropagation();
     (cert as any).showPasswordForm = false;
+  }
+
+  toggleRevokeForm(cert: CertificateListItem, event: Event): void {
+    event.stopPropagation();
+    cert.showRevokeForm = !cert.showRevokeForm;
+    cert.revokeReason = '';
+    cert.revokeNote = '';
+  }
+
+  cancelRevokeForm(cert: any, event: Event): void {
+    event.stopPropagation();
+    cert.showRevokeForm = false;
+    cert.revokeReason = '';
+    cert.revokeNote = '';
+  }
+
+  onRevokeReasonChange(cert: CertificateListItem): void {
+    if (cert.revokeReason !== 'other') cert.revokeNote = '';
+  }
+
+  confirmRevoke(cert: CertificateListItem, event: Event): void {
+    event.stopPropagation();
+    this.certService.revoke(cert, cert.revokeReason!, cert.revokeNote);
+    cert.showRevokeForm = false;
   }
 }
