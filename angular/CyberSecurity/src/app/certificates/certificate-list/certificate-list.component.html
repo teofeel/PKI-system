@@ -50,29 +50,45 @@
 
           <div class="cl-dropdown-menu" *ngIf="$any(cert).showDownloadMenu">
             <ng-container *ngIf="!$any(cert).showPasswordForm; else passwordFormTpl">
-              <button type="button" class="cl-dropdown-item" (click)="download(cert.id, 'pem', false)">
+              <button type="button" class="cl-dropdown-item" (click)="download(cert.id, 'pem', '', false)">
                 Export as .PEM
               </button>
-              <button type="button" class="cl-dropdown-item" (click)="download(cert.id, 'cer', false)">
+              <button type="button" class="cl-dropdown-item" (click)="download(cert.id, 'cer', '', false)">
                 Export as .CER
               </button>
-              <button type="button" class="cl-dropdown-item" (click)="switchToPasswordForm(cert, $event)">
-                Export as PKCS12 (.p12)
+              <button type="button" class="cl-dropdown-item" (click)="$any(cert).selectedFormat = 'p12'; switchToPasswordForm(cert, $event)">
+                Export as Keystore
               </button>
             </ng-container>
 
             <ng-template #passwordFormTpl>
               <div class="cl-pwd-form" (click)="$event.stopPropagation()">
+                <label class="cl-pwd-label">Keystore Format</label>
+                <div class="cl-radio-group">
+                  <label class="cl-radio-label">
+                    <input type="radio" name="keystoreFormat" value="p12" [checked]="$any(cert).selectedFormat === 'p12'" (change)="$any(cert).selectedFormat = 'p12'" />
+                    PKCS12 (.p12)
+                  </label>
+                  <label class="cl-radio-label">
+                    <input type="radio" name="keystoreFormat" value="jks" [checked]="$any(cert).selectedFormat === 'jks'" (change)="$any(cert).selectedFormat = 'jks'" />
+                    JKS (.jks)
+                  </label>
+                </div>
+
+                <label class="cl-pwd-label">Alias</label>
+                <input #pkAlias type="text" class="cl-pwd-input" [value]="cert.commonName" placeholder="Enter keystore alias" />
+
                 <label class="cl-pwd-label">Protect Keystore</label>
                 <input #pkPassword type="password" class="cl-pwd-input" placeholder="Enter secure password"
-                  (keyup.enter)="download(cert.id, 'p12', true, pkPassword)" />
+                  (keyup.enter)="download(cert.id, $any(cert).selectedFormat, pkAlias.value, true, pkPassword)" />
+
                 <div class="cl-pwd-actions">
                   <button type="button" class="cl-pwd-btn cl-pwd-btn--cancel"
                     (click)="cancelPasswordForm(cert, $event)">
                     Back
                   </button>
                   <button type="button" class="cl-pwd-btn cl-pwd-btn--submit"
-                    (click)="download(cert.id, 'p12', true, pkPassword)">
+                    (click)="download(cert.id, $any(cert).selectedFormat, pkAlias.value, true, pkPassword)">
                     Export
                   </button>
                 </div>
