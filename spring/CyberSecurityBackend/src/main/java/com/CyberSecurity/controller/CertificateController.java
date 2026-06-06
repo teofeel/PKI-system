@@ -153,11 +153,13 @@ public class CertificateController {
             @PathVariable Long id,
             @RequestBody ExportKeystoreDTO dto) {
         try {
-            byte[] filePayload = certificateService.exportToPkcs12(id, dto.getPassword());
+            byte[] filePayload = certificateService.exportToPkcs12(id, dto);
+            String extension = dto.isPkcs12() ? ".p12" : ".jks";
+            String contentType = dto.isPkcs12() ? "application/x-pkcs12" : "application/octet-stream";
 
             return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"certificate_" + id + ".p12\"")
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"certificate_" + id + extension + "\"")
+                    .contentType(MediaType.parseMediaType(contentType))
                     .body(filePayload);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
@@ -256,7 +258,6 @@ public class CertificateController {
     @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER', 'USER')")
     @PostMapping(value = "/certificates/revoke", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> revokeCertificate(@RequestBody RevokeCertificateDTO dto) {
-        System.out.println(dto.getRevokeReason());
         try {
             revocationService.revoke(dto.getId(), RevocationReason.valueOf(dto.getRevokeReason()));
         } catch (EntityNotFoundException e) {

@@ -51,4 +51,6 @@ public class AutoGenerateRequestDTO {
 
     @NotBlank(message = "Keystore password is required")
     private String keystorePassword;
+
+    private String alias;
 }

@@ -82,35 +82,71 @@
               <button
                 type="button"
                 class="cl-dropdown-item"
-                (click)="download(cert.id, 'pem', false)"
+                (click)="download(cert.id, 'pem', '', false)"
               >
                 Export as .PEM
               </button>
               <button
                 type="button"
                 class="cl-dropdown-item"
-                (click)="download(cert.id, 'cer', false)"
+                (click)="download(cert.id, 'cer', '', false)"
               >
                 Export as .CER
               </button>
               <button
                 type="button"
                 class="cl-dropdown-item"
-                (click)="switchToPasswordForm(cert, $event)"
+                (click)="$any(cert).selectedFormat = 'p12'; switchToPasswordForm(cert, $event)"
               >
-                Export as PKCS12 (.p12)
+                Export as Keystore
               </button>
             </ng-container>
 
             <ng-template #passwordFormTpl>
               <div class="cl-pwd-form" (click)="$event.stopPropagation()">
+                <label class="cl-pwd-label">Keystore Format</label>
+                <div class="cl-radio-group">
+                  <label class="cl-radio-label">
+                    <input
+                      type="radio"
+                      name="keystoreFormat"
+                      value="p12"
+                      [checked]="$any(cert).selectedFormat === 'p12'"
+                      (change)="$any(cert).selectedFormat = 'p12'"
+                    />
+                    PKCS12 (.p12)
+                  </label>
+                  <label class="cl-radio-label">
+                    <input
+                      type="radio"
+                      name="keystoreFormat"
+                      value="jks"
+                      [checked]="$any(cert).selectedFormat === 'jks'"
+                      (change)="$any(cert).selectedFormat = 'jks'"
+                    />
+                    JKS (.jks)
+                  </label>
+                </div>
+
+                <label class="cl-pwd-label">Alias</label>
+                <input
+                  #pkAlias
+                  type="text"
+                  class="cl-pwd-input"
+                  [value]="cert.commonName"
+                  placeholder="Enter keystore alias"
+                />
+
                 <label class="cl-pwd-label">Protect Keystore</label>
                 <input
                   #pkPassword
                   type="password"
                   class="cl-pwd-input"
                   placeholder="Enter secure password"
-                  (keyup.enter)="download(cert.id, 'p12', true, pkPassword)"
+                  (keyup.enter)="
+                    download(cert.id, $any(cert).selectedFormat, pkAlias.value, true, pkPassword)
+                  "
+                />
                 />
                 <div class="cl-pwd-actions">
                   <button
@@ -123,7 +159,9 @@
                   <button
                     type="button"
                     class="cl-pwd-btn cl-pwd-btn--submit"
-                    (click)="download(cert.id, 'p12', true, pkPassword)"
+                    (click)="
+                      download(cert.id, $any(cert).selectedFormat, pkAlias.value, true, pkPassword)
+                    "
                   >
                     Export
                   </button>
@@ -132,61 +170,9 @@
             </ng-template>
           </div>
         </div>
-
-        <div class="cl-revoke-wrapper" (click)="$event.stopPropagation()">
-          <button type="button" class="cl-revoke-btn" (click)="toggleRevokeForm(cert, $event)">
-            <i class="ti ti-shield-x" aria-hidden="true"></i>
-            Revoke
-          </button>
-
-          <div class="cl-revoke-form-panel" *ngIf="$any(cert).showRevokeForm">
-            <div class="cl-panel-title">
-              <i class="ti ti-alert-triangle" aria-hidden="true"></i>
-              Revoke certificate
-            </div>
-
-            <label for="revokeReason">Reason for revocation</label>
-            <select
-              class="cl-reason-select"
-              [(ngModel)]="$any(cert).revokeReason"
-              (change)="onRevokeReasonChange(cert)"
-            >
-              <option value="">— Choose reason for revocation —</option>
-              <option value="KEY_COMPROMISE">Key compromise</option>
-              <option value="CA_COMPROMISE">CA compromise</option>
-              <option value="AFFILIATION_CHANGED">Affiliation changed</option>
-              <option value="SUPERSEDED">Superseded</option>
-              <option value="CERTIFICATE_HOLD">Certificate hold</option>
-              <option value="REMOVE_FROM_CRL">Remove from crl</option>
-              <option value="PRIVILEGE_WITHDRAWN">Privilege withdrawn</option>
-              <option value="AA_COMPROMISE">AA compromise</option>
-              <option value="other">Other</option>
-            </select>
-
-            <ng-container *ngIf="$any(cert).revokeReason === 'other'">
-              <label>Reason (optional)</label>
-              <textarea
-                class="cl-reason-textarea"
-                [(ngModel)]="$any(cert).revokeNote"
-                placeholder="Details..."
-              ></textarea>
-            </ng-container>
-
-            <div class="cl-revoke-actions">
-              <button type="button" class="cl-btn-cancel" (click)="cancelRevokeForm(cert, $event)">
-                Cancel
-              </button>
-              <button
-                type="button"
-                class="cl-btn-revoke-confirm"
-                [disabled]="!$any(cert).revokeReason"
-                (click)="confirmRevoke(cert, $event)"
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
+        <button type="button" class="cl-revoke-btn" (click)="toggleRevokeForm(cert, $event)">
+          Revoke
+        </button>
       </div>
 
       <div class="cl-nested-container" *ngIf="cert.isExpanded">
@@ -208,3 +194,36 @@
   <div *ngIf="isLoading" class="cl-loader">Loading certificates...</div>
   <p class="cl-empty" *ngIf="!isLoading && certificates.length === 0">No certificates found.</p>
 </div>
+
+<ng-container *ngIf="activeCert">
+  <div
+    class="cl-revoke-form-panel"
+    [style.top.px]="revokeFormTop"
+    [style.left.px]="revokeFormLeft"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="cl-panel-title">Revoke certificate</div>
+
+    <label>Reason for revocation</label>
+    <select class="cl-reason-select" [(ngModel)]="activeCert.revokeReason">
+      <option value="">— Select reason —</option>
+      <option value="KEY_COMPROMISE">Key compromise</option>
+      <option value="CA_COMPROMISE">CA compromise</option>
+      <option value="AFFILIATION_CHANGED">Affiliation changed</option>
+      <option value="SUPERSEDED">Superseded</option>
+      <option value="CESSATION_OF_OPERATION">Cessation of operation</option>
+      <option value="UNSPECIFIED">Unspecified</option>
+    </select>
+
+    <div class="cl-revoke-actions">
+      <button class="cl-btn-cancel" (click)="cancelRevokeForm()">Cancel</button>
+      <button
+        class="cl-btn-revoke-confirm"
+        [disabled]="!activeCert.revokeReason"
+        (click)="confirmRevoke()"
+      >
+        Confirm
+      </button>
+    </div>
+  </div>
+</ng-container>

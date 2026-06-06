@@ -50,8 +50,11 @@ export class CertificateService {
     });
   }
 
-  exportKeystore(certId: number, password: string) {
-    const body: ExportKeystoreDTO = { password };
+  exportKeystore(certId: number, password: string, format: string, alias: string) {
+    const body: ExportKeystoreDTO = { 
+      pkcs12: format === 'p12',
+      alias: alias,
+      password: password };
 
     return this.http.post(`${environment.apiHost}/${certId}/export-keystore`, body, {
       observe: 'response',

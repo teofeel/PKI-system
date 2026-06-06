@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, Input } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, resource } from '@angular/core';
 import { CertificateListItem } from '../model/certificate-item-list';
 import { CertificateType } from '../model/certificate-type';
 import { Router, RouterModule } from '@angular/router';
@@ -71,7 +71,13 @@ export class CertificateList {
     }
   }
 
-  download(id: number, format: string, isUsingPk: boolean, passwordInput?: HTMLInputElement): void {
+  download(
+    id: number,
+    format: string,
+    alias: string,
+    isUsingPk: boolean,
+    passwordInput?: HTMLInputElement,
+  ): void {
     let downloadObservable$: Observable<HttpResponse<Blob>>;
 
     if (isUsingPk) {
@@ -80,7 +86,7 @@ export class CertificateList {
         alert('Password cannot be empty.');
         return;
       }
-      downloadObservable$ = this.certService.exportKeystore(id, password);
+      downloadObservable$ = this.certService.exportKeystore(id, password, format, alias);
     } else {
       downloadObservable$ = this.certService.downloadCertificateNoPk(id, format);
     }
@@ -147,39 +153,37 @@ export class CertificateList {
     (cert as any).showPasswordForm = false;
   }
 
-  toggleRevokeForm(cert: CertificateListItem, event: Event): void {
+  activeCert: any = null;
+  revokeFormTop: number = 0;
+  revokeFormLeft: number = 0;
+
+  toggleRevokeForm(cert: any, event: MouseEvent): void {
     event.stopPropagation();
-    cert.showRevokeForm = !cert.showRevokeForm;
-    cert.revokeReason = '';
-    cert.revokeNote = '';
+    if (this.activeCert === cert) {
+      this.activeCert = null;
+      return;
+    }
+    const btn = event.currentTarget as HTMLElement;
+    const rect = btn.getBoundingClientRect();
+    this.revokeFormTop = rect.bottom + 6;
+    this.revokeFormLeft = rect.left;
+    this.activeCert = cert;
   }
 
-  cancelRevokeForm(cert: any, event: Event): void {
-    event.stopPropagation();
-    cert.showRevokeForm = false;
-    cert.revokeReason = '';
-    cert.revokeNote = '';
+  cancelRevokeForm(): void {
+    this.activeCert = null;
   }
 
-  onRevokeReasonChange(cert: CertificateListItem): void {
-    if (cert.revokeReason !== 'other') cert.revokeNote = '';
-  }
-
-  confirmRevoke(cert: CertificateListItem, event: Event): void {
-    event.stopPropagation();
-    this.certService.revoke(cert).subscribe({
+  confirmRevoke(): void {
+    if (!this.activeCert) return;
+    this.certService.revoke(this.activeCert).subscribe({
       next: () => {
-        this.dialog.open(SimpleMessageDialogComponent, {
-          width: '300px',
-          data: {
-            message: 'Certificate successfully revoked',
-          },
-        });
+        this.activeCert = null;
+        window.location.reload();
       },
       error: (err) => {
         console.error(err);
       },
     });
-    cert.showRevokeForm = false;
   }
 }

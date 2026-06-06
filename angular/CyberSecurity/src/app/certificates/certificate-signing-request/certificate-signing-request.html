@@ -167,6 +167,12 @@
               </select>
             </div>
             <div class="input-group">
+              <label>Alias (optional)</label>
+              <input formControlName="alias" class="pki-input" placeholder="Defaults to Common Name">
+            </div>
+          </div>
+          <div class="form-row" style="margin-top: 1rem;">
+            <div class="input-group">
               <label>KeyStore Password <span class="req">*</span></label>
               <input type="password" formControlName="keystorePassword" class="pki-input" placeholder="Password to protect your .p12/.jks">
             </div>
