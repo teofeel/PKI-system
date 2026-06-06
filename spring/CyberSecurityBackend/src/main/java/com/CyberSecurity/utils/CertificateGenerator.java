@@ -9,9 +9,7 @@ import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 
 import org.bouncycastle.asn1.x500.style.IETFUtils;
-import org.bouncycastle.asn1.x509.BasicConstraints;
-import org.bouncycastle.asn1.x509.Extension;
-import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.asn1.x509.*;
 
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -65,6 +63,15 @@ public class CertificateGenerator {
                 certGen.addExtension(Extension.basicConstraints, true, new BasicConstraints(true));
                 certGen.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyCertSign | KeyUsage.cRLSign));
             }
+            String crlUrl = "http://localhost:8080/api/crl";
+            DistributionPoint dp = new DistributionPoint(
+                    new DistributionPointName(
+                            new GeneralNames(new GeneralName(
+                            GeneralName.uniformResourceIdentifier, crlUrl
+                    ))
+            ),null,null
+            );
+            certGen.addExtension(Extension.cRLDistributionPoints, false, new CRLDistPoint(new DistributionPoint[]{dp}) );
 
             X509CertificateHolder certHolder = certGen.build(contentSigner);
 

@@ -24,12 +24,12 @@ public class RevocationService {
             cert.setRevocationReason(reason);
             cert.setRevokedAt(LocalDateTime.now());
             certRepository.save(cert);
-        }
 
-        //recursively for all children
-        List<Certificate> children = certRepository.findCertificateByIssuerId(certId);
-        for (Certificate child: children){
-            revoke(child.getId(), reason);
+            //recursively for all children
+            List<Certificate> children = certRepository.findCertificateByIssuerId(certId);
+            for (Certificate child : children) {
+                revoke(child.getId(), reason);
+            }
         }
     }
 }
