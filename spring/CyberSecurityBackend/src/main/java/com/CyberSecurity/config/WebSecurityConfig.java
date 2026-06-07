@@ -56,6 +56,7 @@ public class WebSecurityConfig {
         http.authorizeHttpRequests(request -> {
             request
                     .requestMatchers("/auth/**").permitAll()
+                    .requestMatchers("/api/crl").permitAll()
                     .requestMatchers("/error").permitAll()
                     .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/organizations").permitAll()
                     .anyRequest().authenticated();

@@ -37,4 +37,5 @@ public interface CertificateRepository extends JpaRepository<Certificate, Long> 
             "c.validUntil > CURRENT_DATE")
     List<Certificate> findAllIntermediate();
 
+    List<Certificate> findAllByIsRevoked(boolean b);
 }
