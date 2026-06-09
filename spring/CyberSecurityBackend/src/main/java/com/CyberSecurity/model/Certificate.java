@@ -1,10 +1,12 @@
 package com.CyberSecurity.model;
 
+import com.CyberSecurity.enums.CertificateApprovalStatus;
 import com.CyberSecurity.enums.CertificateType;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -76,4 +78,17 @@ public class Certificate {
 
     @Column(nullable = false)
     private byte[] encoded;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private CertificateApprovalStatus approvalStatus;
+
+    @Column
+    private String approvedBy;
+
+    @Column
+    private LocalDateTime approvedAt;
+
+    @Column(length = 1024)
+    private String rejectionReason;
 }

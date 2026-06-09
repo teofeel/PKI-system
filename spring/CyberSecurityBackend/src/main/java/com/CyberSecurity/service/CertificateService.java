@@ -2,6 +2,7 @@ package com.CyberSecurity.service;
 
 import com.CyberSecurity.KeyPairGeneratorService;
 import com.CyberSecurity.dto.certficate.*;
+import com.CyberSecurity.enums.CertificateApprovalStatus;
 import com.CyberSecurity.exceptions.OrganizationNotFoundException;
 import com.CyberSecurity.model.*;
 import com.CyberSecurity.model.Certificate;
@@ -178,7 +179,12 @@ public class CertificateService {
         );
 
         try{
-            this.createAndSaveCertificate(cert, org, rootKeyPair.getPrivate(), dto.getUserId(), null, null);
+            Certificate savedCert = this.createAndSaveCertificate(cert, org, rootKeyPair.getPrivate(), dto.getUserId(), null, null);
+            if (savedCert != null) {
+                savedCert.setApprovalStatus(CertificateApprovalStatus.APPROVED);
+                savedCert.setApprovedAt(java.time.LocalDateTime.now());
+                certificateRepository.save(savedCert);
+            }
         }catch(Exception e){
             e.printStackTrace();
             throw new CertificateIssuingException("Failed to issue certificate");
@@ -230,7 +236,12 @@ public class CertificateService {
 
 
         try{
-            this.createAndSaveCertificate(cert, org, subjectKeyPair.getPrivate(), dto.getUserId(), parentCert, pathLen);
+            Certificate savedCert = this.createAndSaveCertificate(cert, org, subjectKeyPair.getPrivate(), dto.getUserId(), parentCert, pathLen);
+            if (savedCert != null) {
+                savedCert.setApprovalStatus(CertificateApprovalStatus.APPROVED);
+                savedCert.setApprovedAt(java.time.LocalDateTime.now());
+                certificateRepository.save(savedCert);
+            }
         }catch(Exception e){
             throw new CertificateIssuingException("Failed to issue certificate");
         }
@@ -333,6 +344,8 @@ public class CertificateService {
         if (!cert.getOwner().getId().equals(accID))
             throw new AccessDeniedException("You don't have permission to download this cert");
 
+        validateCertificateApproved(cert);
+
         byte[] certEncoded = cert.getEncoded();
         if( certEncoded == null || certEncoded.length == 0 )
             throw new IllegalStateException("Certificate data is empty");
@@ -351,6 +364,8 @@ public class CertificateService {
 
         if (!cert.getOwner().getId().equals(accID))
             throw new AccessDeniedException("You don't have permission to download this cert");
+
+        validateCertificateApproved(cert);
 
         byte[] certEncoded = cert.getEncoded();
         if( certEncoded == null || certEncoded.length == 0 )
@@ -408,6 +423,8 @@ public class CertificateService {
     public byte[] exportToPkcs12(Long id, ExportKeystoreDTO dto) throws Exception {
         Certificate leafCertificate = certificateRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Certificate not found with ID: " + id));
+
+        validateCertificateApproved(leafCertificate);
 
         X509Certificate[] chain = generateCertificateChain(leafCertificate);
         byte[] decryptedKeyBytes = getDecryptedKeyBytes(leafCertificate);
@@ -471,9 +488,9 @@ public class CertificateService {
 
         KeyPair subjectKeyPair = keyPairGeneratorService.generateKeyPair();
 
+        
         X509Certificate x509Cert = this.getX509Cert(parentCA, subjectKeyPair.getPublic(), subjectName,
                 certDto.getValidFrom(), certDto.getValidTo(), certDto);
-
 
         Certificate cert = this.createAndSaveCertificate(x509Cert, org, null, certDto.getUserId(), parentCA, null);
 
@@ -580,6 +597,96 @@ public class CertificateService {
             }else {
                 throw new CertificateException("Provided PEM does not contain a valid CSR");
             }
+        }
+    }
+
+    @Transactional
+    public Certificate approveCertificate(Long certId, Account approver) {
+        Certificate certificate = certificateRepository.findById(certId)
+                .orElseThrow(() -> new CertificateNotFoundException("Certificate not found"));
+
+        if (certificate.getApprovalStatus() != CertificateApprovalStatus.PENDING) {
+            throw new IllegalStateException("Only pending certificates can be approved");
+        }
+
+        if (!AccountType.ADMIN.equals(approver.getAccountType())) {
+            Long approverOrgId = approver.getUser().getOrganization().getId();
+            Long certOrgId = certificate.getOrganization().getId();
+
+            if (!approverOrgId.equals(certOrgId))
+                throw new SecurityException("You can only approve certificates from your own organization");
+
+        }
+
+        certificate.setApprovalStatus(CertificateApprovalStatus.APPROVED);
+        certificate.setApprovedBy(approver.getEmail());
+        certificate.setApprovedAt(java.time.LocalDateTime.now());
+        certificate.setRejectionReason(null);
+
+        return certificateRepository.save(certificate);
+    }
+
+    @Transactional
+    public Certificate rejectCertificate(Long certId, Account approver, String rejectionReason) {
+        Certificate certificate = certificateRepository.findById(certId)
+                .orElseThrow(() -> new CertificateNotFoundException("Certificate not found"));
+
+        if (certificate.getApprovalStatus() != CertificateApprovalStatus.PENDING) {
+            throw new IllegalStateException("Only pending certificates can be rejected");
+        }
+
+        if (!AccountType.ADMIN.equals(approver.getAccountType())) {
+            Long approverOrgId = approver.getUser().getOrganization().getId();
+            Long certOrgId = certificate.getOrganization().getId();
+
+            if (!approverOrgId.equals(certOrgId))
+                throw new SecurityException("You can only reject certificates from your own organization");
+        }
+
+        certificate.setApprovalStatus(CertificateApprovalStatus.REJECTED);
+        certificate.setApprovedBy(approver.getEmail());
+        certificate.setApprovedAt(java.time.LocalDateTime.now());
+        certificate.setRejectionReason(rejectionReason);
+
+        return certificateRepository.save(certificate);
+    }
+
+    @Transactional
+    public List<Certificate> getPendingCertificates(Account account) {
+        if (account.getAccountType() == com.CyberSecurity.enums.AccountType.ADMIN) {
+            return certificateRepository.findByApprovalStatus(CertificateApprovalStatus.PENDING);
+        }
+        Long orgId = account.getUser().getOrganization().getId();
+        return certificateRepository.findPendingByOrganization(orgId);
+    }
+
+    @Transactional
+    public List<Certificate> getRejectedCertificates(Account account) {
+        if (account.getAccountType() == com.CyberSecurity.enums.AccountType.ADMIN) {
+            return certificateRepository.findByApprovalStatus(CertificateApprovalStatus.REJECTED);
+        }
+        Long orgId = account.getUser().getOrganization().getId();
+        return certificateRepository.findRejectedByOrganization(orgId);
+    }
+
+    @Transactional
+    public List<Certificate> getInactiveCertificates(Account account) {
+        if (account.getAccountType() == com.CyberSecurity.enums.AccountType.ADMIN) {
+            List<Certificate> all = new ArrayList<>();
+            all.addAll(certificateRepository.findByApprovalStatus(CertificateApprovalStatus.PENDING));
+            all.addAll(certificateRepository.findByApprovalStatus(CertificateApprovalStatus.REJECTED));
+            return all;
+        }
+        Long orgId = account.getUser().getOrganization().getId();
+        List<Certificate> all = new ArrayList<>();
+        all.addAll(certificateRepository.findPendingByOrganization(orgId));
+        all.addAll(certificateRepository.findRejectedByOrganization(orgId));
+        return all;
+    }
+
+    public void validateCertificateApproved(Certificate cert) {
+        if (cert.getApprovalStatus() != CertificateApprovalStatus.APPROVED) {
+            throw new IllegalStateException("Certificate is not approved");
         }
     }
 }

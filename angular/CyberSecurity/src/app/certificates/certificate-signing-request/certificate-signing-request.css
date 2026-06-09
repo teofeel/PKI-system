@@ -480,3 +480,21 @@ select.pki-input {
     width: 100%;
   }
 }
+
+
+.toast-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  color: red;
+  padding: 16px 24px;
+  border-radius: 4px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  z-index: 1000;
+  animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

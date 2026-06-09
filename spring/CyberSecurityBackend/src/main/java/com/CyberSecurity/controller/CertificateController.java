@@ -1,5 +1,6 @@
 package com.CyberSecurity.controller;
 import com.CyberSecurity.dto.certficate.*;
+import com.CyberSecurity.enums.CertificateApprovalStatus;
 import com.CyberSecurity.exceptions.CertificateIssuingException;
 import com.CyberSecurity.exceptions.CertificateNotFoundException;
 import com.CyberSecurity.exceptions.OrganizationNotFoundException;
@@ -246,6 +247,102 @@ public class CertificateController {
         } catch(IllegalArgumentException | IllegalStateException | CertificateException e){
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } catch(Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
+    @GetMapping(value = "/certificates/pending")
+    public ResponseEntity<List<CertificateApprovalDTO>> getPendingCertificates(
+            @AuthenticationPrincipal Account account) {
+        if (account == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        try {
+            List<Certificate> pending = certificateService.getPendingCertificates(account);
+            List<CertificateApprovalDTO> dtoList = certificateMapper.toCertificateApprovalDTOList(pending);
+            return ResponseEntity.ok(dtoList);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
+    @GetMapping(value = "/certificates/rejected")
+    public ResponseEntity<List<CertificateApprovalDTO>> getRejectedCertificates(
+            @AuthenticationPrincipal Account account) {
+        if (account == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        try {
+            List<Certificate> rejected = certificateService.getRejectedCertificates(account);
+            List<CertificateApprovalDTO> dtoList = certificateMapper.toCertificateApprovalDTOList(rejected);
+            return ResponseEntity.ok(dtoList);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
+    @GetMapping(value = "/certificates/inactive")
+    public ResponseEntity<List<CertificateApprovalDTO>> getInactiveCertificates(
+            @AuthenticationPrincipal Account account) {
+        if (account == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        try {
+            List<Certificate> inactive = certificateService.getInactiveCertificates(account);
+            List<CertificateApprovalDTO> dtoList = certificateMapper.toCertificateApprovalDTOList(inactive);
+            return ResponseEntity.ok(dtoList);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
+    @PostMapping(value = "/certificates/{id}/approve")
+    public ResponseEntity<CertificateApprovalDTO> approveCertificate(
+            @AuthenticationPrincipal Account account,
+            @PathVariable Long id) {
+        if (account == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        try {
+            Certificate approved = certificateService.approveCertificate(id, account);
+            CertificateApprovalDTO dto = certificateMapper.toCertificateApprovalDTO(approved);
+            return ResponseEntity.ok(dto);
+        } catch (CertificateNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (IllegalStateException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (SecurityException e) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
+    @PostMapping(value = "/certificates/{id}/reject")
+    public ResponseEntity<CertificateApprovalDTO> rejectCertificate(
+            @AuthenticationPrincipal Account account,
+            @PathVariable Long id,
+            @RequestBody(required = false) ApproveRejectRequestDTO request) {
+        if (account == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        try {
+            String reason = (request != null) ? request.getRejectionReason() : null;
+            Certificate rejected = certificateService.rejectCertificate(id, account, reason);
+            CertificateApprovalDTO dto = certificateMapper.toCertificateApprovalDTO(rejected);
+            return ResponseEntity.ok(dto);
+        } catch (CertificateNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (IllegalStateException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (SecurityException e) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
