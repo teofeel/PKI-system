@@ -71,4 +71,7 @@ public interface CertificateRepository extends JpaRepository<Certificate, Long> 
     @Query("SELECT c FROM Certificate c WHERE c.issuer.id = :issuerId AND c.approvalStatus = :status")
     List<Certificate> findByIssuerAndStatus(@Param("issuerId") Long issuerId, @Param("status") CertificateApprovalStatus status);
 
+
+    List<Certificate> findAllByIsRevoked(boolean b);
+
 }

@@ -1,16 +1,19 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, Input } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, resource } from '@angular/core';
 import { CertificateListItem } from '../model/certificate-item-list';
 import { CertificateType } from '../model/certificate-type';
 import { Router, RouterModule } from '@angular/router';
 import { CertificateService } from '../service/certificate-service';
 import { HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { FormsModule } from '@angular/forms';
+import { SimpleMessageDialogComponent } from '../../utils/simple-message-dialog/simple-message-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-certificate-list',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './certificate-list.component.html',
   styleUrls: ['./certificate-list.component.css'],
 })
@@ -19,14 +22,12 @@ export class CertificateList {
   @Input() isLoading: boolean = false;
   @Input() role: string | null = null;
 
-
   constructor(
     private readonly router: Router,
     private certService: CertificateService,
     private cdr: ChangeDetectorRef,
-  ) {
-
-  }
+    private dialog: MatDialog,
+  ) {}
 
   getInitials(type: CertificateType): string {
     const map: Record<CertificateType, string> = {
@@ -70,7 +71,13 @@ export class CertificateList {
     }
   }
 
-  download(id: number, format: string, alias:string, isUsingPk: boolean, passwordInput?: HTMLInputElement): void {
+  download(
+    id: number,
+    format: string,
+    alias: string,
+    isUsingPk: boolean,
+    passwordInput?: HTMLInputElement,
+  ): void {
     let downloadObservable$: Observable<HttpResponse<Blob>>;
 
     if (isUsingPk) {
@@ -84,7 +91,7 @@ export class CertificateList {
       downloadObservable$ = this.certService.downloadCertificateNoPk(id, format);
     }
 
-    this.certificates.forEach(c => {
+    this.certificates.forEach((c) => {
       c.showDownloadMenu = false;
       (c as any).showPasswordForm = false;
     });
@@ -120,7 +127,7 @@ export class CertificateList {
       },
       error: (err) => {
         console.error('Download failed', err);
-      }
+      },
     });
   }
 
@@ -129,7 +136,7 @@ export class CertificateList {
 
     const wasOpen = cert.showDownloadMenu;
 
-    this.certificates.forEach(c => (c.showDownloadMenu = false));
+    this.certificates.forEach((c) => (c.showDownloadMenu = false));
 
     if (!wasOpen) {
       cert.showDownloadMenu = true;
@@ -144,5 +151,39 @@ export class CertificateList {
   cancelPasswordForm(cert: CertificateListItem, event: Event): void {
     event.stopPropagation();
     (cert as any).showPasswordForm = false;
+  }
+
+  activeCert: any = null;
+  revokeFormTop: number = 0;
+  revokeFormLeft: number = 0;
+
+  toggleRevokeForm(cert: any, event: MouseEvent): void {
+    event.stopPropagation();
+    if (this.activeCert === cert) {
+      this.activeCert = null;
+      return;
+    }
+    const btn = event.currentTarget as HTMLElement;
+    const rect = btn.getBoundingClientRect();
+    this.revokeFormTop = rect.bottom + 6;
+    this.revokeFormLeft = rect.left;
+    this.activeCert = cert;
+  }
+
+  cancelRevokeForm(): void {
+    this.activeCert = null;
+  }
+
+  confirmRevoke(): void {
+    if (!this.activeCert) return;
+    this.certService.revoke(this.activeCert).subscribe({
+      next: () => {
+        this.activeCert = null;
+        window.location.reload();
+      },
+      error: (err) => {
+        console.error(err);
+      },
+    });
   }
 }

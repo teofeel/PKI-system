@@ -3,12 +3,24 @@
     <li class="cl-item" *ngFor="let cert of certificates">
       <div class="cl-expand-slot">
         <ng-container *ngIf="canExpand(cert.type); else noButton">
-          <button class="cl-expand-btn" [title]="'Expand ' + cert.commonName"
-            (click)="onExpand(cert); $event.stopPropagation()" aria-label="Expand certificate chain"
-            [attr.aria-expanded]="cert.isExpanded">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="cl-expand-icon"
-              [class.is-rotated]="cert.isExpanded">
+          <button
+            class="cl-expand-btn"
+            [title]="'Expand ' + cert.commonName"
+            (click)="onExpand(cert); $event.stopPropagation()"
+            aria-label="Expand certificate chain"
+            [attr.aria-expanded]="cert.isExpanded"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="cl-expand-icon"
+              [class.is-rotated]="cert.isExpanded"
+            >
               <polyline points="9 18 15 12 9 6" />
             </svg>
           </button>
@@ -23,8 +35,12 @@
         {{ getInitials(cert.type) }}
       </div>
 
-      <button type="button" class="cl-info-btn" [attr.aria-label]="'View details for ' + cert.commonName"
-        (click)="goToDetails(cert.id)">
+      <button
+        type="button"
+        class="cl-info-btn"
+        [attr.aria-label]="'View details for ' + cert.commonName"
+        (click)="goToDetails(cert.id)"
+      >
         <span class="cl-domain">{{ cert.commonName }}</span>
         <span class="cl-dates"> {{ cert.validFrom }}&nbsp;→&nbsp;{{ cert.validUntil }} </span>
       </button>
@@ -38,10 +54,23 @@
 
       <div class="cl-actions">
         <div class="cl-download-dropdown">
-          <button type="button" class="cl-action-btn cl-download-btn" [title]="'Download ' + cert.commonName"
-            (click)="toggleDownloadMenu(cert, $event)" aria-label="Download certificate options">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="cl-action-icon">
+          <button
+            type="button"
+            class="cl-action-btn cl-download-btn"
+            [title]="'Download ' + cert.commonName"
+            (click)="toggleDownloadMenu(cert, $event)"
+            aria-label="Download certificate options"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="cl-action-icon"
+            >
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
@@ -50,13 +79,25 @@
 
           <div class="cl-dropdown-menu" *ngIf="$any(cert).showDownloadMenu">
             <ng-container *ngIf="!$any(cert).showPasswordForm; else passwordFormTpl">
-              <button type="button" class="cl-dropdown-item" (click)="download(cert.id, 'pem', '', false)">
+              <button
+                type="button"
+                class="cl-dropdown-item"
+                (click)="download(cert.id, 'pem', '', false)"
+              >
                 Export as .PEM
               </button>
-              <button type="button" class="cl-dropdown-item" (click)="download(cert.id, 'cer', '', false)">
+              <button
+                type="button"
+                class="cl-dropdown-item"
+                (click)="download(cert.id, 'cer', '', false)"
+              >
                 Export as .CER
               </button>
-              <button type="button" class="cl-dropdown-item" (click)="$any(cert).selectedFormat = 'p12'; switchToPasswordForm(cert, $event)">
+              <button
+                type="button"
+                class="cl-dropdown-item"
+                (click)="$any(cert).selectedFormat = 'p12'; switchToPasswordForm(cert, $event)"
+              >
                 Export as Keystore
               </button>
             </ng-container>
@@ -66,29 +107,62 @@
                 <label class="cl-pwd-label">Keystore Format</label>
                 <div class="cl-radio-group">
                   <label class="cl-radio-label">
-                    <input type="radio" name="keystoreFormat" value="p12" [checked]="$any(cert).selectedFormat === 'p12'" (change)="$any(cert).selectedFormat = 'p12'" />
+                    <input
+                      type="radio"
+                      name="keystoreFormat"
+                      value="p12"
+                      [checked]="$any(cert).selectedFormat === 'p12'"
+                      (change)="$any(cert).selectedFormat = 'p12'"
+                    />
                     PKCS12 (.p12)
                   </label>
                   <label class="cl-radio-label">
-                    <input type="radio" name="keystoreFormat" value="jks" [checked]="$any(cert).selectedFormat === 'jks'" (change)="$any(cert).selectedFormat = 'jks'" />
+                    <input
+                      type="radio"
+                      name="keystoreFormat"
+                      value="jks"
+                      [checked]="$any(cert).selectedFormat === 'jks'"
+                      (change)="$any(cert).selectedFormat = 'jks'"
+                    />
                     JKS (.jks)
                   </label>
                 </div>
 
                 <label class="cl-pwd-label">Alias</label>
-                <input #pkAlias type="text" class="cl-pwd-input" [value]="cert.commonName" placeholder="Enter keystore alias" />
+                <input
+                  #pkAlias
+                  type="text"
+                  class="cl-pwd-input"
+                  [value]="cert.commonName"
+                  placeholder="Enter keystore alias"
+                />
 
                 <label class="cl-pwd-label">Protect Keystore</label>
-                <input #pkPassword type="password" class="cl-pwd-input" placeholder="Enter secure password"
-                  (keyup.enter)="download(cert.id, $any(cert).selectedFormat, pkAlias.value, true, pkPassword)" />
-
+                <input
+                  #pkPassword
+                  type="password"
+                  class="cl-pwd-input"
+                  placeholder="Enter secure password"
+                  (keyup.enter)="
+                    download(cert.id, $any(cert).selectedFormat, pkAlias.value, true, pkPassword)
+                  "
+                />
+                />
                 <div class="cl-pwd-actions">
-                  <button type="button" class="cl-pwd-btn cl-pwd-btn--cancel"
-                    (click)="cancelPasswordForm(cert, $event)">
+                  <button
+                    type="button"
+                    class="cl-pwd-btn cl-pwd-btn--cancel"
+                    (click)="cancelPasswordForm(cert, $event)"
+                  >
                     Back
                   </button>
-                  <button type="button" class="cl-pwd-btn cl-pwd-btn--submit"
-                    (click)="download(cert.id, $any(cert).selectedFormat, pkAlias.value, true, pkPassword)">
+                  <button
+                    type="button"
+                    class="cl-pwd-btn cl-pwd-btn--submit"
+                    (click)="
+                      download(cert.id, $any(cert).selectedFormat, pkAlias.value, true, pkPassword)
+                    "
+                  >
                     Export
                   </button>
                 </div>
@@ -96,13 +170,19 @@
             </ng-template>
           </div>
         </div>
+        <button type="button" class="cl-revoke-btn" (click)="toggleRevokeForm(cert, $event)">
+          Revoke
+        </button>
       </div>
 
       <div class="cl-nested-container" *ngIf="cert.isExpanded">
         <div *ngIf="cert.isLoading" class="cl-loader">Loading...</div>
 
-        <app-certificate-list *ngIf="cert.children && cert.children.length > 0" [certificates]="cert.children"
-          [role]="role">
+        <app-certificate-list
+          *ngIf="cert.children && cert.children.length > 0"
+          [certificates]="cert.children"
+          [role]="role"
+        >
         </app-certificate-list>
 
         <div *ngIf="!cert.isLoading && cert.children?.length === 0" class="cl-no-results">
@@ -114,3 +194,36 @@
   <div *ngIf="isLoading" class="cl-loader">Loading certificates...</div>
   <p class="cl-empty" *ngIf="!isLoading && certificates.length === 0">No certificates found.</p>
 </div>
+
+<ng-container *ngIf="activeCert">
+  <div
+    class="cl-revoke-form-panel"
+    [style.top.px]="revokeFormTop"
+    [style.left.px]="revokeFormLeft"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="cl-panel-title">Revoke certificate</div>
+
+    <label>Reason for revocation</label>
+    <select class="cl-reason-select" [(ngModel)]="activeCert.revokeReason">
+      <option value="">— Select reason —</option>
+      <option value="KEY_COMPROMISE">Key compromise</option>
+      <option value="CA_COMPROMISE">CA compromise</option>
+      <option value="AFFILIATION_CHANGED">Affiliation changed</option>
+      <option value="SUPERSEDED">Superseded</option>
+      <option value="CESSATION_OF_OPERATION">Cessation of operation</option>
+      <option value="UNSPECIFIED">Unspecified</option>
+    </select>
+
+    <div class="cl-revoke-actions">
+      <button class="cl-btn-cancel" (click)="cancelRevokeForm()">Cancel</button>
+      <button
+        class="cl-btn-revoke-confirm"
+        [disabled]="!activeCert.revokeReason"
+        (click)="confirmRevoke()"
+      >
+        Confirm
+      </button>
+    </div>
+  </div>
+</ng-container>

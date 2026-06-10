@@ -2,6 +2,7 @@ package com.CyberSecurity.model;
 
 import com.CyberSecurity.enums.CertificateApprovalStatus;
 import com.CyberSecurity.enums.CertificateType;
+import com.CyberSecurity.enums.RevocationReason;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -47,8 +48,10 @@ public class Certificate {
     @Column(nullable = false)
     private boolean isRevoked = false;
 
-    @Column
-    private String revocationReason;
+    @Enumerated(EnumType.STRING)
+    private RevocationReason revocationReason;
+
+    private LocalDateTime revokedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "issuer_id")

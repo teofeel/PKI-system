@@ -12,6 +12,9 @@ export interface CertificateListItem {
   children?: CertificateListItem[];
   isExpanded?: boolean;
   isLoading?: boolean;
+  showRevokeForm?: boolean;
+  revokeReason?: string;
+  revokeNote?: string;
 }
 
 export interface CertificateApprovalItem {
@@ -27,3 +30,5 @@ export interface CertificateApprovalItem {
   approvedAt: string | null;
   rejectionReason: string | null;
 }
+
+
