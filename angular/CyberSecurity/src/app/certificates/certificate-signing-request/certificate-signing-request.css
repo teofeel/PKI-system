@@ -221,7 +221,6 @@ select.pki-input {
 }
 
 .upload-zone {
-  border: 2px dashed var(--title-color);
   border-radius: var(--border-radius-input);
   background-color: var(--input-bg-light);
   padding: 3rem 2rem;

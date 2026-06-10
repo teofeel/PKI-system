@@ -15,19 +15,19 @@
         </h1>
       </div>
       <p class="pki-subtitle" *ngIf="currentState === 'SELECTION'">
-        Select a method to generate a new End-Entity certificate.
+        Select a method to generate a new End-Entity certificate
       </p>
     </header>
 
     <div *ngSwitchCase="'SELECTION'" class="selection-grid">
       <div class="method-card" (click)="setState('CSR_UPLOAD')">
         <h3>Upload CSR</h3>
-        <p>Upload an externally generated Certificate Signing Request (.pem). Best for strict local key management.</p>
+        <p>Upload an externally generated Certificate Signing Request (.pem)</p>
       </div>
       
       <div class="method-card" (click)="setState('AUTO_GENERATE')">
         <h3>Auto-Generate</h3>
-        <p>Generate keys and certificate directly in the PKI system. The private key will be provided for a one-time download.</p>
+        <p>Generate keys and certificate directly in the PKI system</p>
       </div>
     </div>
 
@@ -60,11 +60,11 @@
             <div class="input-group">
               <div class="form-row">
             <div class="input-group">
-              <label>Valid From <span class="req">*</span></label>
+              <label>Valid From </label>
               <input type="date" formControlName="validFrom" class="pki-input">
             </div>
             <div class="input-group">
-              <label>Valid To <span class="req">*</span></label>
+              <label>Valid To </label>
               <input type="date" formControlName="validTo" class="pki-input">
             </div>
           </div>
@@ -86,29 +86,29 @@
           
           <div class="form-row">
             <div class="input-group">
-              <label>Given Name <span class="req">*</span></label>
-              <input formControlName="givenName" class="pki-input" placeholder="e.g., John">
+              <label>Given Name</label>
+              <input formControlName="givenName" class="pki-input" placeholder="John">
             </div>
             <div class="input-group">
-              <label>Surname <span class="req">*</span></label>
-              <input formControlName="surname" class="pki-input" placeholder="e.g., Doe">
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="input-group">
-              <label>Common Name (CN) <span class="req">*</span></label>
-              <input formControlName="commonName" class="pki-input" placeholder="e.g., prod-api.internal.com">
-            </div>
-            <div class="input-group">
-              <label>Email (E) <span class="req">*</span></label>
-              <input formControlName="email" type="email" class="pki-input" placeholder="admin@company.com">
+              <label>Surname</label>
+              <input formControlName="surname" class="pki-input" placeholder="Doe">
             </div>
           </div>
 
           <div class="form-row">
             <div class="input-group">
-              <label>Organization (O) <span class="req">*</span></label>
+              <label>Common Name (CN) </label>
+              <input formControlName="commonName" class="pki-input" placeholder="COMMON NAME">
+            </div>
+            <div class="input-group">
+              <label>Email (E) </label>
+              <input formControlName="email" type="email" class="pki-input" placeholder="test@test.com">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="input-group">
+              <label>Organization (O) </label>
               <select formControlName="organization" class="pki-input" (change)="onOrganizationSelected()">
                 <option value="" disabled>Select Organization</option>
                 <option *ngFor="let org of organizations" [value]="org.name">
@@ -117,15 +117,15 @@
               </select>
             </div>
             <div class="input-group">
-              <label>Organizational Unit (OU) <span class="req">*</span></label>
-              <input formControlName="organizationUnit" class="pki-input" placeholder="Engineering">
+              <label>Organizational Unit (OU) </label>
+              <input formControlName="organizationUnit" class="pki-input" placeholder="Unit">
             </div>
           </div>
 
           <div class="form-row">
             <div class="input-group" style="max-width: 50%;">
-              <label>Country (C) <span class="req">*</span></label>
-              <input formControlName="country" class="pki-input" placeholder="e.g., RS" maxlength="2">
+              <label>Country (C) </label>
+              <input formControlName="country" class="pki-input" placeholder="RS" maxlength="2">
             </div>
           </div>
         </div>
@@ -143,24 +143,24 @@
           </div>
           <div class="form-row">
             <div class="input-group">
-              <label>Valid From <span class="req">*</span></label>
+              <label>Valid From </label>
               <input type="date" formControlName="validFrom" class="pki-input">
             </div>
             <div class="input-group">
-              <label>Valid To <span class="req">*</span></label>
+              <label>Valid To </label>
               <input type="date" formControlName="validTo" class="pki-input">
             </div>
           </div>
         </div>
 
-        <div class="form-section mt-6" style="border: 1px dashed #fca5a5; padding: 15px; border-radius: 8px; background-color: #fef2f2;">
+        <div class="form-section mt-6" style="padding: 15px; border-radius: 8px; background-color: #fef2f2;">
           <h4 class="section-title" style="color: #991b1b; border-bottom: 1px solid #fca5a5;">Private Key Bundle Settings</h4>
           <p style="font-size: 13px; color: #7f1d1d; margin-bottom: 12px;">
-            The private key will be downloaded <strong>immediately</strong> upon generation. Choose your preferred format and password.
+            The private key will be downloaded immediately upon generation
           </p>
           <div class="form-row">
             <div class="input-group">
-              <label>Export Format <span class="req">*</span></label>
+              <label>Export Format </label>
               <select formControlName="exportFormat" class="pki-input">
                 <option value="pkcs12">PKCS12 (.p12)</option>
                 <option value="jks">JKS (.jks)</option>
@@ -173,7 +173,7 @@
           </div>
           <div class="form-row" style="margin-top: 1rem;">
             <div class="input-group">
-              <label>KeyStore Password <span class="req">*</span></label>
+              <label>KeyStore Password </label>
               <input type="password" formControlName="keystorePassword" class="pki-input" placeholder="Password to protect your .p12/.jks">
             </div>
           </div>
@@ -185,50 +185,34 @@
       </form>
     </div>
 
-    <div *ngIf="showToast" class="toast-notification">
+    <!--<div *ngIf="showToast" class="toast-notification">
       {{ toastMessage }}
-    </div>
+    </div>-->
 
-    <!--<div *ngSwitchCase="'SUCCESS'" class="success-wrapper">
+    <div *ngSwitchCase="'SUCCESS'" class="success-wrapper">
       <div class="success-header">
-        <div class="success-badge">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="icon-check">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-          </svg>
-        </div>
-        <h2>Certificate successfully created</h2>
-        <p class="success-subtitle">Your EE (end-entity) certificate is generated and ready for download</p>
+        <h2>{{ generationMethod === 'AUTO' ? 'Certificate successfully created' : 'Request submitted' }}</h2>
+        <p class="success-subtitle">
+          {{ generationMethod === 'AUTO' ? 
+            'Your certificate is generated and ready for download' : 
+            'Your request has been submitted to the CA for approval' }}
+        </p>
       </div>
 
-      <div class="cert-details mt-6">
+      <div class="cert-details mt-6" *ngIf="generationMethod === 'AUTO'">
         <div class="section-title">Public Certificate</div>
-        <p class="section-description">Download public certificate with public key and CA</p>
-        
         <div class="download-actions">
-          <button class="btn btn-outline flex-1" (click)="downloadCertificate('pem')">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-inline">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-            </svg>
-            Download .PEM format
-          </button>
-          <button class="btn btn-outline flex-1" (click)="downloadCertificate('cer')">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-inline">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-            </svg>
-            Download .CER format
-          </button>
+          <button class="btn btn-outline" (click)="downloadCertificate('pem')">Download .PEM</button>
+          <button class="btn btn-outline" (click)="downloadCertificate('cer')">Download .CER</button>
         </div>
       </div>
 
       <div class="workflow-footer">
         <button class="btn-back" (click)="resetWorkflow()">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-inline">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
-          </svg>
-          Generate another
+          {{ generationMethod === 'AUTO' ? 'Generate another' : 'Back to dashboard' }}
         </button>
       </div>
-    </div>-->
+    </div>
 
   </div>
 </div>

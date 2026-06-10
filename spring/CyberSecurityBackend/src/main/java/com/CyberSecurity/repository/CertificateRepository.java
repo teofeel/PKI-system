@@ -68,4 +68,7 @@ public interface CertificateRepository extends JpaRepository<Certificate, Long> 
             "ORDER BY c.approvedAt DESC")
     List<Certificate> findRejectedByOrganization(@Param("orgId") Long orgId);
 
+    @Query("SELECT c FROM Certificate c WHERE c.issuer.id = :issuerId AND c.approvalStatus = :status")
+    List<Certificate> findByIssuerAndStatus(@Param("issuerId") Long issuerId, @Param("status") CertificateApprovalStatus status);
+
 }

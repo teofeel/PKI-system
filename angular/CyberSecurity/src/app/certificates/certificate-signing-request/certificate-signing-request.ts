@@ -210,7 +210,7 @@ export class CertificateSigningRequest implements OnInit {
         this.generationMethod = 'AUTO';
         this.setState('SUCCESS');
         this.triggerToast('Certificate generated successfully');
-        this.resetWorkflow();
+        //this.resetWorkflow();
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -241,7 +241,7 @@ export class CertificateSigningRequest implements OnInit {
             this.setState('SUCCESS');
             this.triggerToast('CSR processed');
 
-            this.resetWorkflow();
+            //this.resetWorkflow();
 
             this.cdr.detectChanges();
 
@@ -252,45 +252,45 @@ export class CertificateSigningRequest implements OnInit {
     });
   }
 
-  //downloadCertificate(extension: 'pem' | 'cer') {
-  //  console.log(this.generatedCertId)
-  //  this.certificateService.downloadCertificateNoPk(this.generatedCertId!, extension)
-  //      .subscribe({
-  //        next: (response: HttpResponse<Blob>) => {
-  //          const contentDisposition = response.headers.get('Content-Disposition');
-  //          let filename = `certificate.${extension}`; 
-//
-  //          if (contentDisposition) {
-  //            const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;\n]*)/);
-  //            if (utf8Match && utf8Match[1]) {
-  //              filename = decodeURIComponent(utf8Match[1]);
-  //            } else {
-  //              const classicMatch = contentDisposition.match(/filename="?([^";\n]+)"?/);
-  //              if (classicMatch && classicMatch[1]) {
-  //                filename = classicMatch[1];
-  //              }
-  //            }
-  //          }
-  //          
-  //          const blob = response.body;
-  //          if (blob) {
-  //            const url = window.URL.createObjectURL(blob);
-  //            const a = document.createElement('a');
-  //            a.href = url;
-  //            a.download = filename;
-  //            document.body.appendChild(a);
-  //            a.click();
-  //            document.body.removeChild(a);
-  //            globalThis.URL.revokeObjectURL(url);
-  //          }
-  //        },
-  //        error: (err) => {
-  //          console.error('Download failed', err);
-  //        }
-  //      });
-//
-  //  console.log(`API Target: Downloading public X509 text blob inside standard .${extension} container layout`);
-  //}
+  downloadCertificate(extension: 'pem' | 'cer') {
+    console.log(this.generatedCertId)
+    this.certificateService.downloadCertificateNoPk(this.generatedCertId!, extension)
+        .subscribe({
+          next: (response: HttpResponse<Blob>) => {
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = `certificate.${extension}`; 
+
+            if (contentDisposition) {
+              const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;\n]*)/);
+              if (utf8Match && utf8Match[1]) {
+                filename = decodeURIComponent(utf8Match[1]);
+              } else {
+                const classicMatch = contentDisposition.match(/filename="?([^";\n]+)"?/);
+                if (classicMatch && classicMatch[1]) {
+                  filename = classicMatch[1];
+                }
+              }
+            }
+            
+            const blob = response.body;
+            if (blob) {
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = filename;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              globalThis.URL.revokeObjectURL(url);
+            }
+          },
+          error: (err) => {
+            console.error('Download failed', err);
+          }
+        });
+
+    console.log(`API Target: Downloading public X509 text blob inside standard .${extension} container layout`);
+  }
 
 
   resetWorkflow() {

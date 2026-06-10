@@ -69,14 +69,14 @@ public class Certificate {
     })
     private EncryptedData encryptedPrivateKey;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private byte[] subjectNameEncoded;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name= "account_id")
     private Account owner;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private byte[] encoded;
 
     @Enumerated(EnumType.STRING)
@@ -91,4 +91,10 @@ public class Certificate {
 
     @Column(length = 1024)
     private String rejectionReason;
+
+    @Column
+    private byte[] csrPublicKey;
+
+    @Column
+    private byte[] csrSubjectName;
 }
