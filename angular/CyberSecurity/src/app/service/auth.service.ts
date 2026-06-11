@@ -100,6 +100,9 @@ export class AuthService {
       this.role.set(this.getRole());
       this.id.set(this.getId());
     }
+    else if (res && res.accessToken) {
+      localStorage.setItem('jwt', res.accessToken);
+    }
   }
 
   public clearSession(): void {
