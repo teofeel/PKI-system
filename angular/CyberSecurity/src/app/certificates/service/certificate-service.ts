@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { CertificateRequest } from '../model/certificate-request';
-import { CertificateListItem } from '../model/certificate-item-list';
+import { CertificateApprovalItem, CertificateListItem } from '../model/certificate-item-list';
 import { CertificateResponse } from '../model/certificate-response';
 
 import { Observable } from 'rxjs';
@@ -79,5 +79,28 @@ export class CertificateService {
 
   revoke(cert: CertificateListItem) {
     return this.http.post<any>(`${environment.apiHost}/certificates/revoke`, cert);
+  }
+
+  getPendingCertificates(): Observable<CertificateApprovalItem[]> {
+    return this.http.get<CertificateApprovalItem[]>(`${environment.apiHost}/certificates/pending`);
+  }
+
+  getRejectedCertificates(): Observable<CertificateApprovalItem[]> {
+    return this.http.get<CertificateApprovalItem[]>(`${environment.apiHost}/certificates/rejected`);
+  }
+
+  getInactiveCertificates(): Observable<CertificateApprovalItem[]> {
+    return this.http.get<CertificateApprovalItem[]>(`${environment.apiHost}/certificates/inactive`);
+  }
+
+  approveCertificate(id: number): Observable<CertificateApprovalItem> {
+    return this.http.post<CertificateApprovalItem>(`${environment.apiHost}/certificates/${id}/approve`, {});
+  }
+
+  rejectCertificate(id: number, reason?: string): Observable<CertificateApprovalItem> {
+    return this.http.post<CertificateApprovalItem>(`${environment.apiHost}/certificates/${id}/reject`, {
+      certificateId: id,
+      rejectionReason: reason || null
+    });
   }
 }

@@ -1,5 +1,6 @@
 package com.CyberSecurity.model;
 
+import com.CyberSecurity.enums.CertificateApprovalStatus;
 import com.CyberSecurity.enums.CertificateType;
 import com.CyberSecurity.enums.RevocationReason;
 import jakarta.persistence.*;
@@ -71,13 +72,32 @@ public class Certificate {
     })
     private EncryptedData encryptedPrivateKey;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private byte[] subjectNameEncoded;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name= "account_id")
     private Account owner;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private byte[] encoded;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private CertificateApprovalStatus approvalStatus;
+
+    @Column
+    private String approvedBy;
+
+    @Column
+    private LocalDateTime approvedAt;
+
+    @Column(length = 1024)
+    private String rejectionReason;
+
+    @Column
+    private byte[] csrPublicKey;
+
+    @Column
+    private byte[] csrSubjectName;
 }

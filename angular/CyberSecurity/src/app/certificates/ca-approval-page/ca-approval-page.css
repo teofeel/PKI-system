@@ -1,0 +1,454 @@
+.ca-wrapper {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+}
+
+.ca-heading {
+  font-family: 'Georgia', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2d5a6e;
+  margin: 0 0 1.5rem 0;
+  letter-spacing: -0.02em;
+}
+
+.ca-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid rgba(45, 90, 110, 0.2);
+}
+
+.ca-tab {
+  padding: 0.65rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #4b7282;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+}
+
+.ca-tab:hover {
+  color: #2d5a6e;
+}
+
+.ca-tab--active {
+  color: #2d5a6e;
+  border-bottom-color: #2d5a6e;
+}
+
+.ca-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: #4b7282;
+  border-radius: 999px;
+}
+
+.ca-tab-count--rejected {
+  background: #c0534f;
+}
+
+.ca-message {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ca-message--error {
+  background: rgba(192, 83, 79, 0.12);
+  color: #a33b36;
+  border: 1px solid rgba(192, 83, 79, 0.3);
+}
+
+.ca-message--success {
+  background: rgba(76, 175, 131, 0.12);
+  color: #2d7a4e;
+  border: 1px solid rgba(76, 175, 131, 0.3);
+}
+
+.ca-message-close {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: inherit;
+  padding: 0 0.25rem;
+  line-height: 1;
+}
+
+.ca-loader {
+  text-align: center;
+  color: #4b7282;
+  font-style: italic;
+  padding: 1.5rem 0;
+}
+
+.ca-empty {
+  color: #4b7282;
+  font-style: italic;
+  margin-top: 0.5rem;
+}
+
+.ca-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.ca-item {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  background: #7e9fad;
+  border: 1px solid rgba(45, 90, 110, 0.25);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  transition: background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.ca-item:hover {
+  background: #8eadb9;
+  box-shadow: 0 4px 14px rgba(45, 90, 110, 0.22);
+}
+
+.ca-item--rejected {
+  background: #b8a0a0;
+  border-color: rgba(180, 90, 80, 0.3);
+}
+
+.ca-item--rejected:hover {
+  background: #c4acac;
+}
+
+.ca-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #4b7282;
+  color: #cde4eb;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: 'Courier New', monospace;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+}
+
+.ca-avatar[data-type="ROOT"] {
+  background: #b9a7e6;
+  color: white;
+}
+
+.ca-avatar[data-type="INTERMEDIATE"] {
+  background: #98d7b5;
+  color: white;
+}
+
+.ca-avatar[data-type="END_ENTITY"] {
+  background: #7fb7e6;
+  color: white;
+}
+
+.ca-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.ca-domain {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.01em;
+}
+
+.ca-meta {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.72);
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.02em;
+}
+
+.ca-meta--owner {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.ca-meta--rejected {
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 600;
+}
+
+.ca-meta--reason {
+  color: rgba(255, 240, 240, 0.9);
+  font-style: italic;
+}
+
+.ca-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.ca-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.22rem 0.65rem;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.ca-badge--type {
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  color: #ffffff;
+}
+
+.ca-badge--pending {
+  background: #a08c4a;
+  color: #ffffff;
+  border: none;
+}
+
+.ca-badge--rejected-status {
+  background: #c0534f;
+  color: #ffffff;
+  border: none;
+}
+
+.ca-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.ca-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border-radius: 7px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+}
+
+.ca-btn:active {
+  transform: scale(0.96);
+}
+
+.ca-btn--approve {
+  background: #5ebc87;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.ca-btn--approve:hover {
+  background: #3d9e6e;
+}
+
+.ca-btn--reject {
+  background: #c0534f;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.ca-btn--reject:hover {
+  background: #a84843;
+}
+
+.ca-btn-icon {
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+
+.ca-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: ca-fade-in 0.18s ease;
+}
+
+@keyframes ca-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.ca-dialog {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 1.75rem;
+  max-width: 440px;
+  width: 90%;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  animation: ca-slide-up 0.2s ease;
+}
+
+@keyframes ca-slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.ca-dialog-title {
+  font-family: 'Georgia', serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #2d5a6e;
+  margin: 0 0 0.75rem 0;
+}
+
+.ca-dialog-body {
+  font-size: 0.9rem;
+  color: #444;
+  line-height: 1.5;
+  margin: 0 0 1rem 0;
+}
+
+.ca-dialog-field {
+  margin-bottom: 1.25rem;
+}
+
+.ca-dialog-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #2d5a6e;
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.ca-dialog-textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.85rem;
+  border: 1.5px solid rgba(45, 90, 110, 0.3);
+  border-radius: 6px;
+  color: #2d5a6e;
+  background: #fafafa;
+  outline: none;
+  resize: vertical;
+  font-family: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.ca-dialog-textarea:focus {
+  border-color: #2d5a6e;
+}
+
+.ca-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+}
+
+.ca-dialog-btn {
+  padding: 0.5rem 1.25rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 7px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+}
+
+.ca-dialog-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ca-dialog-btn--cancel {
+  background: rgba(0, 0, 0, 0.06);
+  color: #555;
+}
+
+.ca-dialog-btn--cancel:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.ca-dialog-btn--approve {
+  background: #4caf83;
+  color: #ffffff;
+}
+
+.ca-dialog-btn--approve:hover:not(:disabled) {
+  background: #3d9e6e;
+}
+
+.ca-dialog-btn--reject {
+  background: #c0534f;
+  color: #ffffff;
+}
+
+.ca-dialog-btn--reject:hover:not(:disabled) {
+  background: #a84843;
+}
+
+@media (max-width: 520px) {
+  .ca-wrapper {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .ca-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ca-actions {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .ca-badges {
+    align-self: flex-start;
+  }
+}

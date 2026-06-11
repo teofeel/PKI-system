@@ -39,7 +39,7 @@ export class CertificatesPage implements OnInit {
           this.cdr.detectChanges();
         },
       });
-    } else if (this.role === 'USER') {
+    } else if (this.role === 'USER' || this.role === 'CA_USER') {
       this.fetchCertificatesByAccount();
     } else {
       this.isLoading = false;

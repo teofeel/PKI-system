@@ -1,5 +1,11 @@
 export enum CertificateStatus {
-  VALID = 'valid',
-  REVOKED = 'revoked',
-  EXPIRED = 'expired',
+  VALID = 'VALID',
+  REVOKED = 'REVOKED',
+  EXPIRED = 'EXPIRED',
+}
+
+export enum CertificateApprovalStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
 }

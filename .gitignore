@@ -3,3 +3,4 @@ spring/CyberSecurityBackend/secrets.env
 spring/CyberSecurityBackend/secrets.env
 spring/CyberSecurityBackend/secrets.env
 spring/CyberSecurityBackend/.env
+spring/CyberSecurityBackend/src/main/java/com/CyberSecurity/config/DataSeeder.java

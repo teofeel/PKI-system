@@ -2,6 +2,7 @@ package com.CyberSecurity.mapper;
 
 
 import com.CyberSecurity.dto.certficate.*;
+import com.CyberSecurity.enums.CertificateApprovalStatus;
 import com.CyberSecurity.enums.CertificateType;
 import com.CyberSecurity.utils.CertificateGenerator;
 import com.CyberSecurity.model.Certificate;
@@ -68,6 +69,7 @@ public class CertificateMapper {
                 .type(certificateGenerator.determineCertificateType(cert))
                 .pathLength(pathLen)
                 .encoded(cert.getEncoded())
+                .approvalStatus(CertificateApprovalStatus.PENDING)
                 .build();
     }
 
@@ -127,6 +129,36 @@ public class CertificateMapper {
                 .userId(1L)
                 .pathLen(0)
                 .build();
+    }
+
+    public CertificateApprovalDTO toCertificateApprovalDTO(Certificate certificate) {
+        String status;
+
+        if (certificate.isRevoked()) {
+            status = "REVOKED";
+        } else if (LocalDate.now().isAfter(certificate.getValidUntil())) {
+            status = "EXPIRED";
+        } else {
+            status = "VALID";
+        }
+
+        return CertificateApprovalDTO.builder()
+                .id(certificate.getId())
+                .commonName(certificate.getCommonName())
+                .organizationName(certificate.getOrganizationName())
+                .validFrom(certificate.getValidFrom())
+                .validUntil(certificate.getValidUntil())
+                .type(certificate.getType())
+                .status(status)
+                .approvalStatus(certificate.getApprovalStatus())
+                .approvedBy(certificate.getApprovedBy())
+                .approvedAt(certificate.getApprovedAt())
+                .rejectionReason(certificate.getRejectionReason())
+                .build();
+    }
+
+    public List<CertificateApprovalDTO> toCertificateApprovalDTOList(List<Certificate> certificateList) {
+        return certificateList.stream().map(this::toCertificateApprovalDTO).collect(java.util.stream.Collectors.toList());
     }
 
 }
