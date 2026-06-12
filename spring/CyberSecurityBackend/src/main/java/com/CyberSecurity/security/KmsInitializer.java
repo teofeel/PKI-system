@@ -1,11 +1,10 @@
 package com.CyberSecurity.security;
 
 import com.CyberSecurity.config.EncryptionConfig;
-import com.CyberSecurity.dto.encryption.EncryptionResult;
-import com.CyberSecurity.model.EncryptedData;
 import com.CyberSecurity.model.KmsKey;
 import com.CyberSecurity.repository.KmsRepository;
 import com.CyberSecurity.service.EncryptionService;
+import com.CyberSecurity.service.KmsService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
@@ -15,11 +14,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class KmsInitializer implements ApplicationRunner {
     @Autowired
-    private EncryptionConfig encryptionConfig;
-    @Autowired
     private KmsRepository kmsRepository;
     @Autowired
     private EncryptionService encryptionService;
+    @Autowired
+    private KmsService kmsService;
 
     @Override
     @Transactional
@@ -28,10 +27,8 @@ public class KmsInitializer implements ApplicationRunner {
             System.out.println("Generating KMS key....");
 
             byte[] key = encryptionService.generateRandomBytes(32);
-            EncryptionResult res = encryptionService.encrypt(key, encryptionConfig.getRootKey(), null, null);
 
-            KmsKey kmsKey = new KmsKey();
-            kmsKey.setEncryptedData(new EncryptedData(res.getText(), res.getIv(), res.getTag()));
+            KmsKey kmsKey = kmsService.generateKmsKey(key);
 
             kmsRepository.save(kmsKey);
         }else {
