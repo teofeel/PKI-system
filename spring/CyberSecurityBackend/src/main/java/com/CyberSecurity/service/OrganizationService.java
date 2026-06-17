@@ -10,11 +10,12 @@ import com.CyberSecurity.repository.KmsRepository;
 import com.CyberSecurity.repository.OrganizationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.KeyGenerator;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +24,7 @@ public class OrganizationService {
     private final KmsRepository kmsRepository;
     private final EncryptionService encryptionService;
     private final EncryptionConfig encryptionConfig;
+    private final KmsService kmsService;
 
     public List<Organization> getOrganizations(){
         return organizationRepository.findAll();
@@ -102,5 +104,28 @@ public class OrganizationService {
         e.setIv(r.getIv());
         e.setTag(r.getTag());
         return e;
+    }
+
+    @Transactional
+    public void rewrapAllOrganizationDataKeys(byte[] newKms) throws Exception {
+        try (Stream<Organization> stream = organizationRepository.streamAllBy()) {
+            stream.forEach(o -> {
+                try {
+                    rewrapOrganizationDataKey(o, newKms);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            organizationRepository.flush();
+
+        }
+    }
+
+    public void rewrapOrganizationDataKey(Organization organization, byte[] newKms) throws Exception {
+        byte[] unwrappedOrgDek = getUnwrappedOrganizationDataKey(organization);
+        EncryptedData encryptedOrgDek = kmsService.encryptDek(unwrappedOrgDek, newKms);
+        organization.setDataKey(encryptedOrgDek);
+        organizationRepository.save(organization);
+        System.out.println("Successfully Rewrapped DEK for " + organization.getName() + "...");
     }
 }

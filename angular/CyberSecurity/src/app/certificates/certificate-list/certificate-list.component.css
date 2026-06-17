@@ -1,3 +1,9 @@
+.cl-wrapper {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
 .cl-heading {
   font-family: 'Georgia', serif;
   font-size: 2rem;
@@ -26,7 +32,9 @@
   border: 1px solid rgba(45, 90, 110, 0.25);
   border-radius: 12px;
   padding: 0.85rem 1rem;
-  transition: background 0.18s ease, box-shadow 0.18s ease;
+  transition:
+    background 0.18s ease,
+    box-shadow 0.18s ease;
   overflow: visible;
 }
 
@@ -55,7 +63,10 @@
   align-items: center;
   justify-content: center;
   padding: 0;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.12s ease;
 }
 
 .cl-expand-btn:hover {
@@ -231,17 +242,17 @@
   color: white;
 }
 
-.cl-avatar[data-type="ROOT"] {
+.cl-avatar[data-type='ROOT'] {
   background: #b9a7e6;
   color: white;
 }
 
-.cl-avatar[data-type="INTERMEDIATE"] {
+.cl-avatar[data-type='INTERMEDIATE'] {
   background: #98d7b5;
   color: white;
 }
 
-.cl-avatar[data-type="END ENTITY"] {
+.cl-avatar[data-type='END ENTITY'] {
   background: #7fb7e6;
   color: white;
 }
@@ -270,7 +281,10 @@
   align-items: center;
   justify-content: center;
   padding: 0;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.12s ease;
 }
 
 .cl-action-btn:hover {
@@ -326,7 +340,9 @@
   font-weight: 500;
   text-align: left;
   cursor: pointer;
-  transition: background 0.12s ease, color 0.12s ease;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
   font-family: inherit;
   letter-spacing: 0.01em;
 }
@@ -410,6 +426,122 @@
   background: #1d3b4a;
 }
 
+.cl-revoke-wrapper {
+  position: relative;
+  display: inline-block;
+  padding: 1rem;
+}
+
+.cl-revoke-btn {
+  color: #a32d2d !important;
+  border-color: #a32d2d !important;
+  border-radius: 2rem;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.cl-revoke-btn:hover {
+  background: #fcebeb !important;
+}
+
+.cl-revoke-form-panel {
+  position: fixed;
+  min-width: 280px;
+  background-color: #bedce8;
+  border: 0.5px solid rgba(45, 90, 110, 0.3);
+  border-radius: 1rem;
+  padding: 14px 16px 12px;
+  z-index: 9999;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.cl-panel-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #791f1f;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.cl-reason-select,
+.cl-reason-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 13px;
+  padding: 7px 10px;
+  border-radius: 1rem;
+  border: 0.5px solid antiquewhite;
+  background: #a0c1ce;
+  color: black;
+  margin-bottom: 10px;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.cl-reason-textarea {
+  resize: vertical;
+  min-height: 68px;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.cl-reason-select:focus,
+.cl-reason-textarea:focus {
+  outline: none;
+  border-color: #a32d2d;
+  box-shadow: 0 0 0 2px rgba(163, 45, 45, 0.12);
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.cl-revoke-form-panel label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.cl-revoke-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.cl-btn-cancel {
+  background: transparent;
+  border: 0.5px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  padding: 6px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: background 0.15s;
+}
+
+.cl-btn-cancel:hover {
+  background: var(--color-background-secondary);
+}
+
+.cl-btn-revoke-confirm {
+  background: #a32d2d;
+  border: none;
+  border-radius: var(--border-radius-md);
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  color: #fff;
+  transition: background 0.15s;
+}
+
+.cl-btn-revoke-confirm:hover {
+  background: #791f1f;
+}
+
+.cl-btn-revoke-confirm:disabled {
+  background: #d3d1c7;
+  cursor: not-allowed;
+}
 .cl-radio-group {
   display: flex;
   gap: 1rem;

@@ -1,5 +1,7 @@
 package com.CyberSecurity.controller;
 import com.CyberSecurity.dto.certficate.*;
+import com.CyberSecurity.enums.CertificateApprovalStatus;
+import com.CyberSecurity.enums.RevocationReason;
 import com.CyberSecurity.exceptions.CertificateIssuingException;
 import com.CyberSecurity.exceptions.CertificateNotFoundException;
 import com.CyberSecurity.exceptions.OrganizationNotFoundException;
@@ -8,7 +10,10 @@ import com.CyberSecurity.model.Account;
 import com.CyberSecurity.model.Certificate;
 import com.CyberSecurity.enums.AccountType;
 import com.CyberSecurity.service.CertificateService;
+import com.CyberSecurity.service.CsrService;
+import com.CyberSecurity.service.RevocationService;
 import com.CyberSecurity.utils.SecurityUtil;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
@@ -22,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.security.auth.login.AccountNotFoundException;
+import java.io.Console;
 import java.nio.file.AccessDeniedException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -36,13 +42,15 @@ public class CertificateController {
     private final CertificateService certificateService;
     private final CertificateMapper certificateMapper;
     private final SecurityUtil securityUtil;
+    private final CsrService csrService;
+    private final RevocationService revocationService;
 
     @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
     @PostMapping(value = "/certificates", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> issueCertificate(@Valid @RequestBody CertificateRequestDTO dto){
-        try{
+    public ResponseEntity<String> issueCertificate(@Valid @RequestBody CertificateRequestDTO dto) {
+        try {
             X509Certificate cert = certificateService.issueCertificate(dto);
-            if (cert == null){
+            if (cert == null) {
                 return ResponseEntity.badRequest().body("Certificate not created");
             }
             String encoded = Base64.getEncoder().encodeToString(cert.getEncoded());
@@ -56,14 +64,14 @@ public class CertificateController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER', 'USER')")
     @GetMapping(value = "/accounts/{id}/certificates")
-    public ResponseEntity<List<GetCertificateListDTO>> fetchByAccount(@PathVariable long id){
-        try{
+    public ResponseEntity<List<GetCertificateListDTO>> fetchByAccount(@PathVariable long id) {
+        try {
             List<Certificate> certificates = certificateService.fetchByAccount(id);
             List<GetCertificateListDTO> certificateDTOs = certificateMapper.toGetCertificateListDTO(certificates);
             return ResponseEntity.ok(certificateDTOs);
-        }catch(AccountNotFoundException e){
+        } catch (AccountNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -71,10 +79,10 @@ public class CertificateController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(value = "/certificates/admin")
-    public ResponseEntity<List<GetCertificateListDTO>> fetchByAdmin(){
+    public ResponseEntity<List<GetCertificateListDTO>> fetchByAdmin() {
         List<Certificate> certificates = certificateService.fetchByAdmin();
         List<GetCertificateListDTO> certificateDTOs = certificateMapper.toGetCertificateListDTO(certificates);
-        return  ResponseEntity.ok(certificateDTOs);
+        return ResponseEntity.ok(certificateDTOs);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
@@ -84,17 +92,17 @@ public class CertificateController {
         List<GetCertificateListDTO> certificateDTOs = certificateMapper.toGetCertificateListDTO(certificates);
         return ResponseEntity.ok(certificateDTOs);
     }
-    
+
     @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
     @GetMapping(value = "/get-parent-ca", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Collection<ParentCAResponseDTO>> getAllParentCA
-            (@AuthenticationPrincipal Account account){
+            (@AuthenticationPrincipal Account account) {
         if (account == null) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         AccountType type = account.getAccountType();
         Long orgId = null;
-        if (!AccountType.ADMIN.equals(type)){
+        if (!AccountType.ADMIN.equals(type)) {
             orgId = account.getUser().getOrganization().getId();
         }
         List<ParentCAResponseDTO> parentCAs = certificateService.getAllParentCA(type, orgId);
@@ -108,16 +116,16 @@ public class CertificateController {
             @AuthenticationPrincipal Account acc,
             @PathVariable long id,
             @RequestParam(value = "format", defaultValue = "pem") String format
-    ){
-        try{
+    ) {
+        try {
             DownloadCertNoPkDTO data;
 
-            if("pem".equalsIgnoreCase(format)){
+            if ("pem".equalsIgnoreCase(format)) {
                 data = certificateService.exportCertAsPem(acc.getId(), id);
 
-            }else if("cer".equalsIgnoreCase(format)) {
+            } else if ("cer".equalsIgnoreCase(format)) {
                 data = certificateService.exportCertAsCerBytes(acc.getId(), id);
-            }else
+            } else
                 throw new IllegalStateException();
 
             ContentDisposition contentDisposition = ContentDisposition.attachment()
@@ -131,13 +139,13 @@ public class CertificateController {
                         headers.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
                     })
                     .body(data.getCert());
-        }catch(CertificateNotFoundException e){
+        } catch (CertificateNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch(AccessDeniedException e){
+        } catch (AccessDeniedException e) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        } catch(IllegalStateException | IllegalArgumentException e){
+        } catch (IllegalStateException | IllegalArgumentException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } catch(Exception e){
+        } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -164,17 +172,17 @@ public class CertificateController {
     @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER', 'USER')")
     @GetMapping(value = "/certificates/ca")
     public ResponseEntity<Collection<CertificateDropdownListDTO>> getAllCa
-            (@AuthenticationPrincipal Account account){
+            (@AuthenticationPrincipal Account account) {
         if (account == null)
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 
-        try{
+        try {
             List<CertificateDropdownListDTO> dto = certificateService.getAllCA();
             return new ResponseEntity<>(dto, HttpStatus.OK);
 
-        }catch(OrganizationNotFoundException e){
+        } catch (OrganizationNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch(Exception e){
+        } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -189,24 +197,25 @@ public class CertificateController {
     ){
         try{
             if(data == null) throw new IllegalStateException("Certificate data is missing");
+            AutogeneratedCertificateResponseDTO cert = csrService.issueAutogenerateEECertificate(data);
 
-            AutogeneratedCertificateResponseDTO cert = certificateService.issueAutogenerateEECertificate(data);
             MediaType mediaType;
             String fileExtension;
 
-            if("pkcs12".equalsIgnoreCase(data.getExportFormat())){
+            if ("pkcs12".equalsIgnoreCase(data.getExportFormat())) {
                 mediaType = MediaType.parseMediaType("application/x-pkcs12");
                 fileExtension = ".p12";
-            }else if("jks".equalsIgnoreCase(data.getExportFormat())) {
+            } else if ("jks".equalsIgnoreCase(data.getExportFormat())) {
                 mediaType = MediaType.APPLICATION_OCTET_STREAM;
                 fileExtension = ".jks";
-            }else
+            } else
                 throw new IllegalStateException("Unsupported export format");
 
             String finalFilename = securityUtil.sanitizeFilename(data.getCommonName()) + fileExtension;
             ContentDisposition contentDisposition = ContentDisposition.attachment()
                     .filename(finalFilename)
                     .build();
+
 
             return ResponseEntity.ok()
                     .contentType(mediaType)
@@ -218,11 +227,11 @@ public class CertificateController {
                     })
                     .body(cert.getCertificate());
 
-        } catch(OrganizationNotFoundException | CertificateNotFoundException e){
+        } catch (OrganizationNotFoundException | CertificateNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch(IllegalArgumentException | IllegalStateException | CertificateException e){
+        } catch (IllegalArgumentException | IllegalStateException | CertificateException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } catch(Exception e){
+        } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -236,16 +245,110 @@ public class CertificateController {
             ){
         try{
             if(data == null || file.isEmpty()) throw new IllegalArgumentException("Data is missing");
-
-            Long certId = certificateService.issueCsrEECertificate(data, file.getBytes());
-
+            System.out.println(1);
+            Long certId = csrService.issueCsrEECertificate(acc, data, file.getBytes());
+            System.out.println(1);
             return new ResponseEntity<Long>(certId, HttpStatus.OK);
 
-        }catch(OrganizationNotFoundException | CertificateNotFoundException e){
+        } catch (OrganizationNotFoundException | CertificateNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch(IllegalArgumentException | IllegalStateException | CertificateException e){
+        } catch (IllegalArgumentException | IllegalStateException | CertificateException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } catch(Exception e){
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER', 'USER')")
+    @PostMapping(value = "/certificates/revoke", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> revokeCertificate(@RequestBody RevokeCertificateDTO dto) {
+        try {
+            revocationService.revoke(dto.getId(), RevocationReason.valueOf(dto.getRevokeReason()));
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
+    @GetMapping(value = "/certificates/pending")
+    public ResponseEntity<List<CertificateApprovalDTO>> getPendingCertificates(
+            @AuthenticationPrincipal Account account) {
+        if (account == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        try {
+            List<Certificate> pending = csrService.getPendingCertificates(account);
+            List<CertificateApprovalDTO> dtoList = certificateMapper.toCertificateApprovalDTOList(pending);
+            return ResponseEntity.ok(dtoList);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
+    @GetMapping(value = "/certificates/rejected")
+    public ResponseEntity<List<CertificateApprovalDTO>> getRejectedCertificates(
+            @AuthenticationPrincipal Account account) {
+        if (account == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        try {
+            List<Certificate> rejected = csrService.getRejectedCertificates(account);
+            List<CertificateApprovalDTO> dtoList = certificateMapper.toCertificateApprovalDTOList(rejected);
+            return ResponseEntity.ok(dtoList);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
+    @PostMapping(value = "/certificates/{id}/approve")
+    public ResponseEntity<CertificateApprovalDTO> approveCertificate(
+            @AuthenticationPrincipal Account account,
+            @PathVariable Long id) {
+        if (account == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        try {
+            Certificate approved = csrService.approveCertificate(id, account);
+            CertificateApprovalDTO dto = certificateMapper.toCertificateApprovalDTO(approved);
+            return ResponseEntity.ok(dto);
+        } catch (CertificateNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (IllegalStateException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (SecurityException e) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
+    @PostMapping(value = "/certificates/{id}/reject")
+    public ResponseEntity<CertificateApprovalDTO> rejectCertificate(
+            @AuthenticationPrincipal Account account,
+            @PathVariable Long id,
+            @RequestBody(required = false) ApproveRejectRequestDTO request) {
+        if (account == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        try {
+            String reason = (request != null) ? request.getRejectionReason() : null;
+            Certificate rejected = csrService.rejectCertificate(id, account, reason);
+            CertificateApprovalDTO dto = certificateMapper.toCertificateApprovalDTO(rejected);
+            return ResponseEntity.ok(dto);
+        } catch (CertificateNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (IllegalStateException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (SecurityException e) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

@@ -16,7 +16,7 @@
 
         @if (authService.role() !== 'USER') {
           <a routerLink="/generate-certificate" class="nav-item">Issue Certificate</a>
-          
+          <a routerLink="/ca-approval" class="nav-item">CA Approvals</a>
         }
       }
     </div>

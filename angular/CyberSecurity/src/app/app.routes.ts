@@ -9,6 +9,7 @@ import { CertificatesPage } from './certificates/certificates-page/certificates-
 import { Profile } from './profile/profile';
 import { CertificateSigningRequest } from './certificates/certificate-signing-request/certificate-signing-request';
 import { ChangePasswordComponent } from './auth/change-password/change-password.component';
+import { CaApprovalPage } from './certificates/ca-approval-page/ca-approval-page';
 
 
 export const routes: Routes = [
@@ -51,5 +52,9 @@ export const routes: Routes = [
   {
     path: 'change-password',
     component: ChangePasswordComponent,
+  },
+  {
+    path: 'ca-approval',
+    component: CaApprovalPage,
   },
 ];

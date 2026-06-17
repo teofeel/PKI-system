@@ -38,6 +38,8 @@ export class CertificateSigningRequest implements OnInit {
 
   generatedCertId: number | null = null;
 
+  showToast = false;
+  toastMessage = '';
 
   constructor(
     private readonly fb: FormBuilder, 
@@ -51,6 +53,15 @@ export class CertificateSigningRequest implements OnInit {
     this.initForms();
     this.prepareOrg();
     this.prepareParentCA();
+  }
+
+
+  triggerToast(message: string) {
+    this.toastMessage = message;
+    this.showToast = true;
+    setTimeout(() => {
+      this.showToast = false;
+    }, 3000); 
   }
 
   prepareOrg() {
@@ -102,8 +113,9 @@ export class CertificateSigningRequest implements OnInit {
       parentCAId: [''], 
       validFrom: ['', Validators.required],
       validTo: ['', Validators.required],
-      exportFormat: ['pkcs12', Validators.required], 
-      keystorePassword: ['', Validators.required]
+      exportFormat: ['pkcs12', Validators.required],
+      keystorePassword: ['', Validators.required],
+      alias: ['']
     });
 
     this.csrForm = this.fb.group({
@@ -171,6 +183,7 @@ export class CertificateSigningRequest implements OnInit {
       validTo: formValue.validTo,
       exportFormat: formValue.exportFormat,
       keystorePassword: formValue.keystorePassword,
+      alias: formValue.alias || undefined,
       userId: this.authService.getId()
     }
 
@@ -190,12 +203,14 @@ export class CertificateSigningRequest implements OnInit {
           const certId = response.headers.get('X-Certificate-Id');
           console.log("Generisan ID:", certId);
           this.generatedCertId = Number(certId);
-        
+
           window.URL.revokeObjectURL(url);
         }
-        
+
         this.generationMethod = 'AUTO';
         this.setState('SUCCESS');
+        this.triggerToast('Certificate generated successfully');
+        //this.resetWorkflow();
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -224,7 +239,12 @@ export class CertificateSigningRequest implements OnInit {
             this.generatedCertId = certID;
             this.generationMethod = 'UPLOAD';
             this.setState('SUCCESS');
+            this.triggerToast('CSR processed');
+
+            //this.resetWorkflow();
+
             this.cdr.detectChanges();
+
         },
         error: (err) => {
           alert("Couldn't generate EE cert");

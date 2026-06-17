@@ -1,4 +1,4 @@
-import { CertificateStatus } from './certificate-status';
+import { CertificateApprovalStatus, CertificateStatus } from './certificate-status';
 import { CertificateType } from './certificate-type';
 
 export interface CertificateListItem {
@@ -12,4 +12,23 @@ export interface CertificateListItem {
   children?: CertificateListItem[];
   isExpanded?: boolean;
   isLoading?: boolean;
+  showRevokeForm?: boolean;
+  revokeReason?: string;
+  revokeNote?: string;
 }
+
+export interface CertificateApprovalItem {
+  id: number;
+  commonName: string;
+  organizationName: string;
+  validFrom: string;
+  validUntil: string;
+  type: CertificateType;
+  status: string;
+  approvalStatus: CertificateApprovalStatus;
+  approvedBy: string | null;
+  approvedAt: string | null;
+  rejectionReason: string | null;
+}
+
+

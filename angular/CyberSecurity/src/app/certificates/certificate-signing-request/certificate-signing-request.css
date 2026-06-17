@@ -221,7 +221,6 @@ select.pki-input {
 }
 
 .upload-zone {
-  border: 2px dashed var(--title-color);
   border-radius: var(--border-radius-input);
   background-color: var(--input-bg-light);
   padding: 3rem 2rem;
@@ -479,4 +478,22 @@ select.pki-input {
   .input-group {
     width: 100%;
   }
+}
+
+
+.toast-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  color: red;
+  padding: 16px 24px;
+  border-radius: 4px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  z-index: 1000;
+  animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

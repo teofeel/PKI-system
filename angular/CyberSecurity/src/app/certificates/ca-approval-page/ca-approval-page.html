@@ -1,0 +1,164 @@
+<div class="ca-wrapper">
+  <h1 class="ca-heading">CA Approval</h1>
+
+  <div class="ca-tabs">
+    <button
+      class="ca-tab"
+      [class.ca-tab--active]="activeTab === 'pending'"
+      (click)="setTab('pending')"
+    >
+      Pending
+    </button>
+    <button
+      class="ca-tab"
+      [class.ca-tab--active]="activeTab === 'rejected'"
+      (click)="setTab('rejected')"
+    >
+      Rejected
+    </button>
+  </div>
+
+  <div class="ca-message ca-message--error" *ngIf="errorMessage">
+    {{ errorMessage }}
+    <button class="ca-message-close" (click)="errorMessage = null" aria-label="Dismiss">&times;</button>
+  </div>
+
+  <div class="ca-message ca-message--success" *ngIf="successMessage">
+    {{ successMessage }}
+    <button class="ca-message-close" (click)="successMessage = null" aria-label="Dismiss">&times;</button>
+  </div>
+
+  <div class="ca-loader" *ngIf="isLoading">Loading certificates...</div>
+
+  <ng-container *ngIf="activeTab === 'pending' && !isLoading">
+    <p class="ca-empty" *ngIf="pendingCertificates.length === 0">
+      No pending certificate requests.
+    </p>
+
+    <ul class="ca-list" *ngIf="pendingCertificates.length > 0">
+      <li class="ca-item" *ngFor="let cert of pendingCertificates">
+        <div class="ca-avatar" [attr.data-type]="cert.type">
+          {{ getTypeInitials(cert.type) }}
+        </div>
+
+        <div class="ca-info">
+          <span class="ca-domain">{{ cert.commonName }}</span>
+          <span class="ca-meta">
+            {{ cert.organizationName }} &middot;
+            {{ cert.validFrom }} &rarr; {{ cert.validUntil }}
+          </span>
+        </div>
+
+        <div class="ca-badges">
+          <span class="ca-badge ca-badge--type">{{ cert.type }}</span>
+          <span class="ca-badge ca-badge--pending">PENDING</span>
+        </div>
+
+        <div class="ca-actions">
+          <button
+            class="ca-btn ca-btn--approve"
+            (click)="openApproveDialog(cert)"
+            title="Approve certificate"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ca-btn-icon">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Approve
+          </button>
+          <button
+            class="ca-btn ca-btn--reject"
+            (click)="openRejectDialog(cert)"
+            title="Reject certificate"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ca-btn-icon">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+            Reject
+          </button>
+        </div>
+      </li>
+    </ul>
+  </ng-container>
+
+  <ng-container *ngIf="activeTab === 'rejected' && !isLoading">
+    <p class="ca-empty" *ngIf="rejectedCertificates.length === 0">
+      No rejected certificates.
+    </p>
+
+    <ul class="ca-list" *ngIf="rejectedCertificates.length > 0">
+      <li class="ca-item ca-item--rejected" *ngFor="let cert of rejectedCertificates">
+        <div class="ca-avatar" [attr.data-type]="cert.type">
+          {{ getTypeInitials(cert.type) }}
+        </div>
+
+        <div class="ca-info">
+          <span class="ca-domain">{{ cert.commonName }}</span>
+          <span class="ca-meta">
+            {{ cert.organizationName }} &middot;
+            {{ cert.validFrom }} &rarr; {{ cert.validUntil }}
+          </span>
+          <span class="ca-meta ca-meta--rejected">
+            Rejected by {{ cert.approvedBy }} on {{ cert.approvedAt | date: 'yyyy-MM-dd HH:mm' }}
+          </span>
+          <span class="ca-meta ca-meta--reason" *ngIf="cert.rejectionReason">
+            Reason: {{ cert.rejectionReason }}
+          </span>
+        </div>
+
+        <div class="ca-badges">
+          <span class="ca-badge ca-badge--type">{{ cert.type }}</span>
+          <span class="ca-badge ca-badge--rejected-status">REJECTED</span>
+        </div>
+      </li>
+    </ul>
+  </ng-container>
+</div>
+
+<div class="ca-overlay" *ngIf="showConfirmDialog" (click)="cancelDialog()">
+  <div class="ca-dialog" (click)="$event.stopPropagation()">
+    <h2 class="ca-dialog-title">
+      {{ confirmAction === 'approve' ? 'Approve Certificate' : 'Reject Certificate' }}
+    </h2>
+
+    <p class="ca-dialog-body" *ngIf="confirmAction === 'approve'">
+      Are you sure you want to approve {{ confirmCert?.commonName }}
+    </p>
+
+    <p class="ca-dialog-body" *ngIf="confirmAction === 'reject'">
+      Are you sure you want to reject {{ confirmCert?.commonName }}?
+    </p>
+
+    <div class="ca-dialog-field" *ngIf="confirmAction === 'reject'">
+      <label class="ca-dialog-label" for="rejectReason">Rejection Reason (optional)</label>
+      <textarea
+        id="rejectReason"
+        class="ca-dialog-textarea"
+        [(ngModel)]="rejectReason"
+        placeholder="Enter reason for rejection..."
+        rows="2"
+      ></textarea>
+    </div>
+
+    <div class="ca-dialog-actions">
+      <button
+        class="ca-dialog-btn ca-dialog-btn--cancel"
+        (click)="cancelDialog()"
+        [disabled]="actionInProgress"
+      >
+        Cancel
+      </button>
+      <button
+        class="ca-dialog-btn"
+        [class.ca-dialog-btn--approve]="confirmAction === 'approve'"
+        [class.ca-dialog-btn--reject]="confirmAction === 'reject'"
+        (click)="confirmActionHandler()"
+        [disabled]="actionInProgress"
+      >
+        {{ actionInProgress ? 'Processing...' : (confirmAction === 'approve' ? 'Approve' : 'Reject') }}
+      </button>
+    </div>
+  </div>
+</div>

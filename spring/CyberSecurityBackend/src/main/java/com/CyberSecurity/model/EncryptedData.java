@@ -1,6 +1,5 @@
 package com.CyberSecurity.model;
 
-import com.CyberSecurity.dto.encryption.EncryptionResult;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
@@ -25,12 +24,4 @@ public class EncryptedData {
     // tag to check if someone modified encrypted key manually in db
     @Column(nullable = false, length=32)
     private String tag;
-
-    public EncryptedData toEntity(EncryptionResult r) {
-        EncryptedData e = new EncryptedData();
-        e.setEncryptedText(r.getText());
-        e.setIv(r.getIv());
-        e.setTag(r.getTag());
-        return e;
-    }
 }

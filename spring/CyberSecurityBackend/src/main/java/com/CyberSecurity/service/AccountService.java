@@ -27,9 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.security.PublicKey;
-import java.sql.Timestamp;
 import java.time.Instant;
-import java.time.temporal.TemporalUnit;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
@@ -62,7 +60,8 @@ public class AccountService {
     public LoginResponseDTO login(Account account){
         if (account.getAccountStatus() == AccountStatus.UNVERIFIED)
             throw new AccountNotVerifiedException("Account has not been verified");
-        String refreshToken = jwtService.generateRefreshToken(account);
+        String refreshToken = "";
+        if(!account.isUsing2FA()) refreshToken = jwtService.generateRefreshToken(account);
         String accessToken;
         if(account.isUsing2FA()) accessToken = jwtService.generateShortToken(account);
         else accessToken = jwtService.generateAccessToken(account);

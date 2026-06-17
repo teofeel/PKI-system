@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { CertificateRequest } from '../model/certificate-request';
-import { CertificateListItem } from '../model/certificate-item-list';
+import { CertificateApprovalItem, CertificateListItem } from '../model/certificate-item-list';
 import { CertificateResponse } from '../model/certificate-response';
 
 import { Observable } from 'rxjs';
@@ -15,16 +15,18 @@ import { AutoGenerateRequestDTO } from '../model/auto-generate-request';
   providedIn: 'root',
 })
 export class CertificateService {
-  constructor(private readonly http: HttpClient) { }
+  constructor(private readonly http: HttpClient) {}
 
   issue(certRequest: CertificateRequest): Observable<string> {
     return this.http.post(`${environment.apiHost}/certificates`, certRequest, {
-      responseType: 'text'
+      responseType: 'text',
     });
   }
 
   fetchCertificatesByAccount(accountId: number | string): Observable<CertificateListItem[]> {
-    return this.http.get<CertificateListItem[]>(`${environment.apiHost}/accounts/${accountId}/certificates`);
+    return this.http.get<CertificateListItem[]>(
+      `${environment.apiHost}/accounts/${accountId}/certificates`,
+    );
   }
 
   getAdminCertificates(): Observable<CertificateListItem[]> {
@@ -44,7 +46,7 @@ export class CertificateService {
     return this.http.get(`${environment.apiHost}/certificates/${certId}/export-no-pk`, {
       params: { format },
       observe: 'response',
-      responseType: 'blob'
+      responseType: 'blob',
     });
   }
 
@@ -56,22 +58,49 @@ export class CertificateService {
 
     return this.http.post(`${environment.apiHost}/${certId}/export-keystore`, body, {
       observe: 'response',
-      responseType: 'blob'
+      responseType: 'blob',
     });
   }
 
-  getAllCA(): Observable<CertificateDropdownListDTO[]>{
+  getAllCA(): Observable<CertificateDropdownListDTO[]> {
     return this.http.get<CertificateDropdownListDTO[]>(`${environment.apiHost}/certificates/ca`);
   }
 
-  generateEECert(data: AutoGenerateRequestDTO){
+  generateEECert(data: AutoGenerateRequestDTO) {
     return this.http.post(`${environment.apiHost}/certificates/ee/autogenerate`, data, {
       observe: 'response',
-      responseType: 'blob'
+      responseType: 'blob',
     });
   }
 
-  generateCsrEECert(formData: FormData): Observable<number>{
-    return this.http.post<number>(`${environment.apiHost}/certificates/ee/csr`, formData)
+  generateCsrEECert(formData: FormData): Observable<number> {
+    return this.http.post<number>(`${environment.apiHost}/certificates/ee/csr`, formData);
+  }
+
+  revoke(cert: CertificateListItem) {
+    return this.http.post<any>(`${environment.apiHost}/certificates/revoke`, cert);
+  }
+
+  getPendingCertificates(): Observable<CertificateApprovalItem[]> {
+    return this.http.get<CertificateApprovalItem[]>(`${environment.apiHost}/certificates/pending`);
+  }
+
+  getRejectedCertificates(): Observable<CertificateApprovalItem[]> {
+    return this.http.get<CertificateApprovalItem[]>(`${environment.apiHost}/certificates/rejected`);
+  }
+
+  getInactiveCertificates(): Observable<CertificateApprovalItem[]> {
+    return this.http.get<CertificateApprovalItem[]>(`${environment.apiHost}/certificates/inactive`);
+  }
+
+  approveCertificate(id: number): Observable<CertificateApprovalItem> {
+    return this.http.post<CertificateApprovalItem>(`${environment.apiHost}/certificates/${id}/approve`, {});
+  }
+
+  rejectCertificate(id: number, reason?: string): Observable<CertificateApprovalItem> {
+    return this.http.post<CertificateApprovalItem>(`${environment.apiHost}/certificates/${id}/reject`, {
+      certificateId: id,
+      rejectionReason: reason || null
+    });
   }
 }
